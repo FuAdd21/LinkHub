@@ -26,6 +26,9 @@ const LinkItem = ({
   id,
   title,
   url,
+  platform,
+  username,
+  profileData,
   index,
   moveLink,
   startEdit,
@@ -62,6 +65,37 @@ const LinkItem = ({
     }
   };
 
+  const getPlatformIcon = () => {
+    const icons = {
+      github: "🐙",
+      youtube: "▶️",
+      instagram: "📸",
+      tiktok: "🎵",
+      twitter: "🐦",
+      linkedin: "💼",
+      facebook: "📘",
+      telegram: "✈️",
+    };
+    return icons[platform] || null;
+  };
+
+  const getPlatformColor = () => {
+    const colors = {
+      github: "from-gray-600 to-gray-700",
+      youtube: "from-red-600 to-red-700",
+      instagram: "from-pink-500 to-purple-600",
+      tiktok: "from-black to-gray-800",
+      twitter: "from-blue-400 to-blue-600",
+      linkedin: "from-blue-700 to-blue-800",
+      facebook: "from-blue-600 to-blue-700",
+      telegram: "from-blue-400 to-cyan-500",
+    };
+    return colors[platform] || "from-purple-500 to-pink-500";
+  };
+
+  const displayImage = profileData?.avatar || getFavicon(url);
+  const displayName = profileData?.name || title;
+
   return (
     <motion.div
       ref={(node) => drag(drop(node))}
@@ -73,21 +107,44 @@ const LinkItem = ({
       className="group relative bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4 cursor-move transition-all duration-300 hover:border-white/20 hover:shadow-lg hover:shadow-purple-500/10"
     >
       <div className="flex items-center gap-4">
-        <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
-          <img
-            src={getFavicon(url)}
-            alt=""
-            className="w-5 h-5"
-            onError={(e) => {
-              e.target.style.display = "none";
-            }}
-          />
-          {!url && <LinkIcon className="w-5 h-5 text-purple-400" />}
+        <div
+          className={`flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br ${getPlatformColor()} flex items-center justify-center overflow-hidden`}
+        >
+          {displayImage ? (
+            <img
+              src={displayImage}
+              alt={displayName}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.style.display = "none";
+                e.target.nextSibling?.classList.remove("hidden");
+              }}
+            />
+          ) : null}
+          <span className={`${displayImage ? "hidden" : ""} text-xl`}>
+            {getPlatformIcon() || <LinkIcon className="w-5 h-5 text-white" />}
+          </span>
         </div>
 
         <div className="flex-1 min-w-0">
-          <h4 className="text-white font-medium truncate text-sm">{title}</h4>
-          <p className="text-gray-400 text-xs truncate mt-0.5">{url}</p>
+          <div className="flex items-center gap-2">
+            <h4 className="text-white font-medium truncate text-sm">
+              {displayName}
+            </h4>
+            {profileData?.verified && (
+              <span className="text-blue-400 text-xs" title="Verified">
+                ✓
+              </span>
+            )}
+          </div>
+          <p className="text-gray-400 text-xs truncate mt-0.5">
+            {profileData?.bio || url}
+          </p>
+          {profileData?.followers !== undefined && (
+            <p className="text-gray-500 text-xs mt-1">
+              {profileData.followers.toLocaleString()} followers
+            </p>
+          )}
         </div>
 
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -240,7 +297,10 @@ const AdminDashboard = () => {
           setAvatar(`http://localhost:3002${userRes.data.avatar}`);
         }
       } catch (err) {
-        setError(err.response?.data?.message || "Error loading data");
+        console.error("Dashboard fetch error:", err);
+        setError(
+          err.response?.data?.message || err.message || "Error loading data",
+        );
       } finally {
         setLoading(false);
       }
