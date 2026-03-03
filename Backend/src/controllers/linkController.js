@@ -1,6 +1,7 @@
 import { db } from "../config/db.js";
 import { detectPlatform } from "../utils/detectPlatform.js";
 import { fetchProfileData } from "../services/profileFetcher.js";
+import { fetchSocialProfile } from "../services/socialFetchService.js";
 
 export const getLinks = async (req, res) => {
   try {
@@ -9,7 +10,7 @@ export const getLinks = async (req, res) => {
       return res.status(401).json({ message: "Invalid token - no user id" });
     }
     const [results] = await db.query(
-      "SELECT id, title, url, platform, username, profileData FROM links WHERE user_id = ? ORDER BY id DESC",
+      "SELECT id, title, url, platform, username, profileData, avatar_url FROM links WHERE user_id = ? ORDER BY id DESC",
       [userId],
     );
     res.json(results);
@@ -32,6 +33,7 @@ export const createLink = async (req, res) => {
     const platformInfo = detectPlatform(url);
     let profileData = null;
     let username = platformInfo.username;
+    let avatar_url = null;
 
     // Fetch profile data if platform is supported
     if (platformInfo.platform && platformInfo.username) {
@@ -46,10 +48,20 @@ export const createLink = async (req, res) => {
           fetchErr.message,
         );
       }
+
+      // Also fetch social profile for avatar
+      try {
+        const socialResult = await fetchSocialProfile(url);
+        if (socialResult.success && socialResult.avatar) {
+          avatar_url = socialResult.avatar;
+        }
+      } catch (socialErr) {
+        console.log("Social profile fetch failed:", socialErr.message);
+      }
     }
 
     const [result] = await db.query(
-      "INSERT INTO links (user_id, title, url, platform, username, profileData) VALUES (?, ?, ?, ?, ?, ?)",
+      "INSERT INTO links (user_id, title, url, platform, username, profileData, avatar_url) VALUES (?, ?, ?, ?, ?, ?, ?)",
       [
         userId,
         title,
@@ -57,6 +69,7 @@ export const createLink = async (req, res) => {
         platformInfo.platform,
         username,
         profileData ? JSON.stringify(profileData) : null,
+        avatar_url,
       ],
     );
 

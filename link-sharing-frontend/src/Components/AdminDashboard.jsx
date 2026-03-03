@@ -5,20 +5,25 @@ import axios from "axios";
 import { DndProvider, useDrag, useDrop } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import toast from "react-hot-toast";
+import SocialProfilesSection from "./SocialProfilesSection";
 import {
   Link as LinkIcon,
   Plus,
-  Trash2,
-  Edit3,
-  LogOut,
-  Upload,
-  TrendingUp,
-  Users,
-  Globe,
   Copy,
   Check,
+  Edit3,
+  Trash2,
+  Globe,
+  TrendingUp,
+  User,
+  Camera,
+  Upload,
+  LogOut,
   X,
 } from "lucide-react";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
 
 const ItemType = "LINK";
 
@@ -29,6 +34,7 @@ const LinkItem = ({
   platform,
   username,
   profileData,
+  avatar_url,
   index,
   moveLink,
   startEdit,
@@ -93,8 +99,18 @@ const LinkItem = ({
     return colors[platform] || "from-purple-500 to-pink-500";
   };
 
-  const displayImage = profileData?.avatar || getFavicon(url);
+  const displayImage = avatar_url || profileData?.avatar || getFavicon(url);
   const displayName = profileData?.name || title;
+  const displayUsername = username || platform || "profile";
+  const platformLabel = platform
+    ? platform.charAt(0).toUpperCase() + platform.slice(1)
+    : "Link";
+
+  const handleVisit = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (url) window.open(url, "_blank");
+  };
 
   return (
     <motion.div
@@ -107,29 +123,34 @@ const LinkItem = ({
       className="group relative bg-gradient-to-r from-white/10 to-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-4 cursor-move transition-all duration-300 hover:border-white/20 hover:shadow-lg hover:shadow-purple-500/10"
     >
       <div className="flex items-center gap-4">
-        <div
-          className={`flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br ${getPlatformColor()} flex items-center justify-center overflow-hidden`}
-        >
+        <div className="relative flex-shrink-0">
           {displayImage ? (
             <img
               src={displayImage}
               alt={displayName}
-              className="w-full h-full object-cover"
+              className="w-12 h-12 rounded-full object-cover border border-white/20 shadow-lg"
               onError={(e) => {
-                e.target.style.display = "none";
-                e.target.nextSibling?.classList.remove("hidden");
+                e.currentTarget.style.display = "none";
+                e.currentTarget.nextSibling?.classList.remove("hidden");
               }}
             />
           ) : null}
-          <span className={`${displayImage ? "hidden" : ""} text-xl`}>
-            {getPlatformIcon() || <LinkIcon className="w-5 h-5 text-white" />}
-          </span>
+          <div
+            className={`${displayImage ? "hidden" : ""} w-12 h-12 rounded-full bg-gradient-to-br ${getPlatformColor()} flex items-center justify-center text-white font-semibold shadow-lg`}
+          >
+            {(displayUsername || "?").charAt(0).toUpperCase()}
+          </div>
+          <div
+            className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-gradient-to-br ${getPlatformColor()} flex items-center justify-center border border-white/40`}
+          >
+            <span className="text-[10px]">{getPlatformIcon() || "🔗"}</span>
+          </div>
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h4 className="text-white font-medium truncate text-sm">
-              {displayName}
+              {platformLabel}
             </h4>
             {profileData?.verified && (
               <span className="text-blue-400 text-xs" title="Verified">
@@ -137,14 +158,18 @@ const LinkItem = ({
               </span>
             )}
           </div>
-          <p className="text-gray-400 text-xs truncate mt-0.5">
-            {profileData?.bio || url}
+
+          <p className="text-white/70 text-xs truncate mt-0.5">
+            @{displayUsername}
           </p>
-          {profileData?.followers !== undefined && (
-            <p className="text-gray-500 text-xs mt-1">
-              {profileData.followers.toLocaleString()} followers
-            </p>
-          )}
+
+          <button
+            onClick={handleVisit}
+            className="text-white/50 text-xs mt-1 hover:text-white transition-colors"
+            type="button"
+          >
+            Visit on {platformLabel} →
+          </button>
         </div>
 
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -263,6 +288,8 @@ const AdminDashboard = () => {
   const { user, logout } = useContext(AuthContext);
   const fileInputRef = useRef(null);
 
+  const [me, setMe] = useState(null);
+
   const [links, setLinks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -279,23 +306,38 @@ const AdminDashboard = () => {
   const [avatarFile, setAvatarFile] = useState(null);
   const [uploading, setUploading] = useState(false);
 
+  // Social profiles form state
+  const [socialForm, setSocialForm] = useState({
+    youtubeId: "",
+    githubUser: "",
+    telegramUser: "",
+  });
+  const [showSocialForm, setShowSocialForm] = useState(false);
+
   // Fetch user + links
   useEffect(() => {
     const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
         const [userRes, linksRes] = await Promise.all([
-          axios.get("http://localhost:3002/api/users/me", {
+          axios.get(`${API_BASE_URL}/api/users/me`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          axios.get("http://localhost:3002/api/mylinks", {
+          axios.get(`${API_BASE_URL}/api/mylinks`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
+        setMe(userRes.data);
         setLinks(linksRes.data);
         if (userRes.data.avatar) {
-          setAvatar(`http://localhost:3002${userRes.data.avatar}`);
+          setAvatar(`${API_BASE_URL}${userRes.data.avatar}`);
         }
+        // Populate social form with existing data
+        setSocialForm({
+          youtubeId: userRes.data.youtubeId || "",
+          githubUser: userRes.data.githubUser || "",
+          telegramUser: userRes.data.telegramUser || "",
+        });
       } catch (err) {
         console.error("Dashboard fetch error:", err);
         setError(
@@ -315,11 +357,11 @@ const AdminDashboard = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:3002/api/mylinks",
+        `${API_BASE_URL}/api/mylinks`,
         { title: newTitle, url: newUrl },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      const res = await axios.get("http://localhost:3002/api/mylinks", {
+      const res = await axios.get(`${API_BASE_URL}/api/mylinks`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setLinks(res.data);
@@ -343,11 +385,11 @@ const AdminDashboard = () => {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `http://localhost:3002/api/mylinks/${editingLink.id}`,
+        `${API_BASE_URL}/api/mylinks/${editingLink.id}`,
         { title: editTitle, url: editUrl },
         { headers: { Authorization: `Bearer ${token}` } },
       );
-      const res = await axios.get("http://localhost:3002/api/mylinks", {
+      const res = await axios.get(`${API_BASE_URL}/api/mylinks`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setLinks(res.data);
@@ -362,7 +404,7 @@ const AdminDashboard = () => {
     if (!window.confirm("Delete this link?")) return;
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:3002/api/mylinks/${id}`, {
+      await axios.delete(`${API_BASE_URL}/api/mylinks/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setLinks((prev) => prev.filter((link) => link.id !== id));
@@ -379,13 +421,34 @@ const AdminDashboard = () => {
     setLinks(updated);
     const token = localStorage.getItem("token");
     await axios.put(
-      "http://localhost:3002/api/mylinks/order",
+      `${API_BASE_URL}/api/mylinks/order`,
       { order: updated.map((l) => l.id) },
       { headers: { Authorization: `Bearer ${token}` } },
     );
   };
 
   // Avatar Upload Logic
+  const handleSocialSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem("token");
+      await axios.put(`${API_BASE_URL}/api/users/social-profiles`, socialForm, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      // Refresh user data
+      const userRes = await axios.get(`${API_BASE_URL}/api/users/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMe(userRes.data);
+
+      setShowSocialForm(false);
+      toast.success("Social profiles updated!");
+    } catch {
+      toast.error("Error updating social profiles");
+    }
+  };
+
   const handleAvatarClick = () => {
     fileInputRef.current.click();
   };
@@ -403,12 +466,12 @@ const AdminDashboard = () => {
   const handleAvatarUpload = async () => {
     try {
       setUploading(true);
+      const token = localStorage.getItem("token");
       const formData = new FormData();
       formData.append("avatar", avatarFile);
 
-      const token = localStorage.getItem("token");
-      const res = await axios.put(
-        "http://localhost:3002/api/users/avatar",
+      const res = await axios.post(
+        `${API_BASE_URL}/api/users/avatar`,
         formData,
         {
           headers: {
@@ -418,7 +481,7 @@ const AdminDashboard = () => {
         },
       );
 
-      setAvatar(`http://localhost:3002${res.data.avatar}`);
+      setAvatar(`${API_BASE_URL}${res.data.avatar}`);
       toast.success("Profile updated!");
       setUploading(false);
     } catch {
@@ -520,7 +583,7 @@ const AdminDashboard = () => {
               icon={LinkIcon}
               label="Total Links"
               value={links.length}
-              color="from-purple-500 to-purple-600"
+              color="from-purple-500 to-pink-500"
             />
             <StatCard
               icon={Globe}
@@ -529,12 +592,126 @@ const AdminDashboard = () => {
               color="from-pink-500 to-rose-500"
             />
             <StatCard
-              icon={Users}
-              label="Profile Views"
-              value="1.2K"
-              trend="+12% this week"
-              color="from-blue-500 to-cyan-500"
+              icon={TrendingUp}
+              label="Growth"
+              value="+12%"
+              trend="This month"
+              color="from-pink-500 to-red-500"
             />
+          </div>
+
+          {/* Social Aggregator Section */}
+          <div className="mb-8">
+            <div className="bg-gradient-to-br from-[#1a1a2e]/80 to-[#16213e]/80 backdrop-blur-xl border border-white/10 rounded-3xl overflow-hidden">
+              <div className="p-6 border-b border-white/5">
+                <h2 className="text-lg font-semibold text-white">
+                  Connected Social Profiles
+                </h2>
+                <p className="text-gray-400 text-sm mt-1">
+                  Powered by the Social Aggregator Engine
+                </p>
+              </div>
+              <div className="p-6">
+                <SocialProfilesSection
+                  youtubeId={me?.youtubeId}
+                  githubUser={me?.githubUser}
+                  telegramUser={me?.telegramUser}
+                />
+              </div>
+
+              {/* Connect Social Profiles Form */}
+              <div className="border-t border-white/5">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-white font-medium">
+                      Connect Social Profiles
+                    </h3>
+                    <button
+                      onClick={() => setShowSocialForm(!showSocialForm)}
+                      className="text-white/60 hover:text-white text-sm transition-colors"
+                    >
+                      {showSocialForm ? "Cancel" : "Add"}
+                    </button>
+                  </div>
+
+                  <AnimatePresence>
+                    {showSocialForm && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="space-y-4"
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-gray-400 text-xs font-medium mb-2">
+                              YouTube Channel ID
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="UC_x5XG1OV2P6uZZ5FSM9Ttw"
+                              value={socialForm.youtubeId}
+                              onChange={(e) =>
+                                setSocialForm({
+                                  ...socialForm,
+                                  youtubeId: e.target.value,
+                                })
+                              }
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-gray-400 text-xs font-medium mb-2">
+                              GitHub Username
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="octocat"
+                              value={socialForm.githubUser}
+                              onChange={(e) =>
+                                setSocialForm({
+                                  ...socialForm,
+                                  githubUser: e.target.value,
+                                })
+                              }
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-gray-400 text-xs font-medium mb-2">
+                              Telegram Username
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="telegram"
+                              value={socialForm.telegramUser}
+                              onChange={(e) =>
+                                setSocialForm({
+                                  ...socialForm,
+                                  telegramUser: e.target.value,
+                                })
+                              }
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end">
+                          <button
+                            onClick={handleSocialSubmit}
+                            className="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 rounded-xl text-white font-medium text-sm shadow-lg shadow-purple-500/25 transition-all"
+                          >
+                            Save Social Profiles
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Main Content */}

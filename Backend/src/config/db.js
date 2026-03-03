@@ -53,6 +53,74 @@ export const initDatabase = async () => {
     } catch (e) {
       /* column may already exist */
     }
+    try {
+      await connection.query(
+        `ALTER TABLE links ADD COLUMN avatar_url VARCHAR(512) DEFAULT NULL`,
+      );
+    } catch (e) {
+      /* column may already exist */
+    }
+
+    // Create users table with social ID fields if not exists
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        avatar VARCHAR(512) DEFAULT NULL,
+        youtubeId VARCHAR(100) DEFAULT NULL,
+        githubUser VARCHAR(100) DEFAULT NULL,
+        telegramUser VARCHAR(100) DEFAULT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Add social ID columns to existing users table (if it exists as 'clients')
+    try {
+      await connection.query(
+        `ALTER TABLE users ADD COLUMN youtubeId VARCHAR(100) DEFAULT NULL`,
+      );
+    } catch (e) {
+      /* column may already exist */
+    }
+    try {
+      await connection.query(
+        `ALTER TABLE users ADD COLUMN githubUser VARCHAR(100) DEFAULT NULL`,
+      );
+    } catch (e) {
+      /* column may already exist */
+    }
+    try {
+      await connection.query(
+        `ALTER TABLE users ADD COLUMN telegramUser VARCHAR(100) DEFAULT NULL`,
+      );
+    } catch (e) {
+      /* column may already exist */
+    }
+
+    // Handle table name compatibility (clients vs users)
+    try {
+      await connection.query(
+        `ALTER TABLE clients ADD COLUMN youtubeId VARCHAR(100) DEFAULT NULL`,
+      );
+    } catch (e) {
+      /* table may not exist or column already exists */
+    }
+    try {
+      await connection.query(
+        `ALTER TABLE clients ADD COLUMN githubUser VARCHAR(100) DEFAULT NULL`,
+      );
+    } catch (e) {
+      /* table may not exist or column already exists */
+    }
+    try {
+      await connection.query(
+        `ALTER TABLE clients ADD COLUMN telegramUser VARCHAR(100) DEFAULT NULL`,
+      );
+    } catch (e) {
+      /* table may not exist or column already exists */
+    }
 
     connection.release();
     console.log("✅ Database tables ready!");
