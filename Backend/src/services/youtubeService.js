@@ -1,40 +1,107 @@
-import axios from 'axios';
+import axios from "axios";
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
-const PLACEHOLDER_AVATAR = '/placeholder-avatar.png';
+const PLACEHOLDER_AVATAR = "/placeholder-avatar.png";
 
-export async function getYouTubeChannel(channelId) {
+async function resolveChannelId(input) {
+  if (!input) return null;
+
+  // Direct channel ID (UC...)
+  if (input.startsWith("UC") && input.length === 24) {
+    return input;
+  }
+
+  // Extract from URL
+  if (input.includes("youtube.com/channel/")) {
+    const match = input.match(/\/channel\/([UC][\w-]{22})/);
+    if (match) return match[1];
+  }
+
+  if (input.includes("youtube.com/@")) {
+    const match = input.match(/@([\w.-]+)/);
+    if (match) return await resolveHandle(match[1]);
+  }
+
+  // Handle @username
+  if (input.startsWith("@")) {
+    return await resolveHandle(input.slice(1));
+  }
+
+  // Fallback search
+  return await searchChannel(input);
+}
+
+async function resolveHandle(handle) {
   try {
-    if (!channelId) {
-      return { platform: 'YouTube', error: 'No channel ID provided' };
+    const response = await axios.get(
+      "https://www.googleapis.com/youtube/v3/channels",
+      {
+        params: { part: "id", forHandle: handle, key: YOUTUBE_API_KEY },
+      },
+    );
+    return response.data.items?.[0]?.id;
+  } catch {
+    return null;
+  }
+}
+
+async function searchChannel(query) {
+  try {
+    const response = await axios.get(
+      "https://www.googleapis.com/youtube/v3/search",
+      {
+        params: {
+          part: "snippet",
+          type: "channel",
+          q: query,
+          key: YOUTUBE_API_KEY,
+        },
+      },
+    );
+    return response.data.items?.[0]?.snippet?.channelId;
+  } catch {
+    return null;
+  }
+}
+
+export async function getYouTubeChannel(input) {
+  try {
+    if (!input) {
+      return { platform: "YouTube", error: "No channel input provided" };
     }
 
     if (!YOUTUBE_API_KEY) {
-      return { 
-        platform: 'YouTube', 
-        name: 'YouTube Channel',
+      console.warn("YouTube API key not configured");
+      return {
+        platform: "YouTube",
+        name: "YouTube Channel",
         avatar: PLACEHOLDER_AVATAR,
         subscribers: 0,
         videos: 0,
         views: 0,
-        profileUrl: `https://www.youtube.com/channel/${channelId}`,
-        error: 'YouTube API key not configured'
+        profileUrl: null,
+        error: "YouTube API key not configured",
       };
     }
 
+    const channelId = await resolveChannelId(input);
+    if (!channelId) {
+      return { platform: "YouTube", error: "Channel not found" };
+    }
+
     const response = await axios.get(
-      'https://www.googleapis.com/youtube/v3/channels',
+      "https://www.googleapis.com/youtube/v3/channels",
       {
         params: {
-          part: 'snippet,statistics',
+          part: "snippet,statistics",
           id: channelId,
           key: YOUTUBE_API_KEY,
         },
-      }
+      },
     );
 
-    if (!response.data.items || response.data.items.length === 0) {
-      return { platform: 'YouTube', error: 'Channel not found' };
+    if (!response.data.items?.length) {
+      return { platform: "YouTube", error: "Channel not found" };
     }
 
     const channel = response.data.items[0];
@@ -42,25 +109,29 @@ export async function getYouTubeChannel(channelId) {
     const stats = channel.statistics;
 
     return {
-      platform: 'YouTube',
+      platform: "YouTube",
+      id: channelId,
       name: snippet.title,
-      avatar: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url || PLACEHOLDER_AVATAR,
+      avatar:
+        snippet.thumbnails?.high?.url ||
+        snippet.thumbnails?.default?.url ||
+        PLACEHOLDER_AVATAR,
       subscribers: parseInt(stats.subscriberCount) || 0,
       videos: parseInt(stats.videoCount) || 0,
       views: parseInt(stats.viewCount) || 0,
-      profileUrl: `https://www.youtube.com/channel/${channelId}`,
+      profileUrl: `https://youtube.com/channel/${channelId}`,
     };
   } catch (error) {
-    console.error('YouTube service error:', error.message);
+    console.error("YouTube service error:", error.message);
     return {
-      platform: 'YouTube',
-      name: 'YouTube Channel',
+      platform: "YouTube",
+      name: "YouTube Channel",
       avatar: PLACEHOLDER_AVATAR,
       subscribers: 0,
       videos: 0,
       views: 0,
-      profileUrl: channelId ? `https://www.youtube.com/channel/${channelId}` : null,
-      error: error.response?.data?.error?.message || error.message,
+      profileUrl: null,
+      error: "Failed to fetch channel data",
     };
   }
 }

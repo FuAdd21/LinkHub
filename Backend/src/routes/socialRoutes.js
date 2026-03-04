@@ -4,8 +4,9 @@ import {
   fetchSocialProfileData,
   fetchSocialProfiles,
 } from "../controllers/socialController.js";
+import { socialRateLimiter } from "../middleware/rateLimiter.js";
 
 router.post("/fetch", fetchSocialProfileData);
-router.get("/", fetchSocialProfiles);
+router.get("/", socialRateLimiter, fetchSocialProfiles);
 
 export default router;

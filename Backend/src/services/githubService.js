@@ -1,40 +1,57 @@
-import axios from 'axios';
+import axios from "axios";
 
-const PLACEHOLDER_AVATAR = '/placeholder-avatar.png';
+const PLACEHOLDER_AVATAR = "/placeholder-avatar.png";
 
 export async function getGitHubUser(username) {
   try {
     if (!username) {
-      return { platform: 'GitHub', error: 'No username provided' };
+      return { platform: "GitHub", error: "No username provided" };
     }
 
-    const response = await axios.get(`https://api.github.com/users/${username}`, {
-      headers: {
-        'Accept': 'application/vnd.github.v3+json',
-        'User-Agent': 'Linkhub/1.0',
+    const response = await axios.get(
+      `https://api.github.com/users/${username}`,
+      {
+        headers: {
+          Accept: "application/vnd.github.v3+json",
+          "User-Agent": "Linkhub-Social-Aggregator/1.0",
+        },
       },
-    });
-
-    if (response.data.message) {
-      return { platform: 'GitHub', error: response.data.message };
-    }
+    );
 
     const user = response.data;
 
     return {
-      platform: 'GitHub',
+      platform: "GitHub",
+      username: user.login,
       name: user.name || user.login,
       avatar: user.avatar_url || PLACEHOLDER_AVATAR,
       followers: user.followers || 0,
       following: user.following || 0,
       repos: user.public_repos || 0,
       bio: user.bio || null,
-      profileUrl: user.html_url,
+      profileUrl: `https://github.com/${user.login}`,
     };
   } catch (error) {
-    console.error('GitHub service error:', error.message);
+    console.error("GitHub service error:", error.message);
+
+    // Handle specific GitHub errors
+    if (error.response?.status === 404) {
+      return {
+        platform: "GitHub",
+        name: username,
+        avatar: PLACEHOLDER_AVATAR,
+        followers: 0,
+        following: 0,
+        repos: 0,
+        bio: null,
+        profileUrl: username ? `https://github.com/${username}` : null,
+        error: "GitHub user not found",
+      };
+    }
+
+    // Generic error fallback
     return {
-      platform: 'GitHub',
+      platform: "GitHub",
       name: username,
       avatar: PLACEHOLDER_AVATAR,
       followers: 0,
@@ -42,7 +59,7 @@ export async function getGitHubUser(username) {
       repos: 0,
       bio: null,
       profileUrl: username ? `https://github.com/${username}` : null,
-      error: error.response?.data?.message || error.message,
+      error: "Failed to fetch GitHub user data",
     };
   }
 }
