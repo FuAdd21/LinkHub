@@ -40,11 +40,19 @@ export default function SocialProfilesSection({
   youtubeId,
   githubUser,
   telegramUser,
+  instagram,
+  twitter,
+  linkedin,
+  tiktok,
 }) {
   const { data, loading, error } = useSocialProfiles({
     youtubeId,
     githubUser,
     telegramUser,
+    instagram,
+    twitter,
+    linkedin,
+    tiktok,
   });
 
   if (loading) {
@@ -106,7 +114,68 @@ export default function SocialProfilesSection({
       username: data.telegram.username,
       avatar: data.telegram.avatar,
       profileUrl: data.telegram.profileUrl,
-      extraData: {},
+      extraData: {
+        members: data.telegram.members,
+      },
+    });
+  }
+
+  if (data.instagram && !data.instagram.error) {
+    platforms.push({
+      key: "instagram",
+      platform: "instagram",
+      name: data.instagram.name,
+      username: data.instagram.username,
+      avatar: data.instagram.avatar,
+      profileUrl: data.instagram.profileUrl,
+      extraData: {
+        bio: data.instagram.bio,
+        followers: data.instagram.followers,
+      },
+    });
+  }
+
+  if (data.twitter && (!data.twitter.error || data.twitter.followers > 0)) {
+    platforms.push({
+      key: "twitter",
+      platform: "twitter",
+      name: data.twitter.name,
+      username: data.twitter.username,
+      avatar: data.twitter.avatar,
+      profileUrl: data.twitter.profileUrl,
+      extraData: {
+        followers: data.twitter.followers,
+      },
+    });
+  }
+
+  if (data.linkedin && (!data.linkedin.error || data.linkedin.name)) {
+    platforms.push({
+      key: "linkedin",
+      platform: "linkedin",
+      name: data.linkedin.name,
+      username: data.linkedin.username,
+      avatar: data.linkedin.avatar,
+      profileUrl: data.linkedin.profileUrl,
+      extraData: {
+        bio: data.linkedin.bio,
+        connections: data.linkedin.connections,
+      },
+    });
+  }
+
+  if (data.tiktok && (!data.tiktok.error || data.tiktok.followers > 0)) {
+    platforms.push({
+      key: "tiktok",
+      platform: "tiktok",
+      name: data.tiktok.name,
+      username: data.tiktok.username,
+      avatar: data.tiktok.avatar,
+      profileUrl: data.tiktok.profileUrl,
+      extraData: {
+        bio: data.tiktok.bio,
+        followers: data.tiktok.followers,
+      },
     });
   }
 

@@ -1,14 +1,29 @@
-import { useState, useEffect } from 'react';
-import { fetchSocialProfiles } from '../api/socialApi';
+import { useState, useEffect } from "react";
+import { fetchSocialProfiles } from "../api/socialApi";
 
-export function useSocialProfiles({ youtubeId, githubUser, telegramUser }) {
+export function useSocialProfiles({
+  youtubeId,
+  githubUser,
+  telegramUser,
+  instagram,
+  twitter,
+  linkedin,
+  tiktok,
+}) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const hasAnyId = youtubeId || githubUser || telegramUser;
-    
+    const hasAnyId =
+      youtubeId ||
+      githubUser ||
+      telegramUser ||
+      instagram ||
+      twitter ||
+      linkedin ||
+      tiktok;
+
     if (!hasAnyId) {
       setData(null);
       setLoading(false);
@@ -23,13 +38,21 @@ export function useSocialProfiles({ youtubeId, githubUser, telegramUser }) {
       setError(null);
 
       try {
-        const result = await fetchSocialProfiles({ youtubeId, githubUser, telegramUser });
+        const result = await fetchSocialProfiles({
+          youtubeId,
+          githubUser,
+          telegramUser,
+          instagram,
+          twitter,
+          linkedin,
+          tiktok,
+        });
         if (isMounted) {
           setData(result);
         }
       } catch (err) {
         if (isMounted) {
-          setError(err.message || 'Failed to fetch social profiles');
+          setError(err.message || "Failed to fetch social profiles");
         }
       } finally {
         if (isMounted) {
@@ -43,7 +66,15 @@ export function useSocialProfiles({ youtubeId, githubUser, telegramUser }) {
     return () => {
       isMounted = false;
     };
-  }, [youtubeId, githubUser, telegramUser]);
+  }, [
+    youtubeId,
+    githubUser,
+    telegramUser,
+    instagram,
+    twitter,
+    linkedin,
+    tiktok,
+  ]);
 
   return { data, loading, error };
 }

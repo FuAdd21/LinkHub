@@ -98,6 +98,34 @@ export const initDatabase = async () => {
     } catch (e) {
       /* column may already exist */
     }
+    try {
+      await connection.query(
+        `ALTER TABLE users ADD COLUMN instagram VARCHAR(100) DEFAULT NULL`,
+      );
+    } catch (e) {
+      /* column may already exist */
+    }
+    try {
+      await connection.query(
+        `ALTER TABLE users ADD COLUMN twitter VARCHAR(100) DEFAULT NULL`,
+      );
+    } catch (e) {
+      /* column may already exist */
+    }
+    try {
+      await connection.query(
+        `ALTER TABLE users ADD COLUMN linkedin VARCHAR(100) DEFAULT NULL`,
+      );
+    } catch (e) {
+      /* column may already exist */
+    }
+    try {
+      await connection.query(
+        `ALTER TABLE users ADD COLUMN tiktok VARCHAR(100) DEFAULT NULL`,
+      );
+    } catch (e) {
+      /* column may already exist */
+    }
 
     // Handle table name compatibility (clients vs users)
     try {
@@ -117,6 +145,34 @@ export const initDatabase = async () => {
     try {
       await connection.query(
         `ALTER TABLE clients ADD COLUMN telegramUser VARCHAR(100) DEFAULT NULL`,
+      );
+    } catch (e) {
+      /* table may not exist or column already exists */
+    }
+    try {
+      await connection.query(
+        `ALTER TABLE clients ADD COLUMN instagram VARCHAR(100) DEFAULT NULL`,
+      );
+    } catch (e) {
+      /* table may not exist or column already exists */
+    }
+    try {
+      await connection.query(
+        `ALTER TABLE clients ADD COLUMN twitter VARCHAR(100) DEFAULT NULL`,
+      );
+    } catch (e) {
+      /* table may not exist or column already exists */
+    }
+    try {
+      await connection.query(
+        `ALTER TABLE clients ADD COLUMN linkedin VARCHAR(100) DEFAULT NULL`,
+      );
+    } catch (e) {
+      /* table may not exist or column already exists */
+    }
+    try {
+      await connection.query(
+        `ALTER TABLE clients ADD COLUMN tiktok VARCHAR(100) DEFAULT NULL`,
       );
     } catch (e) {
       /* table may not exist or column already exists */

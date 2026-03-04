@@ -8,6 +8,7 @@ import {
   Users,
   Eye,
   FileCode,
+  Send,
 } from "lucide-react";
 
 const platformConfig = {
@@ -16,12 +17,16 @@ const platformConfig = {
     color: "from-pink-500 to-purple-600",
     icon: Instagram,
     hoverColor: "hover:shadow-pink-500/30",
+    statsIcon: Users,
+    statsLabels: { followers: "Followers" },
   },
   tiktok: {
     name: "TikTok",
     color: "from-black to-gray-800",
     icon: Music2,
     hoverColor: "hover:shadow-cyan-500/30",
+    statsIcon: Users,
+    statsLabels: { followers: "Followers" },
   },
   youtube: {
     name: "YouTube",
@@ -40,12 +45,16 @@ const platformConfig = {
     color: "from-blue-400 to-blue-600",
     icon: Twitter,
     hoverColor: "hover:shadow-blue-500/30",
+    statsIcon: Users,
+    statsLabels: { followers: "Followers" },
   },
   linkedin: {
     name: "LinkedIn",
     color: "from-blue-700 to-blue-800",
     icon: Linkedin,
     hoverColor: "hover:shadow-blue-600/30",
+    statsIcon: Users,
+    statsLabels: { connections: "Connections" },
   },
   github: {
     name: "GitHub",
@@ -58,8 +67,10 @@ const platformConfig = {
   telegram: {
     name: "Telegram",
     color: "from-blue-500 to-cyan-500",
-    icon: Music2,
+    icon: Send,
     hoverColor: "hover:shadow-blue-500/30",
+    statsIcon: Users,
+    statsLabels: { members: "Members" },
   },
 };
 
@@ -155,6 +166,12 @@ export default function SocialProfileCard({
           {/* Dynamic Stats */}
           {hasStats && (
             <div className="flex items-center gap-3 mt-2 text-white/60 text-xs">
+              {extraData.members !== undefined && (
+                <span className="flex items-center gap-1">
+                  <Users className="w-3 h-3" />
+                  {formatNumber(extraData.members)} members
+                </span>
+              )}
               {extraData.subscribers !== undefined && (
                 <span className="flex items-center gap-1">
                   <Users className="w-3 h-3" />
@@ -182,6 +199,17 @@ export default function SocialProfileCard({
                 <span className="flex items-center gap-1">
                   <Eye className="w-3 h-3" />
                   {formatNumber(extraData.views)} views
+                </span>
+              )}
+              {extraData.connections !== undefined && (
+                <span className="flex items-center gap-1">
+                  <Users className="w-3 h-3" />
+                  {formatNumber(extraData.connections)} connections
+                </span>
+              )}
+              {extraData.bio !== undefined && extraData.bio && (
+                <span className="text-white/60 text-xs truncate max-w-[200px]">
+                  {extraData.bio}
                 </span>
               )}
             </div>

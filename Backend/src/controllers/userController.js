@@ -41,18 +41,44 @@ export const updateSocialProfiles = async (req, res) => {
       return res.status(401).json({ message: "Invalid token - no user id" });
     }
 
-    const { youtubeId, githubUser, telegramUser } = req.body;
+    const {
+      youtubeId,
+      githubUser,
+      telegramUser,
+      instagram,
+      twitter,
+      linkedin,
+      tiktok,
+    } = req.body;
 
     // Update users table
     await db.query(
-      `UPDATE users SET youtubeId = ?, githubUser = ?, telegramUser = ? WHERE id = ?`,
-      [youtubeId || null, githubUser || null, telegramUser || null, userId],
+      `UPDATE users SET youtubeId = ?, githubUser = ?, telegramUser = ?, instagram = ?, twitter = ?, linkedin = ?, tiktok = ? WHERE id = ?`,
+      [
+        youtubeId || null,
+        githubUser || null,
+        telegramUser || null,
+        instagram || null,
+        twitter || null,
+        linkedin || null,
+        tiktok || null,
+        userId,
+      ],
     );
 
     // Also update clients table for compatibility
     await db.query(
-      `UPDATE clients SET youtubeId = ?, githubUser = ?, telegramUser = ? WHERE id = ?`,
-      [youtubeId || null, githubUser || null, telegramUser || null, userId],
+      `UPDATE clients SET youtubeId = ?, githubUser = ?, telegramUser = ?, instagram = ?, twitter = ?, linkedin = ?, tiktok = ? WHERE id = ?`,
+      [
+        youtubeId || null,
+        githubUser || null,
+        telegramUser || null,
+        instagram || null,
+        twitter || null,
+        linkedin || null,
+        tiktok || null,
+        userId,
+      ],
     );
 
     res.json({ message: "Social profiles updated successfully" });
@@ -71,14 +97,14 @@ export const getMe = async (req, res) => {
 
     // Try users table first
     let [results] = await db.query(
-      "SELECT id, name, email, avatar, youtubeId, githubUser, telegramUser FROM users WHERE id = ?",
+      "SELECT id, name, email, avatar, youtubeId, githubUser, telegramUser, instagram, twitter, linkedin, tiktok FROM users WHERE id = ?",
       [userId],
     );
 
     // Fallback to clients table if not found
     if (results.length === 0) {
       [results] = await db.query(
-        "SELECT id, name, email, avatar, youtubeId, githubUser, telegramUser FROM clients WHERE id = ?",
+        "SELECT id, name, email, avatar, youtubeId, githubUser, telegramUser, instagram, twitter, linkedin, tiktok FROM clients WHERE id = ?",
         [userId],
       );
     }

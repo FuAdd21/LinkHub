@@ -311,6 +311,10 @@ const AdminDashboard = () => {
     youtubeId: "",
     githubUser: "",
     telegramUser: "",
+    instagram: "",
+    twitter: "",
+    linkedin: "",
+    tiktok: "",
   });
   const [showSocialForm, setShowSocialForm] = useState(false);
 
@@ -337,6 +341,10 @@ const AdminDashboard = () => {
           youtubeId: userRes.data.youtubeId || "",
           githubUser: userRes.data.githubUser || "",
           telegramUser: userRes.data.telegramUser || "",
+          instagram: userRes.data.instagram || "",
+          twitter: userRes.data.twitter || "",
+          linkedin: userRes.data.linkedin || "",
+          tiktok: userRes.data.tiktok || "",
         });
       } catch (err) {
         console.error("Dashboard fetch error:", err);
@@ -616,6 +624,10 @@ const AdminDashboard = () => {
                   youtubeId={me?.youtubeId}
                   githubUser={me?.githubUser}
                   telegramUser={me?.telegramUser}
+                  instagram={me?.instagram}
+                  twitter={me?.twitter}
+                  linkedin={me?.linkedin}
+                  tiktok={me?.tiktok}
                 />
               </div>
 
@@ -642,7 +654,7 @@ const AdminDashboard = () => {
                         exit={{ opacity: 0, height: 0 }}
                         className="space-y-4"
                       >
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                           <div>
                             <label className="block text-gray-400 text-xs font-medium mb-2">
                               YouTube Channel ID
@@ -691,6 +703,78 @@ const AdminDashboard = () => {
                                 setSocialForm({
                                   ...socialForm,
                                   telegramUser: e.target.value,
+                                })
+                              }
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-gray-400 text-xs font-medium mb-2">
+                              Instagram Username
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="natgeo"
+                              value={socialForm.instagram}
+                              onChange={(e) =>
+                                setSocialForm({
+                                  ...socialForm,
+                                  instagram: e.target.value,
+                                })
+                              }
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-gray-400 text-xs font-medium mb-2">
+                              Twitter Username
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="elonmusk"
+                              value={socialForm.twitter}
+                              onChange={(e) =>
+                                setSocialForm({
+                                  ...socialForm,
+                                  twitter: e.target.value,
+                                })
+                              }
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-gray-400 text-xs font-medium mb-2">
+                              LinkedIn Username
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="username"
+                              value={socialForm.linkedin}
+                              onChange={(e) =>
+                                setSocialForm({
+                                  ...socialForm,
+                                  linkedin: e.target.value,
+                                })
+                              }
+                              className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-gray-400 text-xs font-medium mb-2">
+                              TikTok Username
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="@khaby.lame"
+                              value={socialForm.tiktok}
+                              onChange={(e) =>
+                                setSocialForm({
+                                  ...socialForm,
+                                  tiktok: e.target.value,
                                 })
                               }
                               className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20 transition-all text-sm"
