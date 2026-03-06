@@ -9,264 +9,133 @@ function extractTikTokUsername(input) {
   // Extract from tiktok.com/@username URL
   if (input.includes("tiktok.com/@")) {
     const match = input.match(/tiktok\.com\/@([a-zA-Z0-9_.]+)(?:\/|$|\?)/);
-    if (match) return match[1].split("?")[0]; // Remove query params
+    if (match) return match[1].split("?")[0];
   }
 
   // Remove @ if present
   return input.replace(/^@/, "");
 }
 
-async function fetchTikTokMetadata(username) {
+async function fetchTikTokData(username) {
+  const url = `https://www.tiktok.com/@${username}`;
+  
   try {
-    console.log(`Fetching TikTok metadata for username: ${username}`);
+    const response = await axios.get(url, {
+      timeout: 6000,
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+      },
+    });
 
-    // Try multiple approaches including third-party API
-    const approaches = [
-      {
-        name: "TikTok Mobile",
-        url: `https://www.tiktok.com/@${username}`,
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
-          Accept:
-            "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-          "Accept-Language": "en-US,en;q=0.5",
-          "Accept-Encoding": "gzip, deflate, br",
-          Connection: "keep-alive",
-          "Upgrade-Insecure-Requests": "1",
-        },
-      },
-      {
-        name: "TikTok Desktop",
-        url: `https://www.tiktok.com/@${username}`,
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-          Accept:
-            "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-          "Accept-Language": "en-US,en;q=0.5",
-          "Accept-Encoding": "gzip, deflate, br",
-          Connection: "keep-alive",
-          "Upgrade-Insecure-Requests": "1",
-        },
-      },
-      {
-        name: "TikTok Mobile Site",
-        url: `https://m.tiktok.com/@${username}`,
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
-          Accept:
-            "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-          "Accept-Language": "en-US,en;q=0.5",
-          "Accept-Encoding": "gzip, deflate, br",
-          Connection: "keep-alive",
-          "Upgrade-Insecure-Requests": "1",
-        },
-      },
-      {
-        name: "TikTok Alternative Domain",
-        url: `https://tiktok.com/@${username}`,
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-          Accept:
-            "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-          "Accept-Language": "en-US,en;q=0.5",
-          "Accept-Encoding": "gzip, deflate, br",
-          Connection: "keep-alive",
-          "Upgrade-Insecure-Requests": "1",
-        },
-      },
-      {
-        name: "TikTok Share API",
-        url: `https://www.tiktok.com/@${username}`,
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Linux; Android 11; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36",
-          Accept:
-            "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-          "Accept-Language": "en-US,en;q=0.5",
-          "Accept-Encoding": "gzip, deflate, br",
-          Connection: "keep-alive",
-          "Upgrade-Insecure-Requests": "1",
-          Referer: "https://www.tiktok.com/",
-        },
-      },
-      {
-        name: "TikTok Tablet",
-        url: `https://www.tiktok.com/@${username}`,
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (iPad; CPU OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1",
-          Accept:
-            "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-          "Accept-Language": "en-US,en;q=0.5",
-          "Accept-Encoding": "gzip, deflate, br",
-          Connection: "keep-alive",
-          "Upgrade-Insecure-Requests": "1",
-        },
-      },
-      {
-        name: "TikTok API Endpoint",
-        url: `https://api.tiktok.com/aweme/v1/user/@${username}`,
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-          Accept: "application/json",
-          "Accept-Language": "en-US,en;q=0.5",
-          "Accept-Encoding": "gzip, deflate, br",
-          Connection: "keep-alive",
-        },
-      },
-    ];
+    const dom = new JSDOM(response.data);
+    const document = dom.window.document;
 
-    for (const approach of approaches) {
+    // 1. Try __UNIVERSAL_DATA_FOR_REHYDRATION__ (Most modern)
+    const universalData = document.querySelector("#__UNIVERSAL_DATA_FOR_REHYDRATION__");
+    if (universalData) {
       try {
-        console.log(`Trying ${approach.name}: ${approach.url}`);
-        const response = await axios.get(approach.url, {
-          timeout: 8000, // Reduced timeout for faster fallback
-          headers: approach.headers,
-        });
-
-        const dom = new JSDOM(response.data);
-        const document = dom.window.document;
-
-        // Extract meta tags
-        const ogImage = document
-          .querySelector('meta[property="og:image"]')
-          ?.getAttribute("content");
-        const ogTitle = document
-          .querySelector('meta[property="og:title"]')
-          ?.getAttribute("content");
-        const ogDescription = document
-          .querySelector('meta[property="og:description"]')
-          ?.getAttribute("content");
-
-        console.log(`${approach.name} meta tags extracted:`, {
-          ogImage: ogImage ? "found" : "not found",
-          ogTitle: ogTitle || "not found",
-          ogDescription: ogDescription || "not found",
-        });
-
-        if (ogImage || ogTitle || ogDescription) {
-          console.log(`✅ ${approach.name} SUCCESS!`);
-
-          let followers = 0;
-          if (ogDescription) {
-            const followersMatch = ogDescription.match(
-              /([\d,]+)\s*(?:followers|Followers|fans|Fans)/,
-            );
-            if (followersMatch) {
-              followers = parseInt(followersMatch[1].replace(/,/g, ""));
-            }
-          }
-          if (followers === 0 && ogTitle) {
-            const followersMatch = ogTitle.match(
-              /([\d,]+)\s*(?:followers|Followers|fans|Fans)/,
-            );
-            if (followersMatch) {
-              followers = parseInt(followersMatch[1].replace(/,/g, ""));
-            }
-          }
-
-          console.log(`${approach.name} followers extracted:`, followers);
-
+        const jsonData = JSON.parse(universalData.textContent);
+        const userModule = jsonData?.__DEFAULT_SCOPE__?.["webapp.user-detail"]?.userInfo;
+        
+        if (userModule) {
+          const user = userModule.user;
+          const stats = userModule.stats;
           return {
-            name: ogTitle?.split("@")[0]?.trim() || username,
-            avatar: ogImage || PLACEHOLDER_AVATAR,
-            bio: ogDescription || null,
-            followers,
+            name: user.nickname || user.uniqueId,
+            avatar: user.avatarMedium || user.avatarLarger || user.avatarThumb,
+            bio: user.signature,
+            followers: stats.followerCount,
           };
         }
-
-        console.log(`${approach.name} didn't have enough data, trying next...`);
-      } catch (error) {
-        console.warn(`${approach.name} failed:`, error.message);
-        continue;
+      } catch (e) {
+        console.warn("TikTok Universal Data parse failed:", e);
       }
     }
 
-    console.log("All TikTok approaches failed");
-    return null;
+    // 2. Try SIGI_STATE (Traditional fallback)
+    const sigiState = document.querySelector("#SIGI_STATE");
+    if (sigiState) {
+      try {
+        const jsonData = JSON.parse(sigiState.textContent);
+        const userModule = jsonData?.UserModule?.users?.[username] || Object.values(jsonData?.UserModule?.users || {})[0];
+        const statsModule = jsonData?.UserModule?.stats?.[username] || Object.values(jsonData?.UserModule?.stats || {})[0];
+
+        if (userModule) {
+          return {
+            name: userModule.nickname || userModule.uniqueId,
+            avatar: userModule.avatarMedium || userModule.avatarLarger,
+            bio: userModule.signature,
+            followers: statsModule?.followerCount || 0,
+          };
+        }
+      } catch (e) {
+        console.warn("TikTok SIGI_STATE parse failed:", e);
+      }
+    }
+
+    // 3. Try OG Tags (Basic fallback)
+    const ogTitle = document.querySelector('meta[property="og:title"]')?.getAttribute("content");
+    const ogImage = document.querySelector('meta[property="og:image"]')?.getAttribute("content");
+    const ogDesc = document.querySelector('meta[property="og:description"]')?.getAttribute("content");
+
+    if (ogTitle || ogImage) {
+      // Extract followers from description if possible
+      const followersMatch = ogDesc?.match(/([\d,.]+)([KMBkmb]?)\s*(?:Followers|followers)/);
+      let followers = 0;
+      if (followersMatch) {
+        followers = parseFloat(followersMatch[1].replace(/,/g, ""));
+        const unit = followersMatch[2].toUpperCase();
+        if (unit === "K") followers *= 1000;
+        if (unit === "M") followers *= 1000000;
+        if (unit === "B") followers *= 1000000000;
+      }
+
+      return {
+        name: ogTitle?.split(" (@")[0] || username,
+        avatar: ogImage || PLACEHOLDER_AVATAR,
+        bio: ogDesc,
+        followers: Math.floor(followers),
+      };
+    }
+
   } catch (error) {
-    console.warn("TikTok metadata fetch failed:", error.message);
-    return null;
+    console.warn("TikTok page fetch failed:", error.message);
   }
+  return null;
 }
 
 export async function getTikTokProfile(input) {
   try {
-    console.log("TikTok service called with input:", input);
-
-    if (!input) {
-      return { platform: "TikTok", error: "No username or URL provided" };
-    }
-
     const username = extractTikTokUsername(input);
-    console.log("TikTok extracted username:", username);
+    if (!username) return { platform: "TikTok", error: "Invalid username" };
 
-    if (!username) {
-      return { platform: "TikTok", error: "Invalid TikTok username or URL" };
-    }
-
-    // Try metadata extraction
-    const metadata = await fetchTikTokMetadata(username);
-    console.log("TikTok metadata result:", metadata);
-
-    if (metadata) {
+    const data = await fetchTikTokData(username);
+    if (data) {
       return {
         platform: "TikTok",
         username,
-        name: metadata.name,
-        avatar: metadata.avatar,
-        followers: metadata.followers,
-        bio: metadata.bio,
+        name: data.name,
+        avatar: data.avatar,
+        followers: data.followers,
+        bio: data.bio,
         profileUrl: `https://tiktok.com/@${username}`,
       };
     }
 
-    // Final fallback - return basic profile with estimated data
-    console.log("All TikTok approaches failed, using enhanced fallback data");
-
-    // Try to estimate followers for popular users
-    let estimatedFollowers = 0;
-    const popularUsers = {
-      "khaby.lame": 80000000,
-      charlidamamelio: 160000000,
-      bellapoarch: 24000000,
-      zachking: 70000000,
-      dixiedamelio: 57000000,
-      spencerx: 28000000,
-      avani: 43000000,
-      willsmith: 72000000,
-    };
-
-    estimatedFollowers =
-      popularUsers[username.toLowerCase()] ||
-      Math.floor(Math.random() * 1000000) + 100000;
-
+    // Final Fallback for famous users (to ensure something shows up)
     return {
       platform: "TikTok",
       username,
       name: username,
       avatar: PLACEHOLDER_AVATAR,
-      followers: estimatedFollowers,
-      bio: `@${username} - TikTok creator with ${estimatedFollowers.toLocaleString()} followers`,
+      followers: 0,
+      bio: `@${username} on TikTok`,
       profileUrl: `https://tiktok.com/@${username}`,
-      error: "Unable to fetch TikTok data - using estimated fallback",
+      error: "Unable to sync live data - using limited profile"
     };
   } catch (error) {
     console.error("TikTok service error:", error);
-    return {
-      platform: "TikTok",
-      username: input.replace(/^@/, ""),
-      name: input.replace(/^@/, ""),
-      avatar: PLACEHOLDER_AVATAR,
-      followers: 0,
-      bio: null,
-      profileUrl: `https://tiktok.com/@${input.replace(/^@/, "")}`,
-      error: "Unable to fetch TikTok data",
-    };
+    return { platform: "TikTok", error: "Failed to fetch TikTok data" };
   }
 }
