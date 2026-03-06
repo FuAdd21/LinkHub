@@ -51,22 +51,6 @@ export const updateSocialProfiles = async (req, res) => {
       tiktok,
     } = req.body;
 
-    // Update users table
-    await db.query(
-      `UPDATE users SET youtubeId = ?, githubUser = ?, telegramUser = ?, instagram = ?, twitter = ?, linkedin = ?, tiktok = ? WHERE id = ?`,
-      [
-        youtubeId || null,
-        githubUser || null,
-        telegramUser || null,
-        instagram || null,
-        twitter || null,
-        linkedin || null,
-        tiktok || null,
-        userId,
-      ],
-    );
-
-    // Also update clients table for compatibility
     await db.query(
       `UPDATE clients SET youtubeId = ?, githubUser = ?, telegramUser = ?, instagram = ?, twitter = ?, linkedin = ?, tiktok = ? WHERE id = ?`,
       [
@@ -78,7 +62,7 @@ export const updateSocialProfiles = async (req, res) => {
         linkedin || null,
         tiktok || null,
         userId,
-      ],
+      ]
     );
 
     res.json({ message: "Social profiles updated successfully" });
@@ -95,19 +79,12 @@ export const getMe = async (req, res) => {
       return res.status(401).json({ message: "Invalid token - no user id" });
     }
 
-    // Try users table first
-    let [results] = await db.query(
-      "SELECT id, name, email, avatar, youtubeId, githubUser, telegramUser, instagram, twitter, linkedin, tiktok FROM users WHERE id = ?",
-      [userId],
+    const [results] = await db.query(
+      `SELECT id, name, username, email, bio, avatar, theme, background_type, background_value,
+              youtubeId, githubUser, telegramUser, instagram, twitter, linkedin, tiktok
+       FROM clients WHERE id = ?`,
+      [userId]
     );
-
-    // Fallback to clients table if not found
-    if (results.length === 0) {
-      [results] = await db.query(
-        "SELECT id, name, email, avatar, youtubeId, githubUser, telegramUser, instagram, twitter, linkedin, tiktok FROM clients WHERE id = ?",
-        [userId],
-      );
-    }
 
     if (results.length === 0) {
       return res.status(404).json({ message: "User not found" });

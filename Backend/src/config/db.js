@@ -16,7 +16,7 @@ export const initDatabase = async () => {
     const connection = await db.getConnection();
     console.log("✅ Connected to MySQL!");
 
-    // Create links table with new columns if not exists
+    // Create links table with all columns if not exists
     await connection.query(`
       CREATE TABLE IF NOT EXISTS links (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -26,156 +26,73 @@ export const initDatabase = async () => {
         platform VARCHAR(50) DEFAULT NULL,
         username VARCHAR(100) DEFAULT NULL,
         profileData JSON DEFAULT NULL,
+        avatar_url VARCHAR(512) DEFAULT NULL,
+        icon VARCHAR(100) DEFAULT NULL,
+        position INT DEFAULT 0,
+        is_visible TINYINT(1) DEFAULT 1,
+        scheduled_at DATETIME DEFAULT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES clients(id) ON DELETE CASCADE
       )
     `);
 
-    // Add missing columns to existing table
-    try {
-      await connection.query(
-        `ALTER TABLE links ADD COLUMN platform VARCHAR(50) DEFAULT NULL`,
-      );
-    } catch (e) {
-      /* column may already exist */
-    }
-    try {
-      await connection.query(
-        `ALTER TABLE links ADD COLUMN username VARCHAR(100) DEFAULT NULL`,
-      );
-    } catch (e) {
-      /* column may already exist */
-    }
-    try {
-      await connection.query(
-        `ALTER TABLE links ADD COLUMN profileData JSON DEFAULT NULL`,
-      );
-    } catch (e) {
-      /* column may already exist */
-    }
-    try {
-      await connection.query(
-        `ALTER TABLE links ADD COLUMN avatar_url VARCHAR(512) DEFAULT NULL`,
-      );
-    } catch (e) {
-      /* column may already exist */
-    }
-
-    // Create users table with social ID fields if not exists
+    // Create clicks analytics table
     await connection.query(`
-      CREATE TABLE IF NOT EXISTS users (
+      CREATE TABLE IF NOT EXISTS clicks (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        email VARCHAR(255) UNIQUE NOT NULL,
-        password VARCHAR(255) NOT NULL,
-        avatar VARCHAR(512) DEFAULT NULL,
-        youtubeId VARCHAR(100) DEFAULT NULL,
-        githubUser VARCHAR(100) DEFAULT NULL,
-        telegramUser VARCHAR(100) DEFAULT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        link_id INT NOT NULL,
+        user_id INT NOT NULL,
+        ip VARCHAR(45) DEFAULT NULL,
+        device VARCHAR(20) DEFAULT 'desktop',
+        referrer VARCHAR(512) DEFAULT NULL,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (link_id) REFERENCES links(id) ON DELETE CASCADE
       )
     `);
 
-    // Add social ID columns to existing users table (if it exists as 'clients')
-    try {
-      await connection.query(
-        `ALTER TABLE users ADD COLUMN youtubeId VARCHAR(100) DEFAULT NULL`,
-      );
-    } catch (e) {
-      /* column may already exist */
-    }
-    try {
-      await connection.query(
-        `ALTER TABLE users ADD COLUMN githubUser VARCHAR(100) DEFAULT NULL`,
-      );
-    } catch (e) {
-      /* column may already exist */
-    }
-    try {
-      await connection.query(
-        `ALTER TABLE users ADD COLUMN telegramUser VARCHAR(100) DEFAULT NULL`,
-      );
-    } catch (e) {
-      /* column may already exist */
-    }
-    try {
-      await connection.query(
-        `ALTER TABLE users ADD COLUMN instagram VARCHAR(100) DEFAULT NULL`,
-      );
-    } catch (e) {
-      /* column may already exist */
-    }
-    try {
-      await connection.query(
-        `ALTER TABLE users ADD COLUMN twitter VARCHAR(100) DEFAULT NULL`,
-      );
-    } catch (e) {
-      /* column may already exist */
-    }
-    try {
-      await connection.query(
-        `ALTER TABLE users ADD COLUMN linkedin VARCHAR(100) DEFAULT NULL`,
-      );
-    } catch (e) {
-      /* column may already exist */
-    }
-    try {
-      await connection.query(
-        `ALTER TABLE users ADD COLUMN tiktok VARCHAR(100) DEFAULT NULL`,
-      );
-    } catch (e) {
-      /* column may already exist */
+    // ──── Safe column additions for links table ────
+    const linkColumns = [
+      ["platform", "VARCHAR(50) DEFAULT NULL"],
+      ["username", "VARCHAR(100) DEFAULT NULL"],
+      ["profileData", "JSON DEFAULT NULL"],
+      ["avatar_url", "VARCHAR(512) DEFAULT NULL"],
+      ["icon", "VARCHAR(100) DEFAULT NULL"],
+      ["position", "INT DEFAULT 0"],
+      ["is_visible", "TINYINT(1) DEFAULT 1"],
+      ["scheduled_at", "DATETIME DEFAULT NULL"],
+    ];
+
+    for (const [col, type] of linkColumns) {
+      try {
+        await connection.query(`ALTER TABLE links ADD COLUMN ${col} ${type}`);
+      } catch (e) {
+        /* column may already exist */
+      }
     }
 
-    // Handle table name compatibility (clients vs users)
-    try {
-      await connection.query(
-        `ALTER TABLE clients ADD COLUMN youtubeId VARCHAR(100) DEFAULT NULL`,
-      );
-    } catch (e) {
-      /* table may not exist or column already exists */
-    }
-    try {
-      await connection.query(
-        `ALTER TABLE clients ADD COLUMN githubUser VARCHAR(100) DEFAULT NULL`,
-      );
-    } catch (e) {
-      /* table may not exist or column already exists */
-    }
-    try {
-      await connection.query(
-        `ALTER TABLE clients ADD COLUMN telegramUser VARCHAR(100) DEFAULT NULL`,
-      );
-    } catch (e) {
-      /* table may not exist or column already exists */
-    }
-    try {
-      await connection.query(
-        `ALTER TABLE clients ADD COLUMN instagram VARCHAR(100) DEFAULT NULL`,
-      );
-    } catch (e) {
-      /* table may not exist or column already exists */
-    }
-    try {
-      await connection.query(
-        `ALTER TABLE clients ADD COLUMN twitter VARCHAR(100) DEFAULT NULL`,
-      );
-    } catch (e) {
-      /* table may not exist or column already exists */
-    }
-    try {
-      await connection.query(
-        `ALTER TABLE clients ADD COLUMN linkedin VARCHAR(100) DEFAULT NULL`,
-      );
-    } catch (e) {
-      /* table may not exist or column already exists */
-    }
-    try {
-      await connection.query(
-        `ALTER TABLE clients ADD COLUMN tiktok VARCHAR(100) DEFAULT NULL`,
-      );
-    } catch (e) {
-      /* table may not exist or column already exists */
+    // ──── Safe column additions for clients table ────
+    const clientColumns = [
+      ["username", "VARCHAR(50) UNIQUE DEFAULT NULL"],
+      ["bio", "TEXT DEFAULT NULL"],
+      ["theme", "VARCHAR(50) DEFAULT 'dark-pro'"],
+      ["background_type", "VARCHAR(20) DEFAULT 'gradient'"],
+      ["background_value", "VARCHAR(255) DEFAULT NULL"],
+      ["avatar", "VARCHAR(512) DEFAULT NULL"],
+      ["youtubeId", "VARCHAR(100) DEFAULT NULL"],
+      ["githubUser", "VARCHAR(100) DEFAULT NULL"],
+      ["telegramUser", "VARCHAR(100) DEFAULT NULL"],
+      ["instagram", "VARCHAR(100) DEFAULT NULL"],
+      ["twitter", "VARCHAR(100) DEFAULT NULL"],
+      ["linkedin", "VARCHAR(100) DEFAULT NULL"],
+      ["tiktok", "VARCHAR(100) DEFAULT NULL"],
+    ];
+
+    for (const [col, type] of clientColumns) {
+      try {
+        await connection.query(`ALTER TABLE clients ADD COLUMN ${col} ${type}`);
+      } catch (e) {
+        /* column may already exist */
+      }
     }
 
     connection.release();
@@ -184,5 +101,3 @@ export const initDatabase = async () => {
     console.error("❌ Database connection failed:", err.message);
   }
 };
-
-// export { db, initDatabase };

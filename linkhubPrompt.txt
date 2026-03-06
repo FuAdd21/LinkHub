@@ -1,0 +1,518 @@
+You are a senior full-stack engineer and product architect helping build a production level SaaS called "LinkHub".
+
+The project already exists and has the following stack:
+
+Frontend
+React + Vite
+
+Backend
+Node.js + Express
+
+Database
+MySQL
+
+Backend already includes:
+- Social Media Fetch Engine
+- API services for YouTube, GitHub, Telegram and other platforms
+- Caching system
+- Rate limit protection
+- Modular backend architecture
+- Environment variables setup
+
+IMPORTANT:
+Do NOT recreate folders or files that already exist.
+If a file exists, extend or modify it.
+
+Only create files if they do not exist.
+
+Follow a clean professional architecture.
+
+----------------------------------
+
+DESIGN INSPIRATION
+
+An image is provided showing a premium mobile style link page.
+
+Use it as visual inspiration.
+
+Design direction:
+
+- premium minimal design
+- dark background
+- centered phone layout
+- glowing accents
+- modern creator vibe
+- rounded pill buttons
+- smooth hover effects
+- subtle gradients
+- glassmorphism elements
+
+UI should feel like:
+
+Apple product page + Linktree + modern SaaS dashboard.
+
+----------------------------------
+
+PRODUCT GOAL
+
+LinkHub is a next-generation link-in-bio platform.
+
+Example public page:
+
+linkhub.com/username
+
+Example:
+
+linkhub.com/fuad
+
+The system must include:
+
+1. Dashboard
+2. Public Profile Page
+3. Links Management
+4. Social Media Integrations
+5. Analytics
+6. Themes
+7. Unique Viral Features
+
+----------------------------------
+
+USER PROFILE SYSTEM
+
+Users must create a public identity.
+
+Fields:
+
+username
+bio
+profileImage
+theme
+
+Rules:
+
+username must be unique
+username must be lowercase
+no spaces
+used as public page slug
+
+Example:
+
+linkhub.com/john
+linkhub.com/designerhub
+linkhub.com/fuad
+
+Database example table:
+
+users
+id
+username
+email
+bio
+profile_image
+theme
+created_at
+
+----------------------------------
+
+LINK MANAGEMENT SYSTEM
+
+Create a links table.
+
+links
+id
+user_id
+title
+url
+icon
+position
+is_visible
+created_at
+
+Dashboard must allow:
+
+Add link
+Edit link
+Delete link
+Reorder links
+Toggle visibility
+
+Add link fields:
+
+title
+url
+optional icon
+
+Example:
+
+Title: My YouTube Channel
+URL: https://youtube.com/@user
+
+----------------------------------
+
+DRAG AND DROP ORDERING
+
+Users must be able to reorder links.
+
+Store order using:
+
+position column
+
+----------------------------------
+
+VISIBILITY TOGGLE
+
+Each link must have a visibility switch.
+
+Hidden links must not appear on the public page.
+
+----------------------------------
+
+SOCIAL MEDIA ENGINE INTEGRATION
+
+Use the existing backend social fetch engine.
+
+Allow users to connect:
+
+YouTube
+Instagram
+Twitter/X
+LinkedIn
+TikTok
+Telegram
+GitHub
+
+Dashboard must show social cards with:
+
+platform
+avatar
+username
+followers
+visit button
+
+Example card:
+
+YouTube
+@creator
+10.2K subscribers
+Visit Channel
+
+----------------------------------
+
+PUBLIC PROFILE PAGE
+
+Create route:
+
+/username
+
+Example:
+
+/fuad
+
+This page displays:
+
+profile avatar
+username
+bio
+social cards
+custom links
+
+Design must be mobile-first and match the inspiration image.
+
+Layout style:
+
+vertical stack
+rounded buttons
+soft shadows
+subtle animations
+
+----------------------------------
+
+DASHBOARD UI
+
+Create dashboard pages:
+
+/dashboard
+/dashboard/profile
+/dashboard/links
+/dashboard/socials
+/dashboard/analytics
+/dashboard/settings
+
+Dashboard layout:
+
+Left sidebar navigation
+Main content center
+Live preview on right
+
+----------------------------------
+
+LIVE PHONE PREVIEW
+
+Show a phone mockup preview in dashboard.
+
+Preview updates instantly when:
+
+user edits links
+user changes bio
+user changes theme
+
+----------------------------------
+
+AVATAR SYSTEM
+
+Allow avatar upload.
+
+Store images in:
+
+/uploads/avatars
+
+Fallback to generated avatar if none uploaded.
+
+----------------------------------
+
+ANALYTICS SYSTEM
+
+Track link clicks.
+
+Database table:
+
+clicks
+id
+link_id
+timestamp
+ip
+device
+
+Dashboard analytics page must show:
+
+clicks per day
+top links
+total clicks
+
+Use Chart.js for charts.
+
+----------------------------------
+
+THEME CUSTOMIZATION
+
+Users can select themes.
+
+Examples:
+
+Minimal
+Dark Pro
+Neon Glow
+Creator Mode
+
+Theme stored in:
+
+users.theme
+
+----------------------------------
+
+CUSTOM BACKGROUNDS
+
+Allow users to select:
+
+gradient background
+image background
+animated gradient
+
+----------------------------------
+
+SOCIAL AUTO DETECTION
+
+When user pastes a link like:
+
+youtube.com
+instagram.com
+twitter.com
+
+System must automatically:
+
+detect platform
+assign icon
+format display
+
+----------------------------------
+
+PERFORMANCE FEATURES
+
+Backend:
+
+API caching
+rate limiting
+optimized queries
+
+Frontend:
+
+lazy loading
+skeleton loaders
+image optimization
+
+----------------------------------
+
+SECURITY
+
+Implement:
+
+username validation
+URL validation
+XSS protection
+rate limit middleware
+
+----------------------------------
+
+DEVELOPER STRUCTURE
+
+Frontend structure example:
+
+src
+components
+LinkCard
+SocialCard
+ProfileHeader
+PhonePreview
+pages
+Dashboard
+PublicProfile
+
+Backend structure example:
+
+controllers
+routes
+services
+models
+middlewares
+
+----------------------------------
+
+MOBILE EXPERIENCE
+
+Public profile pages must be mobile-first.
+
+Design similar to premium Linktree pages.
+
+Smooth animations and fast loading.
+
+----------------------------------
+
+3 VIRAL FEATURES (UNIQUE TO LINKHUB)
+
+Feature 1 — Smart Link AI
+
+User pastes any link.
+
+System automatically:
+
+detects platform
+fetches metadata
+adds icon
+generates title
+
+Example:
+
+Paste YouTube link
+System auto creates card with title + thumbnail.
+
+----------------------------------
+
+Feature 2 — Dynamic Creator Cards
+
+Instead of simple links, users can create rich cards.
+
+Examples:
+
+YouTube video card
+Spotify music card
+GitHub repo card
+Tweet card
+
+Cards display:
+
+preview
+thumbnail
+stats
+engagement info
+
+----------------------------------
+
+Feature 3 — Creator Spotlight Mode
+
+Public profile page can automatically highlight the creator's best content.
+
+Example sections:
+
+Featured Video
+Latest Tweet
+Top GitHub Repo
+Latest Instagram Post
+
+This makes the page feel alive instead of static.
+
+----------------------------------
+
+BONUS FEATURES
+
+QR Code Generator for profile page.
+
+Users can download QR code for:
+
+linkhub.com/username
+
+----------------------------------
+
+SOCIAL SHARE BUTTONS
+
+Add share buttons:
+
+WhatsApp
+Twitter
+Copy Link
+
+----------------------------------
+
+LINK SCHEDULING
+
+Users can schedule links to go live.
+
+Example:
+
+launch link tomorrow
+launch link at specific time
+
+----------------------------------
+
+VERIFIED BADGE SYSTEM
+
+Creators with large followers get:
+
+verified badge
+
+----------------------------------
+
+FINAL PRODUCT
+
+LinkHub should become a modern creator identity hub.
+
+Users can:
+
+share links
+connect socials
+track analytics
+customize themes
+build a beautiful profile page
+
+Example final page:
+
+linkhub.com/fuad
+
+----------------------------------
+
+Build this in a clean scalable architecture.
+
+Write production-ready code.
+
+Avoid unnecessary complexity.
+
+Focus on performance, UX, and maintainability.

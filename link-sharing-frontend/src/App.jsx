@@ -1,14 +1,18 @@
 // src/App.jsx
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import UserPage from "./Components/UserPage";
+import { lazy, Suspense } from "react";
 import Login from "./Components/Login";
 import Register from "./Components/Register";
-import AdminDashboard from "./Components/AdminDashboard";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import ForgotPassword from "./Components/ForgetPassword";
 import WelcomePage from "./Components/WelcomePage";
-import PublicDashboard from "./Components/PublicDashboard";
+import PublicProfile from "./pages/PublicProfile";
 import { Toaster } from "react-hot-toast";
+
+// Lazy-loaded dashboard pages
+const DashboardLayout = lazy(() =>
+  import("./pages/dashboard/DashboardLayout")
+);
 
 function App() {
   return (
@@ -18,20 +22,34 @@ function App() {
       </>
       <Routes>
         <Route path="/" element={<WelcomePage />} />
-        <Route path="/:username" element={<PublicDashboard />} />
-        <Route path="/:username" element={<UserPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route
-          path="/dashboard"
+          path="/dashboard/*"
           element={
             <ProtectedRoute>
-              <AdminDashboard />
+              <Suspense
+                fallback={
+                  <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+                    <div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                }
+              >
+                <DashboardLayout />
+              </Suspense>
             </ProtectedRoute>
           }
         />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="*" element={<div>404: page not found</div>} />
+        <Route path="/:username" element={<PublicProfile />} />
+        <Route
+          path="*"
+          element={
+            <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center text-white/50">
+              404: Page not found
+            </div>
+          }
+        />
       </Routes>
     </Router>
   );
