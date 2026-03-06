@@ -61,10 +61,19 @@ const DashboardLayout = () => {
     fetchUserData();
   }, []);
 
+  // Apply theme from user data
+  useEffect(() => {
+    if (userData?.theme) {
+      document.documentElement.setAttribute("data-theme", userData.theme);
+    }
+  }, [userData?.theme]);
+
   const handleLogout = () => {
     logout();
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    // Reset theme on logout
+    document.documentElement.removeAttribute("data-theme");
     navigate("/login");
   };
 
@@ -73,7 +82,7 @@ const DashboardLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex">
+    <div className="min-h-screen flex" style={{ backgroundColor: "var(--bg-primary)" }}>
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -84,21 +93,30 @@ const DashboardLayout = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-64 bg-[#111111] border-r border-white/5 flex flex-col
+        className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-64 border-r flex flex-col
           transform transition-transform duration-300 lg:translate-x-0
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+          ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
+        style={{
+          backgroundColor: "var(--nav-bg)",
+          borderColor: "var(--card-border)",
+        }}
       >
         {/* Logo */}
-        <div className="flex items-center justify-between p-5 border-b border-white/5">
+        <div className="flex items-center justify-between p-5 border-b"
+             style={{ borderColor: "var(--card-border)" }}>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
+                 style={{ background: "var(--logo-gradient)" }}>
               L
             </div>
-            <span className="text-white font-semibold text-lg">LinkHub</span>
+            <span className="font-semibold text-lg" style={{ color: "var(--text-primary)" }}>
+              LinkHub
+            </span>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="lg:hidden text-white/40 hover:text-white"
+            className="lg:hidden"
+            style={{ color: "var(--text-muted)" }}
           >
             <X className="w-5 h-5" />
           </button>
@@ -113,12 +131,12 @@ const DashboardLayout = () => {
               end={item.end}
               onClick={() => setSidebarOpen(false)}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                  isActive
-                    ? "bg-white/10 text-white"
-                    : "text-white/40 hover:text-white/70 hover:bg-white/5"
-                }`
+                `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200`
               }
+              style={({ isActive }) => ({
+                backgroundColor: isActive ? "var(--nav-active-bg)" : "transparent",
+                color: isActive ? "var(--nav-active)" : "var(--nav-text)",
+              })}
             >
               <item.icon className="w-4.5 h-4.5" />
               {item.label}
@@ -127,13 +145,14 @@ const DashboardLayout = () => {
         </nav>
 
         {/* User info + Logout */}
-        <div className="p-4 border-t border-white/5">
+        <div className="p-4 border-t" style={{ borderColor: "var(--card-border)" }}>
           {userData?.username && (
             <a
               href={`/${userData.username}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 mb-2 rounded-xl text-purple-400 text-sm hover:bg-purple-500/10 transition-colors"
+              className="flex items-center gap-2 px-4 py-2 mb-2 rounded-xl text-sm transition-colors"
+              style={{ color: "var(--accent)" }}
             >
               <ExternalLink className="w-4 h-4" />
               View Public Page
@@ -152,17 +171,22 @@ const DashboardLayout = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex items-center justify-between px-6 py-4 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/5">
+        <header className="sticky top-0 z-30 flex items-center justify-between px-6 py-4 backdrop-blur-md border-b"
+                style={{
+                  backgroundColor: "color-mix(in srgb, var(--bg-primary) 80%, transparent)",
+                  borderColor: "var(--card-border)",
+                }}>
           <button
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden text-white/40 hover:text-white"
+            className="lg:hidden"
+            style={{ color: "var(--text-muted)" }}
           >
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-3">
-            <span className="text-white/40 text-sm hidden sm:block">
+            <span className="text-sm hidden sm:block" style={{ color: "var(--text-muted)" }}>
               Welcome back,{" "}
-              <span className="text-white font-medium">
+              <span className="font-medium" style={{ color: "var(--text-primary)" }}>
                 {userData?.name || "Creator"}
               </span>
             </span>
@@ -216,7 +240,8 @@ const DashboardLayout = () => {
           </main>
 
           {/* Live Phone Preview (desktop only) */}
-          <aside className="hidden xl:block w-[340px] border-l border-white/5 p-6 sticky top-[73px] h-[calc(100vh-73px)] overflow-y-auto">
+          <aside className="hidden xl:block w-[340px] border-l p-6 sticky top-[73px] h-[calc(100vh-73px)] overflow-y-auto"
+                 style={{ borderColor: "var(--card-border)" }}>
             <PhonePreview userData={userData} links={userLinks} />
           </aside>
         </div>

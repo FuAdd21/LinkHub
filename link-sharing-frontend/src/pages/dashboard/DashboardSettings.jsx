@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { Save, Palette, Check } from "lucide-react";
+import { Save, Palette, Check, Sparkles } from "lucide-react";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
@@ -12,39 +12,37 @@ const THEMES = [
     id: "dark-pro",
     name: "Dark Pro",
     preview: "bg-gradient-to-b from-[#0a0a0a] to-[#111111]",
-    textColor: "text-white",
+    accent: "#8B5CF6",
+    description: "Clean, professional dark theme",
   },
   {
     id: "neon-glow",
     name: "Neon Glow",
     preview: "bg-gradient-to-b from-[#0a001a] to-[#0f0028]",
-    textColor: "text-green-400",
+    accent: "#00ff88",
+    description: "Futuristic neon vibes",
   },
   {
     id: "minimal",
-    name: "Minimal",
+    name: "Minimal Light",
     preview: "bg-gradient-to-b from-[#f8f9fa] to-[#ffffff]",
-    textColor: "text-gray-800",
+    accent: "#6366f1",
+    description: "Clean, light & minimal",
   },
   {
     id: "creator-mode",
     name: "Creator Mode",
     preview: "bg-gradient-to-b from-[#0a0a1a] to-[#1a0a2e]",
-    textColor: "text-pink-400",
+    accent: "#ff0050",
+    description: "Bold creative energy",
   },
 ];
 
 const BACKGROUNDS = [
-  {
-    type: "gradient",
-    label: "Gradient",
-    options: [
-      { value: "purple-pink", label: "Purple → Pink", colors: "from-purple-900 to-pink-900" },
-      { value: "blue-cyan", label: "Blue → Cyan", colors: "from-blue-900 to-cyan-900" },
-      { value: "emerald-teal", label: "Emerald → Teal", colors: "from-emerald-900 to-teal-900" },
-      { value: "amber-orange", label: "Amber → Orange", colors: "from-amber-900 to-orange-900" },
-    ],
-  },
+  { value: "purple-pink", label: "Purple → Pink", colors: "from-purple-900 to-pink-900" },
+  { value: "blue-cyan", label: "Blue → Cyan", colors: "from-blue-900 to-cyan-900" },
+  { value: "emerald-teal", label: "Emerald → Teal", colors: "from-emerald-900 to-teal-900" },
+  { value: "amber-orange", label: "Amber → Orange", colors: "from-amber-900 to-orange-900" },
 ];
 
 const DashboardSettings = ({ userData, onRefresh }) => {
@@ -66,6 +64,11 @@ const DashboardSettings = ({ userData, onRefresh }) => {
     }
   }, [userData]);
 
+  // Apply theme INSTANTLY on selection (live preview)
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", selectedTheme);
+  }, [selectedTheme]);
+
   const handleSave = async () => {
     setSaving(true);
     try {
@@ -78,7 +81,7 @@ const DashboardSettings = ({ userData, onRefresh }) => {
         },
         { headers }
       );
-      toast.success("Settings saved!");
+      toast.success("Settings saved! Theme applied everywhere.");
       onRefresh?.();
     } catch {
       toast.error("Failed to save settings");
@@ -93,15 +96,18 @@ const DashboardSettings = ({ userData, onRefresh }) => {
       animate={{ opacity: 1, y: 0 }}
       className="max-w-2xl"
     >
-      <h2 className="text-2xl font-bold text-white mb-1">Settings</h2>
-      <p className="text-white/40 text-sm mb-8">
-        Customize your page appearance
+      <h2 className="text-2xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>
+        Settings
+      </h2>
+      <p className="text-sm mb-8" style={{ color: "var(--text-muted)" }}>
+        Customize your entire page — theme changes apply everywhere instantly
       </p>
 
       {/* Theme Selection */}
       <div className="mb-10">
-        <h3 className="text-white font-medium text-sm mb-4 flex items-center gap-2">
-          <Palette className="w-4 h-4 text-purple-400" />
+        <h3 className="font-medium text-sm mb-4 flex items-center gap-2"
+            style={{ color: "var(--text-primary)" }}>
+          <Sparkles className="w-4 h-4" style={{ color: "var(--accent)" }} />
           Theme
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -111,20 +117,27 @@ const DashboardSettings = ({ userData, onRefresh }) => {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => setSelectedTheme(theme.id)}
-              className={`relative p-4 rounded-xl border-2 transition-colors ${
-                selectedTheme === theme.id
-                  ? "border-purple-500"
-                  : "border-white/10 hover:border-white/20"
-              }`}
+              className="relative p-4 rounded-xl border-2 transition-all duration-300 text-left"
+              style={{
+                borderColor:
+                  selectedTheme === theme.id
+                    ? "var(--accent)"
+                    : "var(--card-border)",
+                backgroundColor: "var(--card-bg)",
+              }}
             >
               <div
                 className={`w-full h-16 rounded-lg mb-2.5 ${theme.preview}`}
               />
-              <p className={`text-xs font-medium ${theme.textColor}`}>
+              <p className="text-xs font-semibold" style={{ color: theme.accent }}>
                 {theme.name}
               </p>
+              <p className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>
+                {theme.description}
+              </p>
               {selectedTheme === theme.id && (
-                <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center">
+                <div className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center"
+                     style={{ backgroundColor: "var(--accent)" }}>
                   <Check className="w-3 h-3 text-white" />
                 </div>
               )}
@@ -133,30 +146,38 @@ const DashboardSettings = ({ userData, onRefresh }) => {
         </div>
       </div>
 
-      {/* Background */}
+      {/* Background Gradient */}
       <div className="mb-10">
-        <h3 className="text-white font-medium text-sm mb-4">
+        <h3 className="font-medium text-sm mb-4 flex items-center gap-2"
+            style={{ color: "var(--text-primary)" }}>
+          <Palette className="w-4 h-4" style={{ color: "var(--accent)" }} />
           Background Gradient
         </h3>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {BACKGROUNDS[0].options.map((bg) => (
+          {BACKGROUNDS.map((bg) => (
             <motion.button
               key={bg.value}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => setSelectedBg(bg.value)}
-              className={`relative p-3 rounded-xl border-2 transition-colors ${
-                selectedBg === bg.value
-                  ? "border-purple-500"
-                  : "border-white/10 hover:border-white/20"
-              }`}
+              className="relative p-3 rounded-xl border-2 transition-all duration-300"
+              style={{
+                borderColor:
+                  selectedBg === bg.value
+                    ? "var(--accent)"
+                    : "var(--card-border)",
+                backgroundColor: "var(--card-bg)",
+              }}
             >
               <div
                 className={`w-full h-12 rounded-lg bg-gradient-to-br ${bg.colors}`}
               />
-              <p className="text-white/50 text-xs mt-2">{bg.label}</p>
+              <p className="text-xs mt-2" style={{ color: "var(--text-muted)" }}>
+                {bg.label}
+              </p>
               {selectedBg === bg.value && (
-                <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-purple-500 flex items-center justify-center">
+                <div className="absolute top-2 right-2 w-4 h-4 rounded-full flex items-center justify-center"
+                     style={{ backgroundColor: "var(--accent)" }}>
                   <Check className="w-2.5 h-2.5 text-white" />
                 </div>
               )}
@@ -171,8 +192,9 @@ const DashboardSettings = ({ userData, onRefresh }) => {
         whileTap={{ scale: 0.99 }}
         onClick={handleSave}
         disabled={saving}
-        className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl
+        className="flex items-center gap-2 px-6 py-3 rounded-xl text-white
                  text-sm font-medium disabled:opacity-50 hover:opacity-90 transition-opacity"
+        style={{ background: "var(--accent-gradient)" }}
       >
         <Save className="w-4 h-4" />
         {saving ? "Saving..." : "Save Settings"}

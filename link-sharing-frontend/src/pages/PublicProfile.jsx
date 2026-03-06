@@ -4,32 +4,34 @@ import { motion } from "framer-motion";
 import axios from "axios";
 import ProfileHeader from "../components/ProfileHeader";
 import LinkCard from "../components/LinkCard";
-import SocialCardPublic from "../components/SocialCardPublic";
+import SocialProfileCard, { SocialCardSkeleton } from "../components/SocialProfileCard";
 import ShareButtons from "../components/ShareButtons";
 import QRCodeGenerator from "../components/QRCodeGenerator";
+import { fetchSocialProfiles } from "../api/socialApi";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
 
-// Theme configurations
-const THEMES = {
-  "dark-pro": {
-    bg: "bg-gradient-to-b from-[#0a0a0a] via-[#111111] to-[#0a0a0a]",
-    particleColor: "rgba(139, 92, 246, 0.08)",
-  },
-  "neon-glow": {
-    bg: "bg-gradient-to-b from-[#0a001a] via-[#0f0028] to-[#0a001a]",
-    particleColor: "rgba(0, 255, 136, 0.08)",
-  },
-  minimal: {
-    bg: "bg-gradient-to-b from-[#f8f9fa] via-[#ffffff] to-[#f8f9fa]",
-    particleColor: "rgba(0, 0, 0, 0.03)",
-    light: true,
-  },
-  "creator-mode": {
-    bg: "bg-gradient-to-b from-[#0a0a1a] via-[#1a0a2e] to-[#0a0a1a]",
-    particleColor: "rgba(255, 0, 80, 0.08)",
-  },
+// Social key mapping to backend query param names
+const SOCIAL_KEY_MAP = {
+  youtubeId: "youtube",
+  githubUser: "github",
+  telegramUser: "telegram",
+  instagram: "instagram",
+  twitter: "twitter",
+  linkedin: "linkedin",
+  tiktok: "tiktok",
+};
+
+// Map backend query param to platform name for card rendering
+const PARAM_TO_PLATFORM = {
+  youtube: "youtube",
+  github: "github",
+  telegram: "telegram",
+  instagram: "instagram",
+  twitter: "twitter",
+  linkedin: "linkedin",
+  tiktok: "tiktok",
 };
 
 const PublicProfile = () => {
@@ -37,7 +39,10 @@ const PublicProfile = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [socialData, setSocialData] = useState(null);
+  const [socialsLoading, setSocialsLoading] = useState(false);
 
+  // Fetch profile data
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -46,9 +51,7 @@ const PublicProfile = () => {
         );
         setUserData(response.data);
       } catch (err) {
-        setError(
-          err.response?.data?.message || "User not found"
-        );
+        setError(err.response?.data?.message || "User not found");
       } finally {
         setLoading(false);
       }
@@ -59,29 +62,77 @@ const PublicProfile = () => {
     }
   }, [username]);
 
+  // Fetch social data once we have user data with social handles
+  useEffect(() => {
+    if (!userData?.socials) return;
+
+    const socials = userData.socials;
+    // Build the params for the social API
+    const hasAnySocial = Object.values(socials).some((v) => v);
+    if (!hasAnySocial) return;
+
+    setSocialsLoading(true);
+
+    const fetchData = async () => {
+      try {
+        const result = await fetchSocialProfiles({
+          youtubeId: socials.youtube || socials.youtubeId || null,
+          githubUser: socials.github || socials.githubUser || null,
+          telegramUser: socials.telegram || socials.telegramUser || null,
+          instagram: socials.instagram || null,
+          twitter: socials.twitter || null,
+          linkedin: socials.linkedin || null,
+          tiktok: socials.tiktok || null,
+        });
+        setSocialData(result);
+      } catch (err) {
+        console.error("Failed to fetch social profiles:", err);
+      } finally {
+        setSocialsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [userData]);
+
+  // Apply theme via data attribute
+  useEffect(() => {
+    if (userData?.theme) {
+      document.documentElement.setAttribute("data-theme", userData.theme);
+    }
+    return () => {
+      document.documentElement.removeAttribute("data-theme");
+    };
+  }, [userData?.theme]);
+
   const trackClick = async (linkId) => {
     try {
       await axios.post(`${API_BASE_URL}/api/analytics/click/${linkId}`);
     } catch {
-      // Silent fail - don't interrupt user experience
+      // Silent fail
     }
   };
 
   // ──── Loading State ────
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
+      <div className="min-h-screen bg-[var(--bg-primary,#0a0a0a)] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4 w-full max-w-[420px] px-4">
           {/* Skeleton avatar */}
           <div className="w-24 h-24 rounded-full bg-white/5 animate-pulse" />
-          {/* Skeleton text */}
           <div className="w-32 h-4 rounded-full bg-white/5 animate-pulse" />
           <div className="w-48 h-3 rounded-full bg-white/5 animate-pulse" />
+          {/* Skeleton social cards */}
+          <div className="w-full mt-4 space-y-3">
+            {[1, 2, 3].map((i) => (
+              <SocialCardSkeleton key={i} />
+            ))}
+          </div>
           {/* Skeleton links */}
-          <div className="w-64 mt-6 space-y-3">
-            {[1, 2, 3, 4].map((i) => (
+          <div className="w-full mt-2 space-y-2.5">
+            {[1, 2, 3].map((i) => (
               <div
-                key={i}
+                key={`link-${i}`}
                 className="w-full h-12 rounded-2xl bg-white/5 animate-pulse"
               />
             ))}
@@ -119,25 +170,22 @@ const PublicProfile = () => {
     );
   }
 
-  const theme = THEMES[userData.theme] || THEMES["dark-pro"];
-  const isLight = theme.light;
-
-  // Collect active socials
-  const activeSocials = Object.entries(userData.socials || {}).filter(
-    ([_, username]) => username
-  );
+  // Collect active social handles for data display
+  const activeSocialPlatforms = Object.entries(userData.socials || {})
+    .filter(([_, val]) => val)
+    .map(([key]) => key);
 
   return (
     <div
-      className={`min-h-screen ${theme.bg} flex items-start justify-center py-8 px-4`}
+      className="min-h-screen flex items-start justify-center py-8 px-4"
+      style={{ backgroundColor: "var(--bg-primary)" }}
     >
       {/* Ambient background glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div
           className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full blur-[120px] opacity-30"
           style={{
-            background:
-              "radial-gradient(circle, rgba(139, 92, 246, 0.15), transparent)",
+            background: `radial-gradient(circle, var(--glow-color, rgba(139, 92, 246, 0.15)), transparent)`,
           }}
         />
       </div>
@@ -152,22 +200,30 @@ const PublicProfile = () => {
         {/* Profile Header */}
         <ProfileHeader user={userData} />
 
-        {/* Social Cards Row */}
-        {activeSocials.length > 0 && (
+        {/* ─── Rich Social Profile Cards ─── */}
+        {activeSocialPlatforms.length > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="flex flex-wrap justify-center gap-2 mb-6"
+            className="space-y-3 mb-6"
           >
-            {activeSocials.map(([platform, uname], index) => (
-              <SocialCardPublic
-                key={platform}
-                platform={platform}
-                username={uname}
-                index={index}
-              />
-            ))}
+            {socialsLoading ? (
+              // Skeleton loaders while fetching
+              activeSocialPlatforms.map((platform) => (
+                <SocialCardSkeleton key={platform} />
+              ))
+            ) : (
+              activeSocialPlatforms.map((platform, index) => (
+                <SocialProfileCard
+                  key={platform}
+                  platform={platform}
+                  data={socialData?.[platform]}
+                  index={index}
+                  showDisconnected={true}
+                />
+              ))
+            )}
           </motion.div>
         )}
 
@@ -187,13 +243,12 @@ const PublicProfile = () => {
 
         {/* Empty state */}
         {(!userData.links || userData.links.length === 0) &&
-          activeSocials.length === 0 && (
+          activeSocialPlatforms.length === 0 && (
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className={`text-center text-sm ${
-                isLight ? "text-gray-500" : "text-white/30"
-              } mt-8`}
+              className="text-center text-sm mt-8"
+              style={{ color: "var(--text-muted)" }}
             >
               No links yet — check back soon!
             </motion.p>
@@ -212,10 +267,13 @@ const PublicProfile = () => {
           transition={{ delay: 1 }}
           className="flex items-center justify-center gap-1.5 mt-8 mb-4"
         >
-          <span className="text-[11px] text-white/20">⚡ Powered by</span>
+          <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+            ⚡ Powered by
+          </span>
           <a
             href="/"
-            className="text-[11px] text-white/30 hover:text-white/50 transition-colors font-medium"
+            className="text-[11px] font-medium transition-colors"
+            style={{ color: "var(--text-muted)" }}
           >
             LinkHub
           </a>

@@ -4,6 +4,112 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
+/* ───── THEME SYSTEM (CSS Variables) ───── */
+:root,
+[data-theme="dark-pro"] {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #111111;
+  --bg-tertiary: #1a1a1a;
+  --card-bg: rgba(255, 255, 255, 0.03);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-hover: rgba(255, 255, 255, 0.06);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.35);
+  --accent: #8B5CF6;
+  --accent-secondary: #EC4899;
+  --accent-gradient: linear-gradient(135deg, #8B5CF6, #EC4899);
+  --glow-color: rgba(139, 92, 246, 0.15);
+  --nav-bg: #111111;
+  --nav-text: rgba(255, 255, 255, 0.4);
+  --nav-active: rgba(255, 255, 255, 1);
+  --nav-active-bg: rgba(255, 255, 255, 0.1);
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --input-border: rgba(255, 255, 255, 0.1);
+  --link-btn-bg: rgba(255, 255, 255, 0.05);
+  --link-btn-border: rgba(255, 255, 255, 0.1);
+  --link-btn-hover: rgba(255, 255, 255, 0.1);
+  --logo-gradient: linear-gradient(135deg, #8B5CF6, #EC4899);
+}
+
+[data-theme="neon-glow"] {
+  --bg-primary: #0a001a;
+  --bg-secondary: #0f0028;
+  --bg-tertiary: #150035;
+  --card-bg: rgba(0, 255, 136, 0.04);
+  --card-border: rgba(0, 255, 136, 0.1);
+  --card-hover: rgba(0, 255, 136, 0.08);
+  --text-primary: #e0ffe8;
+  --text-secondary: rgba(0, 255, 136, 0.7);
+  --text-muted: rgba(0, 255, 136, 0.35);
+  --accent: #00ff88;
+  --accent-secondary: #00ccff;
+  --accent-gradient: linear-gradient(135deg, #00ff88, #00ccff);
+  --glow-color: rgba(0, 255, 136, 0.12);
+  --nav-bg: #0f0028;
+  --nav-text: rgba(0, 255, 136, 0.35);
+  --nav-active: #00ff88;
+  --nav-active-bg: rgba(0, 255, 136, 0.1);
+  --input-bg: rgba(0, 255, 136, 0.05);
+  --input-border: rgba(0, 255, 136, 0.15);
+  --link-btn-bg: rgba(0, 255, 136, 0.06);
+  --link-btn-border: rgba(0, 255, 136, 0.12);
+  --link-btn-hover: rgba(0, 255, 136, 0.12);
+  --logo-gradient: linear-gradient(135deg, #00ff88, #00ccff);
+}
+
+[data-theme="minimal"] {
+  --bg-primary: #fafafa;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f3f4f6;
+  --card-bg: rgba(0, 0, 0, 0.02);
+  --card-border: rgba(0, 0, 0, 0.08);
+  --card-hover: rgba(0, 0, 0, 0.04);
+  --text-primary: #111827;
+  --text-secondary: rgba(17, 24, 39, 0.7);
+  --text-muted: rgba(17, 24, 39, 0.4);
+  --accent: #6366f1;
+  --accent-secondary: #a855f7;
+  --accent-gradient: linear-gradient(135deg, #6366f1, #a855f7);
+  --glow-color: rgba(99, 102, 241, 0.08);
+  --nav-bg: #ffffff;
+  --nav-text: rgba(17, 24, 39, 0.4);
+  --nav-active: #111827;
+  --nav-active-bg: rgba(99, 102, 241, 0.08);
+  --input-bg: rgba(0, 0, 0, 0.03);
+  --input-border: rgba(0, 0, 0, 0.1);
+  --link-btn-bg: rgba(0, 0, 0, 0.03);
+  --link-btn-border: rgba(0, 0, 0, 0.08);
+  --link-btn-hover: rgba(0, 0, 0, 0.06);
+  --logo-gradient: linear-gradient(135deg, #6366f1, #a855f7);
+}
+
+[data-theme="creator-mode"] {
+  --bg-primary: #0a0a1a;
+  --bg-secondary: #1a0a2e;
+  --bg-tertiary: #220c3c;
+  --card-bg: rgba(255, 0, 80, 0.04);
+  --card-border: rgba(255, 0, 80, 0.1);
+  --card-hover: rgba(255, 0, 80, 0.08);
+  --text-primary: #ffe6ee;
+  --text-secondary: rgba(255, 100, 150, 0.8);
+  --text-muted: rgba(255, 100, 150, 0.4);
+  --accent: #ff0050;
+  --accent-secondary: #ff6b9d;
+  --accent-gradient: linear-gradient(135deg, #ff0050, #ff6b9d);
+  --glow-color: rgba(255, 0, 80, 0.12);
+  --nav-bg: #1a0a2e;
+  --nav-text: rgba(255, 100, 150, 0.35);
+  --nav-active: #ff6b9d;
+  --nav-active-bg: rgba(255, 0, 80, 0.1);
+  --input-bg: rgba(255, 0, 80, 0.05);
+  --input-border: rgba(255, 0, 80, 0.12);
+  --link-btn-bg: rgba(255, 0, 80, 0.06);
+  --link-btn-border: rgba(255, 0, 80, 0.1);
+  --link-btn-hover: rgba(255, 0, 80, 0.12);
+  --logo-gradient: linear-gradient(135deg, #ff0050, #ff6b9d);
+}
+
 @layer base {
   html, body {
     margin: 0;
@@ -14,6 +120,8 @@
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
   }
   * {
     scrollbar-width: thin;

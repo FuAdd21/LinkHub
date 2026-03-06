@@ -1,0 +1,272 @@
+You are working on an existing SaaS project called "LinkHub".
+
+Stack:
+Frontend: React + Vite
+Backend: Node.js + Express
+Database: MySQL
+
+The backend already contains a Social Media Fetch Engine with APIs for:
+
+YouTube
+GitHub
+Telegram
+Instagram
+Twitter/X
+LinkedIn
+TikTok
+
+There is also caching and rate-limit protection already implemented.
+
+IMPORTANT:
+Do NOT recreate folders that already exist.
+Extend or modify existing files where necessary.
+
+An image has been provided showing the current UI section with buttons for:
+
+Telegram
+Facebook
+YouTube
+Instagram
+Twitter
+GitHub
+
+Use that image as a visual reference for layout style.
+
+--------------------------------------------------
+
+GOAL
+
+Replace the static social media buttons with dynamic social profile cards fetched from the backend API.
+
+Each card must display real social media data.
+
+--------------------------------------------------
+
+SOCIAL DATA FETCH
+
+Use the existing backend endpoint:
+
+/socials
+
+Example request:
+
+/socials?youtube=@username&github=username&telegram=username&instagram=username&twitter=username
+
+Fetch this data from the frontend.
+
+--------------------------------------------------
+
+SOCIAL PROFILE CARD DESIGN
+
+Replace the static list with dynamic cards.
+
+Each social card should display:
+
+platform icon
+profile avatar
+username
+bio or description
+followers / subscribers / members
+visit button linking to the official profile
+
+Example card layout:
+
+[ Avatar ]   YouTube
+             @creatorname
+             10.4K subscribers
+             Visit Channel →
+
+Style must match the current dark UI:
+
+rounded cards
+soft shadows
+hover animation
+smooth transitions
+
+Cards must animate in using a subtle fade or slide.
+
+--------------------------------------------------
+
+SOCIAL CARD DATA MAPPING
+
+YouTube card:
+
+avatar
+channel name
+subscribers
+video count
+visit link
+
+GitHub card:
+
+avatar
+username
+followers
+public repos
+bio
+visit link
+
+Telegram card:
+
+avatar (if available)
+channel name
+members
+description
+visit link
+
+Instagram card:
+
+profile picture
+username
+followers
+bio
+visit link
+
+Twitter/X card:
+
+avatar
+username
+followers
+bio
+visit link
+
+--------------------------------------------------
+
+THEME SYSTEM IMPROVEMENT
+
+Currently themes only change small parts.
+
+Upgrade the theme system so that when a user selects a theme, the ENTIRE page adapts.
+
+Theme must control:
+
+background
+text colors
+button colors
+icons
+navigation
+logo color
+card styles
+hover effects
+link colors
+gradients
+
+Themes should feel like full design systems.
+
+Example themes:
+
+Dark Pro
+Minimal Light
+Neon Creator
+Gradient Studio
+
+Implement themes using:
+
+CSS variables OR Tailwind theme configuration.
+
+Theme must apply globally across:
+
+Dashboard
+Public profile page
+Social cards
+Link buttons
+Navigation
+Logo
+
+When theme changes → page updates instantly.
+
+--------------------------------------------------
+
+PUBLIC PAGE REDIRECT
+
+When a user sets their:
+
+username (required)
+bio (optional)
+
+and clicks SAVE in the dashboard profile section:
+
+The system must automatically redirect to:
+
+/username
+
+Example:
+
+username = fuad
+
+Redirect to:
+
+/fuad
+
+This is the public LinkHub profile page.
+
+--------------------------------------------------
+
+PUBLIC PROFILE PAGE
+
+The public page should display:
+
+profile avatar
+username
+bio
+social profile cards
+custom links
+
+The layout should be mobile-first and centered like a phone-style profile page.
+
+Design inspiration should follow the provided image:
+
+dark premium style
+rounded cards
+soft glow
+clean typography
+
+--------------------------------------------------
+
+SOCIAL CARD LOADING STATE
+
+While API data loads:
+
+display skeleton loaders.
+
+Example:
+
+avatar skeleton
+text skeleton
+card skeleton
+
+--------------------------------------------------
+
+ERROR HANDLING
+
+If a social account is not connected or API fails:
+
+show a clean message:
+
+"Social profile not connected"
+
+Do NOT break the page layout.
+
+--------------------------------------------------
+
+PERFORMANCE
+
+Use:
+
+lazy loading
+API caching already in backend
+minimal re-renders
+
+Avoid unnecessary API calls.
+
+--------------------------------------------------
+
+FINAL RESULT
+
+The social section should now transform from static buttons into rich social media profile cards showing real data.
+
+The theme system should control the full visual experience.
+
+Saving username should immediately redirect users to their public LinkHub page.
+
+Write clean, scalable, production-ready code.

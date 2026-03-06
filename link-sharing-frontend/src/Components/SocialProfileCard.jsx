@@ -1,250 +1,318 @@
+import React from "react";
+import { motion } from "framer-motion";
 import {
-  Github,
-  Instagram,
-  Youtube,
-  Twitter,
-  Linkedin,
-  Music2,
-  Users,
-  Eye,
-  FileCode,
-  Send,
-} from "lucide-react";
+  FaYoutube,
+  FaGithub,
+  FaTelegram,
+  FaInstagram,
+  FaTwitter,
+  FaLinkedin,
+  FaTiktok,
+  FaExternalLinkAlt,
+} from "react-icons/fa";
 
-const platformConfig = {
-  instagram: {
-    name: "Instagram",
-    color: "from-pink-500 to-purple-600",
-    icon: Instagram,
-    hoverColor: "hover:shadow-pink-500/30",
-    statsIcon: Users,
-    statsLabels: { followers: "Followers" },
-  },
-  tiktok: {
-    name: "TikTok",
-    color: "from-black to-gray-800",
-    icon: Music2,
-    hoverColor: "hover:shadow-cyan-500/30",
-    statsIcon: Users,
-    statsLabels: { followers: "Followers" },
-  },
+const PLATFORM_CONFIG = {
   youtube: {
-    name: "YouTube",
-    color: "from-red-600 to-red-700",
-    icon: Youtube,
-    hoverColor: "hover:shadow-red-500/30",
-    statsIcon: Eye,
-    statsLabels: {
-      subscribers: "Subscribers",
-      videos: "Videos",
-      views: "Views",
+    icon: FaYoutube,
+    color: "#FF0000",
+    bg: "rgba(255, 0, 0, 0.08)",
+    border: "rgba(255, 0, 0, 0.15)",
+    glow: "rgba(255, 0, 0, 0.2)",
+    label: "YouTube",
+    visitLabel: "Visit Channel",
+    urlPrefix: "https://youtube.com/@",
+    formatStats: (data) => {
+      if (data.subscriberCount || data.subscribers) {
+        const count = data.subscriberCount || data.subscribers;
+        return `${formatNumber(count)} subscribers`;
+      }
+      return null;
     },
-  },
-  twitter: {
-    name: "Twitter",
-    color: "from-blue-400 to-blue-600",
-    icon: Twitter,
-    hoverColor: "hover:shadow-blue-500/30",
-    statsIcon: Users,
-    statsLabels: { followers: "Followers" },
-  },
-  linkedin: {
-    name: "LinkedIn",
-    color: "from-blue-700 to-blue-800",
-    icon: Linkedin,
-    hoverColor: "hover:shadow-blue-600/30",
-    statsIcon: Users,
-    statsLabels: { connections: "Connections" },
+    getSecondary: (data) =>
+      data.videoCount ? `${formatNumber(data.videoCount)} videos` : null,
   },
   github: {
-    name: "GitHub",
-    color: "from-gray-700 to-gray-900",
-    icon: Github,
-    hoverColor: "hover:shadow-gray-500/30",
-    statsIcon: FileCode,
-    statsLabels: { followers: "Followers", repos: "Repos" },
+    icon: FaGithub,
+    color: "#e6edf3",
+    bg: "rgba(255, 255, 255, 0.04)",
+    border: "rgba(255, 255, 255, 0.1)",
+    glow: "rgba(255, 255, 255, 0.1)",
+    label: "GitHub",
+    visitLabel: "View Profile",
+    urlPrefix: "https://github.com/",
+    formatStats: (data) => {
+      if (data.followers !== undefined) {
+        return `${formatNumber(data.followers)} followers`;
+      }
+      return null;
+    },
+    getSecondary: (data) =>
+      data.publicRepos || data.public_repos
+        ? `${data.publicRepos || data.public_repos} repos`
+        : null,
   },
   telegram: {
-    name: "Telegram",
-    color: "from-blue-500 to-cyan-500",
-    icon: Send,
-    hoverColor: "hover:shadow-blue-500/30",
-    statsIcon: Users,
-    statsLabels: { members: "Members" },
+    icon: FaTelegram,
+    color: "#0088cc",
+    bg: "rgba(0, 136, 204, 0.08)",
+    border: "rgba(0, 136, 204, 0.15)",
+    glow: "rgba(0, 136, 204, 0.2)",
+    label: "Telegram",
+    visitLabel: "Join Channel",
+    urlPrefix: "https://t.me/",
+    formatStats: (data) => {
+      if (data.members || data.memberCount) {
+        const count = data.members || data.memberCount;
+        return `${formatNumber(count)} members`;
+      }
+      return null;
+    },
+    getSecondary: () => null,
+  },
+  instagram: {
+    icon: FaInstagram,
+    color: "#E4405F",
+    bg: "rgba(228, 64, 95, 0.08)",
+    border: "rgba(228, 64, 95, 0.15)",
+    glow: "rgba(228, 64, 95, 0.2)",
+    label: "Instagram",
+    visitLabel: "View Profile",
+    urlPrefix: "https://instagram.com/",
+    formatStats: (data) => {
+      if (data.followers !== undefined) {
+        return `${formatNumber(data.followers)} followers`;
+      }
+      return null;
+    },
+    getSecondary: () => null,
+  },
+  twitter: {
+    icon: FaTwitter,
+    color: "#1DA1F2",
+    bg: "rgba(29, 161, 242, 0.08)",
+    border: "rgba(29, 161, 242, 0.15)",
+    glow: "rgba(29, 161, 242, 0.2)",
+    label: "Twitter / X",
+    visitLabel: "View Profile",
+    urlPrefix: "https://twitter.com/",
+    formatStats: (data) => {
+      if (data.followers !== undefined) {
+        return `${formatNumber(data.followers)} followers`;
+      }
+      return null;
+    },
+    getSecondary: () => null,
+  },
+  linkedin: {
+    icon: FaLinkedin,
+    color: "#0A66C2",
+    bg: "rgba(10, 102, 194, 0.08)",
+    border: "rgba(10, 102, 194, 0.15)",
+    glow: "rgba(10, 102, 194, 0.2)",
+    label: "LinkedIn",
+    visitLabel: "View Profile",
+    urlPrefix: "https://linkedin.com/in/",
+    formatStats: (data) => {
+      if (data.followers !== undefined || data.connections !== undefined) {
+        const count = data.followers || data.connections;
+        return `${formatNumber(count)} connections`;
+      }
+      return null;
+    },
+    getSecondary: () => null,
+  },
+  tiktok: {
+    icon: FaTiktok,
+    color: "#ff0050",
+    bg: "rgba(255, 0, 80, 0.08)",
+    border: "rgba(255, 0, 80, 0.15)",
+    glow: "rgba(255, 0, 80, 0.2)",
+    label: "TikTok",
+    visitLabel: "View Profile",
+    urlPrefix: "https://tiktok.com/@",
+    formatStats: (data) => {
+      if (data.followers !== undefined) {
+        return `${formatNumber(data.followers)} followers`;
+      }
+      return null;
+    },
+    getSecondary: (data) =>
+      data.likes !== undefined ? `${formatNumber(data.likes)} likes` : null,
   },
 };
 
-function getPlatformInfo(platform) {
-  return platformConfig[platform?.toLowerCase()] || platformConfig.github;
-}
-
-function getInitials(username) {
-  if (!username) return "?";
-  return username.charAt(0).toUpperCase();
-}
-
 function formatNumber(num) {
-  if (!num && num !== 0) return null;
-  if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
-  if (num >= 1000) return (num / 1000).toFixed(1) + "K";
-  return num.toString();
+  if (num === undefined || num === null) return "0";
+  const n = typeof num === "string" ? parseInt(num, 10) : num;
+  if (isNaN(n)) return "0";
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
+  if (n >= 1_000) return (n / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
+  return n.toString();
 }
 
-export default function SocialProfileCard({
-  platform,
-  name,
-  username,
-  avatar,
-  profileUrl,
-  extraData = {},
-}) {
-  const config = getPlatformInfo(platform);
+// ── Skeleton Card ──
+export const SocialCardSkeleton = () => (
+  <div className="flex items-center gap-4 p-4 rounded-2xl border border-white/5 bg-white/[0.03] animate-pulse">
+    <div className="w-12 h-12 rounded-full bg-white/10 flex-shrink-0" />
+    <div className="flex-1 space-y-2">
+      <div className="w-24 h-3 rounded-full bg-white/10" />
+      <div className="w-16 h-2.5 rounded-full bg-white/8" />
+      <div className="w-20 h-2.5 rounded-full bg-white/5" />
+    </div>
+  </div>
+);
+
+// ── Disconnected State ──
+const SocialCardDisconnected = ({ platform, index }) => {
+  const config = PLATFORM_CONFIG[platform];
+  if (!config) return null;
   const Icon = config.icon;
-  const StatsIcon = config.statsIcon;
-
-  const handleClick = () => {
-    if (profileUrl) {
-      window.open(profileUrl, "_blank");
-    }
-  };
-
-  const displayName = name || username;
-  const hasStats = Object.keys(extraData).some((key) => extraData[key]);
 
   return (
-    <div
-      onClick={handleClick}
-      className={`
-        group relative overflow-hidden rounded-2xl p-4
-        bg-white/10 backdrop-blur-md border border-white/20
-        cursor-pointer transition-all duration-300
-        hover:scale-[1.02] hover:shadow-xl ${config.hoverColor}
-      `}
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: index * 0.08 }}
+      className="flex items-center gap-4 p-4 rounded-2xl border border-white/5 bg-white/[0.02] opacity-50"
     >
-      <div className="flex items-center gap-4">
+      <div
+        className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0"
+        style={{ backgroundColor: config.bg }}
+      >
+        <Icon className="w-5 h-5" style={{ color: config.color }} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[var(--text-primary)] text-sm font-medium">
+          {config.label}
+        </p>
+        <p className="text-[var(--text-muted)] text-xs mt-0.5">
+          Social profile not connected
+        </p>
+      </div>
+    </motion.div>
+  );
+};
+
+// ── Main Rich Card ──
+const SocialProfileCard = ({ platform, data, index, showDisconnected = false }) => {
+  const config = PLATFORM_CONFIG[platform];
+  if (!config) return null;
+
+  // If no data or error, show disconnected state
+  if (!data || data.error) {
+    if (showDisconnected) return <SocialCardDisconnected platform={platform} index={index} />;
+    return null;
+  }
+
+  const Icon = config.icon;
+  const avatar = data.avatar || data.profileImage || data.photo;
+  const displayName = data.displayName || data.name || data.title || data.username || platform;
+  const bio = data.bio || data.description || null;
+  const stats = config.formatStats(data);
+  const secondary = config.getSecondary(data);
+  const profileUrl = data.profileUrl || data.url || `${config.urlPrefix}${data.username || ""}`;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: index * 0.08 }}
+      whileHover={{ y: -2 }}
+      className="group relative p-4 rounded-2xl border transition-all duration-300 overflow-hidden"
+      style={{
+        borderColor: config.border,
+        backgroundColor: config.bg,
+      }}
+    >
+      {/* Hover glow */}
+      <div
+        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl pointer-events-none"
+        style={{
+          background: `radial-gradient(ellipse at center, ${config.glow}, transparent 70%)`,
+        }}
+      />
+
+      <div className="relative z-10 flex items-center gap-4">
         {/* Avatar */}
-        <div className="relative flex-shrink-0">
-          {avatar && !avatar.includes("placeholder") ? (
-            <img
-              src={avatar}
-              alt={`${platform} profile`}
-              className="w-16 h-16 rounded-full object-cover border-2 border-white/30 shadow-lg"
-            />
-          ) : (
-            <div
-              className={`
-                w-16 h-16 rounded-full flex items-center justify-center
-                bg-gradient-to-br ${config.color} text-white
-                text-2xl font-bold shadow-lg
-              `}
-            >
-              {getInitials(username || name)}
-            </div>
-          )}
-          {/* Platform badge */}
+        <div className="flex-shrink-0 relative">
           <div
-            className={`
-              absolute -bottom-1 -right-1 w-6 h-6 rounded-full
-              bg-gradient-to-br ${config.color}
-              flex items-center justify-center
-              border-2 border-white
-            `}
-          >
-            <Icon className="w-3 h-3 text-white" />
+            className="absolute inset-0 rounded-full blur-sm opacity-40"
+            style={{ backgroundColor: config.color }}
+          />
+          <div className="relative w-12 h-12 rounded-full overflow-hidden border-2"
+               style={{ borderColor: config.border }}>
+            {avatar ? (
+              <img
+                src={avatar}
+                alt={displayName}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.style.display = "none";
+                  if (e.target.nextSibling) e.target.nextSibling.style.display = "flex";
+                }}
+              />
+            ) : null}
+            <div
+              className={`w-full h-full items-center justify-center ${avatar ? "hidden" : "flex"}`}
+              style={{ backgroundColor: config.bg }}
+            >
+              <Icon className="w-5 h-5" style={{ color: config.color }} />
+            </div>
           </div>
         </div>
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <h3 className="text-white font-semibold text-lg truncate">
-            {displayName}
-          </h3>
-          {username && (
-            <p className="text-white/70 text-sm truncate">@{username}</p>
-          )}
+          <div className="flex items-center gap-2">
+            <Icon className="w-3.5 h-3.5 flex-shrink-0" style={{ color: config.color }} />
+            <span className="text-[var(--text-primary)] text-sm font-semibold truncate">
+              {displayName}
+            </span>
+          </div>
 
-          {/* Dynamic Stats */}
-          {hasStats && (
-            <div className="flex items-center gap-3 mt-2 text-white/60 text-xs">
-              {extraData.members !== undefined && (
-                <span className="flex items-center gap-1">
-                  <Users className="w-3 h-3" />
-                  {formatNumber(extraData.members)} members
-                </span>
+          {/* Stats row */}
+          {(stats || secondary) && (
+            <div className="flex items-center gap-2 mt-1">
+              {stats && (
+                <span className="text-[var(--text-secondary)] text-xs">{stats}</span>
               )}
-              {extraData.subscribers !== undefined && (
-                <span className="flex items-center gap-1">
-                  <Users className="w-3 h-3" />
-                  {formatNumber(extraData.subscribers)} subscribers
-                </span>
+              {stats && secondary && (
+                <span className="text-[var(--text-muted)] text-xs">·</span>
               )}
-              {extraData.followers !== undefined && (
-                <span className="flex items-center gap-1">
-                  <Users className="w-3 h-3" />
-                  {formatNumber(extraData.followers)} followers
-                </span>
-              )}
-              {extraData.videos !== undefined && (
-                <span className="flex items-center gap-1">
-                  {formatNumber(extraData.videos)} videos
-                </span>
-              )}
-              {extraData.repos !== undefined && (
-                <span className="flex items-center gap-1">
-                  <FileCode className="w-3 h-3" />
-                  {formatNumber(extraData.repos)} repos
-                </span>
-              )}
-              {extraData.views !== undefined && (
-                <span className="flex items-center gap-1">
-                  <Eye className="w-3 h-3" />
-                  {formatNumber(extraData.views)} views
-                </span>
-              )}
-              {extraData.connections !== undefined && (
-                <span className="flex items-center gap-1">
-                  <Users className="w-3 h-3" />
-                  {formatNumber(extraData.connections)} connections
-                </span>
-              )}
-              {extraData.bio !== undefined && extraData.bio && (
-                <span className="text-white/60 text-xs truncate max-w-[200px]">
-                  {extraData.bio}
-                </span>
+              {secondary && (
+                <span className="text-[var(--text-muted)] text-xs">{secondary}</span>
               )}
             </div>
           )}
 
-          <p className="text-white/50 text-xs mt-1 flex items-center gap-1 group-hover:text-white transition-colors">
-            Visit on {config.name} →
-          </p>
+          {/* Bio */}
+          {bio && (
+            <p className="text-[var(--text-muted)] text-[11px] mt-1 truncate max-w-[250px]">
+              {bio}
+            </p>
+          )}
         </div>
 
-        {/* Arrow */}
-        <div className="text-white/30 group-hover:text-white group-hover:translate-x-1 transition-all">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-              clipRule="evenodd"
-            />
-          </svg>
-        </div>
+        {/* Visit button */}
+        <a
+          href={profileUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium
+                     transition-all duration-200 hover:scale-105"
+          style={{
+            backgroundColor: config.bg,
+            color: config.color,
+            border: `1px solid ${config.border}`,
+          }}
+        >
+          <span className="hidden sm:inline">{config.visitLabel}</span>
+          <FaExternalLinkAlt className="w-2.5 h-2.5" />
+        </a>
       </div>
-
-      {/* Glow effect */}
-      <div
-        className={`
-          absolute inset-0 opacity-0 group-hover:opacity-100
-          bg-gradient-to-r ${config.color}
-          transition-opacity duration-300 -z-10 blur-xl
-        `}
-      />
-    </div>
+    </motion.div>
   );
-}
+};
+
+export default SocialProfileCard;
+export { PLATFORM_CONFIG, formatNumber };
