@@ -9,16 +9,23 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Check for existing token on load
     const token = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
     if (token) {
       setIsAuthenticated(true);
-      // Optionally, decode token or fetch user data here
+      if (storedUser) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (e) {
+          console.error("Failed to parse user from local storage", e);
+        }
+      }
     }
   }, []);
 
   const login = (token, userData) => {
     localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(userData)); // Added to ensure user state persists across refresh
     setIsAuthenticated(true);
     setUser(userData);
   };

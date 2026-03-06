@@ -7,6 +7,7 @@ import ProtectedRoute from "./Components/ProtectedRoute";
 import ForgotPassword from "./Components/ForgetPassword";
 import WelcomePage from "./Components/WelcomePage";
 import PublicProfile from "./pages/PublicProfile";
+import Onboarding from "./pages/Onboarding";
 import { Toaster } from "react-hot-toast";
 
 // Lazy-loaded dashboard pages
@@ -25,6 +26,14 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route 
+          path="/create-profile" 
+          element={
+            <ProtectedRoute>
+              <Onboarding />
+            </ProtectedRoute>
+          } 
+        />
         <Route
           path="/dashboard/*"
           element={

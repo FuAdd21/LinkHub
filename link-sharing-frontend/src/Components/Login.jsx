@@ -26,16 +26,19 @@ const Login = () => {
         email,
         password,
       });
-      login(res.data.token, {
+      const userData = {
         id: res.data.userId,
         name: res.data.name,
-      });
-      localStorage.setItem(
-        "user",
-        JSON.stringify({ id: res.data.userId, name: res.data.name })
-      );
+        username: res.data.username,
+      };
+      login(res.data.token, userData);
       toast.success("Welcome back!");
-      navigate("/dashboard");
+      
+      if (res.data.username) {
+        navigate(`/${res.data.username}`);
+      } else {
+        navigate("/create-profile");
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || "Login failed");
     } finally {

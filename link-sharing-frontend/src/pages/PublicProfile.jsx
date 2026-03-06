@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { motion } from "framer-motion";
+import React, { useState, useEffect, useContext } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
+import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
+import { Settings, LogOut, Edit3, Link2, Palette, ChevronDown } from "lucide-react";
 import ProfileHeader from "../components/ProfileHeader";
 import LinkCard from "../components/LinkCard";
 import SocialProfileCard, { SocialCardSkeleton } from "../components/SocialProfileCard";
 import ShareButtons from "../components/ShareButtons";
 import QRCodeGenerator from "../components/QRCodeGenerator";
 import { fetchSocialProfiles } from "../api/socialApi";
+import EditProfileModal from "../components/EditProfileModal";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
@@ -36,31 +39,48 @@ const PARAM_TO_PLATFORM = {
 
 const PublicProfile = () => {
   const { username } = useParams();
+  const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useContext(AuthContext);
+  
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [socialData, setSocialData] = useState(null);
   const [socialsLoading, setSocialsLoading] = useState(false);
+  
+  // Owner State
+  const isOwner = isAuthenticated && user?.username === username;
+  const [ownerMenuOpen, setOwnerMenuOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   // Fetch profile data
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const response = await axios.get(
-          `${API_BASE_URL}/api/profile/${username}`
-        );
-        setUserData(response.data);
-      } catch (err) {
-        setError(err.response?.data?.message || "User not found");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(
+        `${API_BASE_URL}/api/profile/${username}`
+      );
+      setUserData(response.data);
+    } catch (err) {
+      setError(err.response?.data?.message || "User not found");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (username) {
       fetchProfile();
     }
   }, [username]);
+
+  const handleProfileUpdate = (newUsername) => {
+    if (newUsername && newUsername !== username) {
+      navigate(`/${newUsername}`);
+    } else {
+      fetchProfile();
+    }
+  };
 
   // Fetch social data once we have user data with social handles
   useEffect(() => {
@@ -177,9 +197,76 @@ const PublicProfile = () => {
 
   return (
     <div
-      className="min-h-screen flex items-start justify-center py-8 px-4"
+      className="min-h-screen flex flex-col items-center justify-start py-12 px-4 relative"
       style={{ backgroundColor: "var(--bg-primary)" }}
     >
+      {/* ─── OWNER NAVIGATION MENU ─── */}
+      {isOwner && (
+        <div className="fixed top-4 right-4 z-50">
+          <div className="relative">
+            <button
+              onClick={() => setOwnerMenuOpen(!ownerMenuOpen)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 rounded-full text-white text-sm font-medium transition-all shadow-lg"
+            >
+              <div className="w-6 h-6 rounded-full overflow-hidden bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center">
+                {userData.avatar ? (
+                  <img src={userData.avatar.startsWith('http') ? userData.avatar : `${API_BASE_URL}${userData.avatar}`} alt="Owner" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-[10px] font-bold">You</span>
+                )}
+              </div>
+              My Profile
+              <ChevronDown className={`w-4 h-4 transition-transform ${ownerMenuOpen ? "rotate-180" : ""}`} />
+            </button>
+
+            <AnimatePresence>
+              {ownerMenuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 mt-2 w-56 bg-[#151515] border border-white/10 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl z-50 py-2"
+                >
+                  <button
+                    onClick={() => { setOwnerMenuOpen(false); setEditModalOpen(true); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-white/80 hover:text-white hover:bg-white/5 transition-colors text-left"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                    Edit Profile
+                  </button>
+                  <button
+                    onClick={() => { setOwnerMenuOpen(false); navigate("/dashboard/links"); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-white/80 hover:text-white hover:bg-white/5 transition-colors text-left"
+                  >
+                    <Link2 className="w-4 h-4" />
+                    Manage Links
+                  </button>
+                  <button
+                    onClick={() => { setOwnerMenuOpen(false); navigate("/dashboard/settings"); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-white/80 hover:text-white hover:bg-white/5 transition-colors text-left"
+                  >
+                    <Palette className="w-4 h-4" />
+                    Change Theme
+                  </button>
+                  <div className="h-px w-full bg-white/10 my-1" />
+                  <button
+                    onClick={() => {
+                      logout();
+                      navigate("/login");
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-colors text-left"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign out
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
+      )}
+
       {/* Ambient background glow */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div
@@ -279,6 +366,14 @@ const PublicProfile = () => {
           </a>
         </motion.div>
       </motion.div>
+
+      {/* ─── LIVE EDITING MODAL ─── */}
+      <EditProfileModal
+        isOpen={editModalOpen}
+        onClose={() => setEditModalOpen(false)}
+        userData={userData}
+        onSaveSuccess={handleProfileUpdate}
+      />
     </div>
   );
 };

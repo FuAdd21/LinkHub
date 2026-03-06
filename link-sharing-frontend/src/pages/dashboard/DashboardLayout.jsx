@@ -50,6 +50,12 @@ const DashboardLayout = () => {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
+      
+      if (!meRes.data.username) {
+        navigate("/create-profile");
+        return;
+      }
+      
       setUserData(meRes.data);
       setUserLinks(linksRes.data);
     } catch (err) {
