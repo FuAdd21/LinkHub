@@ -1,7 +1,10 @@
-import express from "express";
-const router = express.Router();
+﻿import express from "express";
 import { getFeaturedUsers } from "../controllers/featuredController.js";
 
-router.get("/featured-users", getFeaturedUsers);
+const router = express.Router();
+
+router.get("/featured/featured-users", getFeaturedUsers);
+router.get("/users/featured", getFeaturedUsers);
 
 export default router;
+
