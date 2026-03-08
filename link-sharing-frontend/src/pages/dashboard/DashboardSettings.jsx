@@ -1,206 +1,105 @@
-import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import axios from "axios";
-import toast from "react-hot-toast";
-import { Save, Palette, Check, Sparkles } from "lucide-react";
+﻿import { ArrowUpRight, LogOut, Mail, Settings2, Sparkles } from "lucide-react";
+import DashboardCard from "../../Components/dashboard/DashboardCard";
+import { getPageCompletion, getPublicProfileUrl } from "../../Components/dashboard/dashboardUtils";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
-
-const THEMES = [
-  {
-    id: "dark-pro",
-    name: "Dark Pro",
-    preview: "bg-gradient-to-b from-[#0a0a0a] to-[#111111]",
-    accent: "#8B5CF6",
-    description: "Clean, professional dark theme",
-  },
-  {
-    id: "neon-glow",
-    name: "Neon Glow",
-    preview: "bg-gradient-to-b from-[#0a001a] to-[#0f0028]",
-    accent: "#00ff88",
-    description: "Futuristic neon vibes",
-  },
-  {
-    id: "minimal",
-    name: "Minimal Light",
-    preview: "bg-gradient-to-b from-[#f8f9fa] to-[#ffffff]",
-    accent: "#6366f1",
-    description: "Clean, light & minimal",
-  },
-  {
-    id: "creator-mode",
-    name: "Creator Mode",
-    preview: "bg-gradient-to-b from-[#0a0a1a] to-[#1a0a2e]",
-    accent: "#ff0050",
-    description: "Bold creative energy",
-  },
-];
-
-const BACKGROUNDS = [
-  { value: "purple-pink", label: "Purple → Pink", colors: "from-purple-900 to-pink-900" },
-  { value: "blue-cyan", label: "Blue → Cyan", colors: "from-blue-900 to-cyan-900" },
-  { value: "emerald-teal", label: "Emerald → Teal", colors: "from-emerald-900 to-teal-900" },
-  { value: "amber-orange", label: "Amber → Orange", colors: "from-amber-900 to-orange-900" },
-];
-
-const DashboardSettings = ({ userData, onRefresh }) => {
-  const [selectedTheme, setSelectedTheme] = useState(
-    userData?.theme || "dark-pro"
-  );
-  const [selectedBg, setSelectedBg] = useState(
-    userData?.background_value || "purple-pink"
-  );
-  const [saving, setSaving] = useState(false);
-
-  const token = localStorage.getItem("token");
-  const headers = { Authorization: `Bearer ${token}` };
-
-  useEffect(() => {
-    if (userData) {
-      setSelectedTheme(userData.theme || "dark-pro");
-      setSelectedBg(userData.background_value || "purple-pink");
-    }
-  }, [userData]);
-
-  // Apply theme INSTANTLY on selection (live preview)
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", selectedTheme);
-  }, [selectedTheme]);
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      await axios.put(
-        `${API_BASE_URL}/api/profile`,
-        {
-          theme: selectedTheme,
-          background_type: "gradient",
-          background_value: selectedBg,
-        },
-        { headers }
-      );
-      toast.success("Settings saved! Theme applied everywhere.");
-      onRefresh?.();
-    } catch {
-      toast.error("Failed to save settings");
-    } finally {
-      setSaving(false);
-    }
-  };
+export default function DashboardSettings({ userData, links, onLogout }) {
+  const pageCompletion = getPageCompletion(userData, links);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="max-w-2xl"
-    >
-      <h2 className="text-2xl font-bold mb-1" style={{ color: "var(--text-primary)" }}>
-        Settings
-      </h2>
-      <p className="text-sm mb-8" style={{ color: "var(--text-muted)" }}>
-        Customize your entire page — theme changes apply everywhere instantly
-      </p>
-
-      {/* Theme Selection */}
-      <div className="mb-10">
-        <h3 className="font-medium text-sm mb-4 flex items-center gap-2"
-            style={{ color: "var(--text-primary)" }}>
-          <Sparkles className="w-4 h-4" style={{ color: "var(--accent)" }} />
-          Theme
-        </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {THEMES.map((theme) => (
-            <motion.button
-              key={theme.id}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => setSelectedTheme(theme.id)}
-              className="relative p-4 rounded-xl border-2 transition-all duration-300 text-left"
-              style={{
-                borderColor:
-                  selectedTheme === theme.id
-                    ? "var(--accent)"
-                    : "var(--card-border)",
-                backgroundColor: "var(--card-bg)",
-              }}
-            >
-              <div
-                className={`w-full h-16 rounded-lg mb-2.5 ${theme.preview}`}
-              />
-              <p className="text-xs font-semibold" style={{ color: theme.accent }}>
-                {theme.name}
-              </p>
-              <p className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>
-                {theme.description}
-              </p>
-              {selectedTheme === theme.id && (
-                <div className="absolute top-2 right-2 w-5 h-5 rounded-full flex items-center justify-center"
-                     style={{ backgroundColor: "var(--accent)" }}>
-                  <Check className="w-3 h-3 text-white" />
-                </div>
-              )}
-            </motion.button>
-          ))}
-        </div>
+    <div className="space-y-6">
+      <div>
+        <p className="text-sm font-medium text-[var(--text-secondary)]">Settings</p>
+        <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-[var(--text-primary)]">
+          Workspace shortcuts and account details that matter most
+        </h1>
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--text-muted)]">
+          Keep the essentials close: your profile route, account email, current
+          theme, and the quickest path back to editing.
+        </p>
       </div>
 
-      {/* Background Gradient */}
-      <div className="mb-10">
-        <h3 className="font-medium text-sm mb-4 flex items-center gap-2"
-            style={{ color: "var(--text-primary)" }}>
-          <Palette className="w-4 h-4" style={{ color: "var(--accent)" }} />
-          Background Gradient
-        </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {BACKGROUNDS.map((bg) => (
-            <motion.button
-              key={bg.value}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => setSelectedBg(bg.value)}
-              className="relative p-3 rounded-xl border-2 transition-all duration-300"
-              style={{
-                borderColor:
-                  selectedBg === bg.value
-                    ? "var(--accent)"
-                    : "var(--card-border)",
-                backgroundColor: "var(--card-bg)",
-              }}
-            >
-              <div
-                className={`w-full h-12 rounded-lg bg-gradient-to-br ${bg.colors}`}
-              />
-              <p className="text-xs mt-2" style={{ color: "var(--text-muted)" }}>
-                {bg.label}
-              </p>
-              {selectedBg === bg.value && (
-                <div className="absolute top-2 right-2 w-4 h-4 rounded-full flex items-center justify-center"
-                     style={{ backgroundColor: "var(--accent)" }}>
-                  <Check className="w-2.5 h-2.5 text-white" />
-                </div>
-              )}
-            </motion.button>
-          ))}
-        </div>
-      </div>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="space-y-6">
+          <DashboardCard>
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/12 text-indigo-200">
+                <Settings2 className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-[var(--text-secondary)]">Account snapshot</p>
+                <h3 className="mt-1 text-xl font-semibold text-[var(--text-primary)]">
+                  Current workspace status
+                </h3>
+              </div>
+            </div>
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              <div className="rounded-[24px] border border-[var(--card-border)] bg-white/5 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">Email</p>
+                <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">{userData?.email || "Not available"}</p>
+              </div>
+              <div className="rounded-[24px] border border-[var(--card-border)] bg-white/5 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">Current theme</p>
+                <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">{userData?.theme || "dark-pro"}</p>
+              </div>
+              <div className="rounded-[24px] border border-[var(--card-border)] bg-white/5 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">Public path</p>
+                <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">/{userData?.username || "username"}</p>
+              </div>
+              <div className="rounded-[24px] border border-[var(--card-border)] bg-white/5 p-4">
+                <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">Page completion</p>
+                <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">{pageCompletion}%</p>
+              </div>
+            </div>
+          </DashboardCard>
 
-      {/* Save */}
-      <motion.button
-        whileHover={{ scale: 1.01 }}
-        whileTap={{ scale: 0.99 }}
-        onClick={handleSave}
-        disabled={saving}
-        className="flex items-center gap-2 px-6 py-3 rounded-xl text-white
-                 text-sm font-medium disabled:opacity-50 hover:opacity-90 transition-opacity"
-        style={{ background: "var(--accent-gradient)" }}
-      >
-        <Save className="w-4 h-4" />
-        {saving ? "Saving..." : "Save Settings"}
-      </motion.button>
-    </motion.div>
+          <DashboardCard>
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/12 text-emerald-200">
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-[var(--text-secondary)]">Helpful shortcuts</p>
+                <h3 className="mt-1 text-xl font-semibold text-[var(--text-primary)]">
+                  Jump straight into the things creators do most
+                </h3>
+              </div>
+            </div>
+            <div className="mt-6 grid gap-3">
+              <a
+                href={getPublicProfileUrl(userData?.username)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between rounded-[24px] border border-[var(--card-border)] bg-white/5 px-4 py-4 text-sm font-medium text-[var(--text-primary)] transition hover:border-white/20 hover:bg-white/8"
+              >
+                View public page
+                <ArrowUpRight className="h-4 w-4" />
+              </a>
+              <a
+                href={`mailto:${userData?.email || "hello@linkhub.app"}`}
+                className="flex items-center justify-between rounded-[24px] border border-[var(--card-border)] bg-white/5 px-4 py-4 text-sm font-medium text-[var(--text-primary)] transition hover:border-white/20 hover:bg-white/8"
+              >
+                Contact via email
+                <Mail className="h-4 w-4" />
+              </a>
+            </div>
+          </DashboardCard>
+        </div>
+
+        <DashboardCard className="h-fit">
+          <p className="text-sm font-medium text-[var(--text-secondary)]">Session</p>
+          <h3 className="mt-3 text-xl font-semibold text-[var(--text-primary)]">
+            Securely sign out when you are done
+          </h3>
+          <p className="mt-3 text-sm leading-7 text-[var(--text-muted)]">
+            Logging out clears the active dashboard session on this device and returns
+            you to the login flow.
+          </p>
+          <button type="button" onClick={onLogout} className="mt-6 dashboard-secondary-button text-rose-200 hover:border-rose-400/35 hover:bg-rose-500/10 hover:text-rose-100">
+            <LogOut className="h-4 w-4" />
+            Logout
+          </button>
+        </DashboardCard>
+      </div>
+    </div>
   );
-};
-
-export default DashboardSettings;
+}

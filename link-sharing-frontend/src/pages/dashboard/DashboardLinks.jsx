@@ -1,65 +1,139 @@
-import React, { useState, useCallback } from "react";
-import { motion, Reorder, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { Plus, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import {
-  Plus,
-  Edit3,
-  Trash2,
-  Eye,
-  EyeOff,
-  GripVertical,
-  Globe,
-  X,
-  Clock,
-} from "lucide-react";
-import {
-  FaYoutube,
-  FaGithub,
-  FaTelegram,
-  FaInstagram,
-  FaTwitter,
-  FaLinkedin,
-  FaTiktok,
-} from "react-icons/fa";
+import DashboardCard from "../../Components/dashboard/DashboardCard";
+import LinkList from "../../Components/dashboard/LinkList";
+import { API_BASE_URL, getDashboardAuthConfig } from "../../api/dashboardApi";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
+const MotionDiv = motion.div;
 
-const PLATFORM_ICONS = {
-  youtube: { icon: FaYoutube, color: "#FF0000" },
-  github: { icon: FaGithub, color: "#ffffff" },
-  telegram: { icon: FaTelegram, color: "#0088cc" },
-  instagram: { icon: FaInstagram, color: "#E4405F" },
-  twitter: { icon: FaTwitter, color: "#1DA1F2" },
-  linkedin: { icon: FaLinkedin, color: "#0A66C2" },
-  tiktok: { icon: FaTiktok, color: "#ff0050" },
+const initialFormState = {
+  title: "",
+  url: "",
+  scheduled_at: "",
 };
 
-const DashboardLinks = ({ links: initialLinks, onRefresh }) => {
+function LinkModal({ form, editingLink, isOpen, onClose, onChange, onSubmit }) {
+  return (
+    <AnimatePresence>
+      {isOpen ? (
+        <MotionDiv
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/70 px-4 backdrop-blur-sm"
+          onClick={onClose}
+        >
+          <MotionDiv
+            initial={{ y: 16, opacity: 0, scale: 0.98 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 10, opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="dashboard-floating-panel w-full max-w-lg rounded-[28px] p-6"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-medium text-[var(--text-secondary)]">Link editor</p>
+                <h3 className="mt-1 text-xl font-semibold text-[var(--text-primary)]">
+                  {editingLink ? "Update link" : "Add a new link"}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[var(--card-border)] bg-white/5 text-[var(--text-primary)]"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={onSubmit} className="mt-6 space-y-4">
+              <div>
+                <label className="dashboard-field-label" htmlFor="title">
+                  Title
+                </label>
+                <div className="dashboard-input-shell mt-2">
+                  <input
+                    id="title"
+                    required
+                    value={form.title}
+                    onChange={(event) => onChange("title", event.target.value)}
+                    placeholder="My latest video"
+                    className="w-full bg-transparent text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="dashboard-field-label" htmlFor="url">
+                  Destination URL
+                </label>
+                <div className="dashboard-input-shell mt-2">
+                  <input
+                    id="url"
+                    required
+                    type="url"
+                    value={form.url}
+                    onChange={(event) => onChange("url", event.target.value)}
+                    placeholder="https://youtube.com/@username"
+                    className="w-full bg-transparent text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="dashboard-field-label" htmlFor="schedule">
+                  Schedule (optional)
+                </label>
+                <div className="dashboard-input-shell mt-2">
+                  <input
+                    id="schedule"
+                    type="datetime-local"
+                    value={form.scheduled_at}
+                    onChange={(event) => onChange("scheduled_at", event.target.value)}
+                    className="w-full bg-transparent text-sm text-[var(--text-primary)] outline-none"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <button type="submit" className="dashboard-primary-button">
+                  {editingLink ? "Save changes" : "Add link"}
+                </button>
+                <button type="button" onClick={onClose} className="dashboard-secondary-button">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </MotionDiv>
+        </MotionDiv>
+      ) : null}
+    </AnimatePresence>
+  );
+}
+
+export default function DashboardLinks({ links: initialLinks, onRefresh, onLinksChange }) {
   const [links, setLinks] = useState(initialLinks || []);
   const [showModal, setShowModal] = useState(false);
   const [editingLink, setEditingLink] = useState(null);
-  const [form, setForm] = useState({
-    title: "",
-    url: "",
-    scheduled_at: "",
-  });
+  const [form, setForm] = useState(initialFormState);
 
-  const token = localStorage.getItem("token");
-  const headers = { Authorization: `Bearer ${token}` };
-
-  React.useEffect(() => {
+  useEffect(() => {
     setLinks(initialLinks || []);
   }, [initialLinks]);
 
-  const openAddModal = () => {
-    setEditingLink(null);
-    setForm({ title: "", url: "", scheduled_at: "" });
-    setShowModal(true);
-  };
+  function syncLinks(nextLinks) {
+    setLinks(nextLinks);
+    onLinksChange?.(nextLinks);
+  }
 
-  const openEditModal = (link) => {
+  function openAddModal() {
+    setEditingLink(null);
+    setForm(initialFormState);
+    setShowModal(true);
+  }
+
+  function openEditModal(link) {
     setEditingLink(link);
     setForm({
       title: link.title,
@@ -69,281 +143,170 @@ const DashboardLinks = ({ links: initialLinks, onRefresh }) => {
         : "",
     });
     setShowModal(true);
-  };
+  }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  async function handleSubmit(event) {
+    event.preventDefault();
 
     try {
       if (editingLink) {
-        await axios.put(
+        const response = await axios.put(
           `${API_BASE_URL}/api/mylinks/${editingLink.id}`,
           form,
-          { headers }
+          getDashboardAuthConfig(),
         );
-        toast.success("Link updated!");
+
+        const nextLinks = links.map((link) =>
+          link.id === editingLink.id ? response.data.link : link,
+        );
+        syncLinks(nextLinks);
+        toast.success("Link updated");
       } else {
-        await axios.post(`${API_BASE_URL}/api/mylinks`, form, { headers });
-        toast.success("Link added!");
+        const response = await axios.post(
+          `${API_BASE_URL}/api/mylinks`,
+          form,
+          getDashboardAuthConfig(),
+        );
+
+        const nextLinks = [...links, response.data.link].sort(
+          (left, right) => (left.position ?? 0) - (right.position ?? 0),
+        );
+        syncLinks(nextLinks);
+        toast.success("Link added");
       }
 
       setShowModal(false);
+      setForm(initialFormState);
+      setEditingLink(null);
       onRefresh?.();
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to save link");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to save link");
     }
-  };
+  }
 
-  const handleDelete = async (id) => {
-    if (!confirm("Delete this link?")) return;
+  async function handleDelete(linkId) {
+    if (!confirm("Delete this link?")) {
+      return;
+    }
 
     try {
-      await axios.delete(`${API_BASE_URL}/api/mylinks/${id}`, { headers });
+      await axios.delete(
+        `${API_BASE_URL}/api/mylinks/${linkId}`,
+        getDashboardAuthConfig(),
+      );
+      const nextLinks = links.filter((link) => link.id !== linkId);
+      syncLinks(nextLinks);
+      onRefresh?.();
       toast.success("Link deleted");
-      onRefresh?.();
     } catch {
-      toast.error("Failed to delete");
+      toast.error("Failed to delete link");
     }
-  };
+  }
 
-  const handleToggleVisibility = async (id) => {
+  async function handleToggleVisibility(linkId) {
     try {
-      await axios.put(
-        `${API_BASE_URL}/api/mylinks/${id}/visibility`,
+      const response = await axios.put(
+        `${API_BASE_URL}/api/mylinks/${linkId}/visibility`,
         {},
-        { headers }
+        getDashboardAuthConfig(),
       );
-      // Update local state
-      setLinks((prev) =>
-        prev.map((l) =>
-          l.id === id ? { ...l, is_visible: l.is_visible ? 0 : 1 } : l
-        )
+
+      const nextLinks = links.map((link) =>
+        link.id === linkId
+          ? { ...link, is_visible: response.data.link.is_visible }
+          : link,
       );
+      syncLinks(nextLinks);
       onRefresh?.();
     } catch {
-      toast.error("Failed to toggle visibility");
+      toast.error("Failed to update visibility");
     }
-  };
+  }
 
-  const handleReorder = async (newOrder) => {
-    setLinks(newOrder);
+  async function handleReorder(nextOrder) {
+    const previousLinks = links;
+    const withPositions = nextOrder.map((link, index) => ({
+      ...link,
+      position: index,
+    }));
 
-    // Debounced save
+    syncLinks(withPositions);
+
     try {
-      const orderedIds = newOrder.map((l) => l.id);
       await axios.put(
         `${API_BASE_URL}/api/mylinks/order`,
-        { order: orderedIds },
-        { headers }
+        { order: withPositions.map((link) => link.id) },
+        getDashboardAuthConfig(),
       );
+      onRefresh?.();
     } catch {
-      toast.error("Failed to save order");
+      toast.error("Failed to save link order");
+      syncLinks(previousLinks);
     }
-  };
-
-  const getPlatformIcon = (platform) => {
-    const config = PLATFORM_ICONS[platform];
-    if (!config) return <Globe className="w-4 h-4 text-white/40" />;
-    const IconComponent = config.icon;
-    return <IconComponent className="w-4 h-4" style={{ color: config.color }} />;
-  };
+  }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-    >
-      <div className="flex items-center justify-between mb-8">
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white">Links</h2>
-          <p className="text-white/40 text-sm mt-1">
-            Manage and organize your links
+          <p className="text-sm font-medium text-[var(--text-secondary)]">Links</p>
+          <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-[var(--text-primary)]">
+            Keep your page clean, current, and easy to scan
+          </h1>
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--text-muted)]">
+            Reorder links, hide outdated campaigns, and schedule launches without
+            cluttering the creator experience.
           </p>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+        <button
+          type="button"
           onClick={openAddModal}
-          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl text-sm font-medium"
+          className="dashboard-primary-button"
         >
-          <Plus className="w-4 h-4" />
-          Add Link
-        </motion.button>
+          <Plus className="h-4 w-4" />
+          Add New Link
+        </button>
       </div>
 
-      {/* Links list with reorder */}
-      {links.length === 0 ? (
-        <div className="text-center py-16">
-          <div className="text-4xl mb-3">🔗</div>
-          <p className="text-white/40 text-sm">No links yet. Add your first link!</p>
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div>
+          <LinkList
+            links={links}
+            onReorder={handleReorder}
+            onToggleVisibility={handleToggleVisibility}
+            onEdit={openEditModal}
+            onDelete={handleDelete}
+          />
         </div>
-      ) : (
-        <Reorder.Group
-          values={links}
-          onReorder={handleReorder}
-          className="space-y-2"
-        >
-          {links.map((link) => (
-            <Reorder.Item
-              key={link.id}
-              value={link}
-              className="flex items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-xl group cursor-grab active:cursor-grabbing"
-            >
-              <GripVertical className="w-4 h-4 text-white/20 flex-shrink-0" />
+        <DashboardCard className="h-fit">
+          <p className="text-sm font-medium text-[var(--text-secondary)]">Why this matters</p>
+          <h3 className="mt-3 text-xl font-semibold text-[var(--text-primary)]">
+            Less clutter, more clicks
+          </h3>
+          <div className="mt-5 space-y-3 text-sm text-[var(--text-muted)]">
+            <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
+              Highlight the links you want visitors to act on today.
+            </div>
+            <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
+              Hide seasonal campaigns instead of deleting historical performance.
+            </div>
+            <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
+              Use scheduling to prep launches before they go live.
+            </div>
+          </div>
+        </DashboardCard>
+      </div>
 
-              {/* Platform icon */}
-              <div className="flex-shrink-0">
-                {getPlatformIcon(link.platform || link.icon)}
-              </div>
-
-              {/* Link info */}
-              <div className="flex-1 min-w-0">
-                <p
-                  className={`text-sm font-medium truncate ${
-                    link.is_visible ? "text-white" : "text-white/30"
-                  }`}
-                >
-                  {link.title}
-                </p>
-                <p className="text-white/20 text-xs truncate">{link.url}</p>
-              </div>
-
-              {/* Scheduled indicator */}
-              {link.scheduled_at && (
-                <Clock className="w-3.5 h-3.5 text-yellow-500/60 flex-shrink-0" />
-              )}
-
-              {/* Actions */}
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => handleToggleVisibility(link.id)}
-                  className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
-                  title={link.is_visible ? "Hide" : "Show"}
-                >
-                  {link.is_visible ? (
-                    <Eye className="w-3.5 h-3.5 text-green-400" />
-                  ) : (
-                    <EyeOff className="w-3.5 h-3.5 text-white/30" />
-                  )}
-                </button>
-                <button
-                  onClick={() => openEditModal(link)}
-                  className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
-                >
-                  <Edit3 className="w-3.5 h-3.5 text-white/40" />
-                </button>
-                <button
-                  onClick={() => handleDelete(link.id)}
-                  className="p-1.5 rounded-lg hover:bg-red-500/10 transition-colors"
-                >
-                  <Trash2 className="w-3.5 h-3.5 text-red-400/60" />
-                </button>
-              </div>
-            </Reorder.Item>
-          ))}
-        </Reorder.Group>
-      )}
-
-      {/* Add/Edit Modal */}
-      <AnimatePresence>
-        {showModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
-            onClick={() => setShowModal(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-[#1a1a1a] border border-white/10 rounded-2xl p-6 max-w-md w-full"
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-white font-semibold text-lg">
-                  {editingLink ? "Edit Link" : "Add Link"}
-                </h3>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="text-white/30 hover:text-white"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-white/60 text-sm mb-1.5">
-                    Title
-                  </label>
-                  <input
-                    type="text"
-                    value={form.title}
-                    onChange={(e) =>
-                      setForm({ ...form, title: e.target.value })
-                    }
-                    placeholder="My YouTube Channel"
-                    required
-                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm
-                             focus:outline-none focus:border-purple-500/50 transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-white/60 text-sm mb-1.5">
-                    URL
-                  </label>
-                  <input
-                    type="url"
-                    value={form.url}
-                    onChange={(e) => setForm({ ...form, url: e.target.value })}
-                    placeholder="https://youtube.com/@username"
-                    required
-                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm
-                             focus:outline-none focus:border-purple-500/50 transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-white/60 text-sm mb-1.5">
-                    <Clock className="w-3.5 h-3.5 inline mr-1" />
-                    Schedule (optional)
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={form.scheduled_at}
-                    onChange={(e) =>
-                      setForm({ ...form, scheduled_at: e.target.value })
-                    }
-                    className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm
-                             focus:outline-none focus:border-purple-500/50 transition-colors"
-                  />
-                </div>
-
-                <div className="flex gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowModal(false)}
-                    className="flex-1 py-2.5 bg-white/5 text-white/60 rounded-xl text-sm hover:bg-white/10 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl text-sm font-medium hover:opacity-90"
-                  >
-                    {editingLink ? "Update" : "Add Link"}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
+      <LinkModal
+        isOpen={showModal}
+        editingLink={editingLink}
+        form={form}
+        onClose={() => setShowModal(false)}
+        onChange={(key, value) =>
+          setForm((currentForm) => ({ ...currentForm, [key]: value }))
+        }
+        onSubmit={handleSubmit}
+      />
+    </div>
   );
-};
-
-export default DashboardLinks;
+}

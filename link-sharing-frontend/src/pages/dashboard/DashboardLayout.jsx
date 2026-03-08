@@ -1,259 +1,350 @@
-import React, { useState, useContext, useEffect } from "react";
-import { Routes, Route, NavLink, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+﻿import { lazy, Suspense, useContext, useEffect, useMemo, useState } from "react";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { BarChart3, Globe2, Sparkles } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
-import axios from "axios";
-import {
-  User,
-  Link2,
-  Share2,
-  BarChart3,
-  Settings,
-  LogOut,
-  Menu,
-  X,
-  ExternalLink,
-} from "lucide-react";
-import DashboardProfile from "./DashboardProfile";
-import DashboardLinks from "./DashboardLinks";
-import DashboardSocials from "./DashboardSocials";
-import DashboardAnalytics from "./DashboardAnalytics";
-import DashboardSettings from "./DashboardSettings";
-import PhonePreview from "../../components/PhonePreview";
+import DashboardCard from "../../Components/dashboard/DashboardCard";
+import MobilePreview from "../../Components/dashboard/MobilePreview";
+import Sidebar from "../../Components/dashboard/Sidebar";
+import TopNavbar from "../../Components/dashboard/TopNavbar";
+import { getConnectedPlatforms, getPageCompletion, getVisibleLinks } from "../../Components/dashboard/dashboardUtils";
+import useDashboardData from "../../hooks/useDashboardData";
+import { useSocialProfiles } from "../../hooks/useSocialProfiles";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
+const DashboardOverview = lazy(() => import("./DashboardOverview"));
+const DashboardProfile = lazy(() => import("./DashboardProfile"));
+const DashboardLinks = lazy(() => import("./DashboardLinks"));
+const DashboardSocials = lazy(() => import("./DashboardSocials"));
+const DashboardThemes = lazy(() => import("./DashboardThemes"));
+const DashboardAnalytics = lazy(() => import("./DashboardAnalytics"));
+const DashboardSettings = lazy(() => import("./DashboardSettings"));
 
-const NAV_ITEMS = [
-  { path: "/dashboard", icon: User, label: "Profile", end: true },
-  { path: "/dashboard/links", icon: Link2, label: "Links" },
-  { path: "/dashboard/socials", icon: Share2, label: "Socials" },
-  { path: "/dashboard/analytics", icon: BarChart3, label: "Analytics" },
-  { path: "/dashboard/settings", icon: Settings, label: "Settings" },
-];
+function DashboardPageSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="h-10 w-64 animate-pulse rounded-2xl bg-white/5" />
+      <div className="grid gap-4 md:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div key={index} className="h-40 animate-pulse rounded-[28px] bg-white/5" />
+        ))}
+      </div>
+      <div className="h-[320px] animate-pulse rounded-[28px] bg-white/5" />
+    </div>
+  );
+}
 
-const DashboardLayout = () => {
+function PreviewRail({ userData, links, analytics, socialPreviewData }) {
+  const completion = getPageCompletion(userData, links);
+  const visibleLinks = getVisibleLinks(links);
+  const connectedPlatforms = getConnectedPlatforms(userData);
+  const topLink = analytics?.topLinks?.[0];
+
+  return (
+    <div className="space-y-5">
+      <DashboardCard className="p-4 sm:p-5">
+        <p className="text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]">
+          Live preview
+        </p>
+        <div className="mt-4">
+          <MobilePreview user={userData} links={links} socialStats={socialPreviewData} />
+        </div>
+      </DashboardCard>
+
+      <DashboardCard>
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500/12 text-indigo-200">
+            <Sparkles className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-[var(--text-secondary)]">Utility panel</p>
+            <h3 className="mt-1 text-lg font-semibold text-[var(--text-primary)]">
+              Key creator signals
+            </h3>
+          </div>
+        </div>
+        <div className="mt-5 grid gap-3">
+          <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">Page completion</p>
+            <p className="mt-3 text-2xl font-semibold text-[var(--text-primary)]">{completion}%</p>
+          </div>
+          <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">Links live</p>
+            <p className="mt-3 text-2xl font-semibold text-[var(--text-primary)]">{visibleLinks.length}</p>
+          </div>
+          <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">Platforms connected</p>
+            <p className="mt-3 text-2xl font-semibold text-[var(--text-primary)]">{connectedPlatforms.length}</p>
+          </div>
+          <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">Top performer</p>
+            <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">{topLink?.title || "No click data yet"}</p>
+          </div>
+        </div>
+      </DashboardCard>
+    </div>
+  );
+}
+
+export default function DashboardLayout() {
   const { logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [userData, setUserData] = useState(null);
-  const [userLinks, setUserLinks] = useState([]);
+  const [socialPreviewData, setSocialPreviewData] = useState(null);
+  const {
+    snapshot,
+    loading,
+    error,
+    refresh,
+    updateUser,
+    updateLinks,
+  } = useDashboardData();
 
-  const fetchUserData = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const [meRes, linksRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/api/users/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        axios.get(`${API_BASE_URL}/api/mylinks`, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
-      
-      if (!meRes.data.username) {
-        navigate("/create-profile");
-        return;
-      }
-      
-      setUserData(meRes.data);
-      setUserLinks(linksRes.data);
-    } catch (err) {
-      console.error("Failed to fetch dashboard data:", err);
-    }
-  };
+  const userData = snapshot?.user ?? null;
+  const links = snapshot?.links ?? [];
+  const analytics = snapshot?.analytics ?? null;
+
+  const socialHandles = useMemo(
+    () => ({
+      youtubeId: userData?.youtubeId,
+      githubUser: userData?.githubUser,
+      telegramUser: userData?.telegramUser,
+      instagram: userData?.instagram,
+      twitter: userData?.twitter,
+      linkedin: userData?.linkedin,
+      tiktok: userData?.tiktok,
+    }),
+    [
+      userData?.githubUser,
+      userData?.instagram,
+      userData?.linkedin,
+      userData?.telegramUser,
+      userData?.tiktok,
+      userData?.twitter,
+      userData?.youtubeId,
+    ],
+  );
+
+  const { data: socialData } = useSocialProfiles(socialHandles);
 
   useEffect(() => {
-    fetchUserData();
-  }, []);
+    if (socialData) {
+      setSocialPreviewData(socialData);
+    }
+  }, [socialData]);
 
-  // Apply theme from user data
+  useEffect(() => {
+    if (!loading && userData && !userData.username) {
+      navigate("/create-profile");
+    }
+  }, [loading, navigate, userData]);
+
   useEffect(() => {
     if (userData?.theme) {
       document.documentElement.setAttribute("data-theme", userData.theme);
     }
-  }, [userData?.theme]);
 
-  const handleLogout = () => {
+    if (userData) {
+      localStorage.setItem("user", JSON.stringify(userData));
+    }
+  }, [userData]);
+
+  function handleLogout() {
     logout();
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    // Reset theme on logout
     document.documentElement.removeAttribute("data-theme");
     navigate("/login");
-  };
+  }
 
-  const refreshData = () => {
-    fetchUserData();
-  };
+  if (loading && !snapshot) {
+    return (
+      <div className="min-h-screen bg-[var(--bg-primary)] px-4 py-8 sm:px-6">
+        <div className="grid gap-6 lg:grid-cols-[284px_minmax(0,1fr)]">
+          <div className="hidden h-[calc(100vh-4rem)] rounded-[32px] bg-white/5 lg:block" />
+          <DashboardPageSkeleton />
+        </div>
+      </div>
+    );
+  }
+
+  if (error && !snapshot) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[var(--bg-primary)] px-4 text-center">
+        <div>
+          <p className="text-lg font-semibold text-[var(--text-primary)]">Unable to load your dashboard</p>
+          <p className="mt-2 text-sm text-[var(--text-muted)]">Please refresh and try again.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: "var(--bg-primary)" }}>
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/60 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
+    <div className="dashboard-shell min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.18),transparent_32%),radial-gradient(circle_at_85%_18%,rgba(34,197,94,0.12),transparent_22%),linear-gradient(180deg,rgba(15,23,42,0.98),rgba(15,23,42,1))]" />
+      <div className="grid min-h-screen lg:grid-cols-[284px_minmax(0,1fr)]">
+        <Sidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          user={userData}
+          links={links}
         />
-      )}
 
-      {/* Sidebar */}
-      <aside
-        className={`fixed lg:sticky top-0 left-0 z-50 h-screen w-64 border-r flex flex-col
-          transform transition-transform duration-300 lg:translate-x-0
-          ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
-        style={{
-          backgroundColor: "var(--nav-bg)",
-          borderColor: "var(--card-border)",
-        }}
-      >
-        {/* Logo */}
-        <div className="flex items-center justify-between p-5 border-b"
-             style={{ borderColor: "var(--card-border)" }}>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-                 style={{ background: "var(--logo-gradient)" }}>
-              L
+        <div className="min-w-0">
+          <TopNavbar
+            user={userData}
+            links={links}
+            analytics={analytics}
+            onMenuClick={() => setSidebarOpen(true)}
+            onLogout={handleLogout}
+          />
+
+          <div className="px-4 py-6 sm:px-6 lg:px-8">
+            <div className="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_360px]">
+              <main className="min-w-0">
+                <Suspense fallback={<DashboardPageSkeleton />}>
+                  <Routes>
+                    <Route
+                      index
+                      element={
+                        <DashboardOverview
+                          userData={userData}
+                          links={links}
+                          analytics={analytics}
+                          socialPreviewData={socialPreviewData}
+                        />
+                      }
+                    />
+                    <Route
+                      path="my-page"
+                      element={
+                        <DashboardProfile
+                          userData={userData}
+                          onRefresh={refresh}
+                          onUserChange={updateUser}
+                        />
+                      }
+                    />
+                    <Route
+                      path="links"
+                      element={
+                        <DashboardLinks
+                          links={links}
+                          onRefresh={refresh}
+                          onLinksChange={updateLinks}
+                        />
+                      }
+                    />
+                    <Route
+                      path="socials"
+                      element={
+                        <DashboardSocials
+                          userData={userData}
+                          onRefresh={refresh}
+                          onUserChange={updateUser}
+                          socialPreviewData={socialPreviewData}
+                          onSocialPreviewChange={setSocialPreviewData}
+                        />
+                      }
+                    />
+                    <Route
+                      path="themes"
+                      element={
+                        <DashboardThemes
+                          userData={userData}
+                          onRefresh={refresh}
+                          onUserChange={updateUser}
+                        />
+                      }
+                    />
+                    <Route
+                      path="analytics"
+                      element={<DashboardAnalytics analytics={analytics} />}
+                    />
+                    <Route
+                      path="settings"
+                      element={
+                        <DashboardSettings
+                          userData={userData}
+                          links={links}
+                          onLogout={handleLogout}
+                        />
+                      }
+                    />
+                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                  </Routes>
+                </Suspense>
+              </main>
+
+              <aside className="hidden 2xl:block">
+                <div className="sticky top-28">
+                  <PreviewRail
+                    userData={userData}
+                    links={links}
+                    analytics={analytics}
+                    socialPreviewData={socialPreviewData}
+                  />
+                </div>
+              </aside>
             </div>
-            <span className="font-semibold text-lg" style={{ color: "var(--text-primary)" }}>
-              LinkHub
-            </span>
+
+            <div className="mt-6 2xl:hidden">
+              <div className="dashboard-mobile-rail">
+                <div className="dashboard-mobile-rail-item">
+                  <PreviewRail
+                    userData={userData}
+                    links={links}
+                    analytics={analytics}
+                    socialPreviewData={socialPreviewData}
+                  />
+                </div>
+                <div className="dashboard-mobile-rail-item">
+                  <DashboardCard className="h-full">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500/12 text-emerald-200">
+                        <Globe2 className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-[var(--text-secondary)]">Creator focus</p>
+                        <h3 className="mt-1 text-lg font-semibold text-[var(--text-primary)]">
+                          Keep this week simple
+                        </h3>
+                      </div>
+                    </div>
+                    <div className="mt-5 space-y-3 text-sm text-[var(--text-muted)]">
+                      <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
+                        Promote the top link already earning the most clicks.
+                      </div>
+                      <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
+                        Refresh your theme after launching a new campaign.
+                      </div>
+                      <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
+                        Add social proof so new visitors trust the page faster.
+                      </div>
+                    </div>
+                  </DashboardCard>
+                </div>
+                <div className="dashboard-mobile-rail-item">
+                  <DashboardCard className="h-full">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500/12 text-indigo-200">
+                        <BarChart3 className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-[var(--text-secondary)]">Traffic snapshot</p>
+                        <h3 className="mt-1 text-lg font-semibold text-[var(--text-primary)]">
+                          {analytics?.todayClicks || 0} visits today
+                        </h3>
+                      </div>
+                    </div>
+                    <p className="mt-5 text-sm leading-7 text-[var(--text-muted)]">
+                      Your audience is currently engaging with {analytics?.topLinks?.[0]?.title || "your page"}. Use the full analytics view for the longer trend.
+                    </p>
+                  </DashboardCard>
+                </div>
+              </div>
+            </div>
           </div>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden"
-            style={{ color: "var(--text-muted)" }}
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 py-4 px-3 space-y-1">
-          {NAV_ITEMS.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.end}
-              onClick={() => setSidebarOpen(false)}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200`
-              }
-              style={({ isActive }) => ({
-                backgroundColor: isActive ? "var(--nav-active-bg)" : "transparent",
-                color: isActive ? "var(--nav-active)" : "var(--nav-text)",
-              })}
-            >
-              <item.icon className="w-4.5 h-4.5" />
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-
-        {/* User info + Logout */}
-        <div className="p-4 border-t" style={{ borderColor: "var(--card-border)" }}>
-          {userData?.username && (
-            <a
-              href={`/${userData.username}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 mb-2 rounded-xl text-sm transition-colors"
-              style={{ color: "var(--accent)" }}
-            >
-              <ExternalLink className="w-4 h-4" />
-              View Public Page
-            </a>
-          )}
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-2 w-full px-4 py-2.5 rounded-xl text-red-400/70 text-sm hover:bg-red-500/10 hover:text-red-400 transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            Log out
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top bar */}
-        <header className="sticky top-0 z-30 flex items-center justify-between px-6 py-4 backdrop-blur-md border-b"
-                style={{
-                  backgroundColor: "color-mix(in srgb, var(--bg-primary) 80%, transparent)",
-                  borderColor: "var(--card-border)",
-                }}>
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="lg:hidden"
-            style={{ color: "var(--text-muted)" }}
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-          <div className="flex items-center gap-3">
-            <span className="text-sm hidden sm:block" style={{ color: "var(--text-muted)" }}>
-              Welcome back,{" "}
-              <span className="font-medium" style={{ color: "var(--text-primary)" }}>
-                {userData?.name || "Creator"}
-              </span>
-            </span>
-          </div>
-          <div />
-        </header>
-
-        {/* Content area with optional phone preview */}
-        <div className="flex-1 flex">
-          {/* Main scrollable content */}
-          <main className="flex-1 p-6 overflow-y-auto">
-            <Routes>
-              <Route
-                index
-                element={
-                  <DashboardProfile
-                    userData={userData}
-                    onRefresh={refreshData}
-                  />
-                }
-              />
-              <Route
-                path="links"
-                element={
-                  <DashboardLinks
-                    links={userLinks}
-                    onRefresh={refreshData}
-                  />
-                }
-              />
-              <Route
-                path="socials"
-                element={
-                  <DashboardSocials
-                    userData={userData}
-                    onRefresh={refreshData}
-                  />
-                }
-              />
-              <Route path="analytics" element={<DashboardAnalytics />} />
-              <Route
-                path="settings"
-                element={
-                  <DashboardSettings
-                    userData={userData}
-                    onRefresh={refreshData}
-                  />
-                }
-              />
-            </Routes>
-          </main>
-
-          {/* Live Phone Preview (desktop only) */}
-          <aside className="hidden xl:block w-[340px] border-l p-6 sticky top-[73px] h-[calc(100vh-73px)] overflow-y-auto"
-                 style={{ borderColor: "var(--card-border)" }}>
-            <PhonePreview userData={userData} links={userLinks} />
-          </aside>
         </div>
       </div>
     </div>
   );
-};
-
-export default DashboardLayout;
+}

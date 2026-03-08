@@ -1,127 +1,65 @@
-import React, { useState, useEffect } from "react";
+﻿import { Eye, Save } from "lucide-react";
 import { motion } from "framer-motion";
+
+import { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { Save, Loader2, Eye } from "lucide-react";
-import {
-  FaYoutube,
-  FaGithub,
-  FaTelegram,
-  FaInstagram,
-  FaTwitter,
-  FaLinkedin,
-  FaTiktok,
-} from "react-icons/fa";
-import SocialProfileCard, { SocialCardSkeleton } from "../../components/SocialProfileCard";
+import DashboardCard from "../../Components/dashboard/DashboardCard";
+import SocialProfileCard, { SocialCardSkeleton } from "../../Components/SocialProfileCard";
+import { SOCIAL_PLATFORM_FIELDS } from "../../Components/dashboard/dashboardConfig";
+import { API_BASE_URL, getDashboardAuthConfig } from "../../api/dashboardApi";
 import { fetchSocialProfiles } from "../../api/socialApi";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
+function buildForm(userData) {
+  return {
+    youtubeId: userData?.youtubeId || "",
+    githubUser: userData?.githubUser || "",
+    telegramUser: userData?.telegramUser || "",
+    instagram: userData?.instagram || "",
+    twitter: userData?.twitter || "",
+    linkedin: userData?.linkedin || "",
+    tiktok: userData?.tiktok || "",
+  };
+}
 
-const PLATFORMS = [
-  {
-    key: "youtubeId",
-    label: "YouTube",
-    icon: FaYoutube,
-    color: "#FF0000",
-    placeholder: "Channel ID or @handle",
-    socialKey: "youtube",
-  },
-  {
-    key: "githubUser",
-    label: "GitHub",
-    icon: FaGithub,
-    color: "#ffffff",
-    placeholder: "Username",
-    socialKey: "github",
-  },
-  {
-    key: "telegramUser",
-    label: "Telegram",
-    icon: FaTelegram,
-    color: "#0088cc",
-    placeholder: "Username",
-    socialKey: "telegram",
-  },
-  {
-    key: "instagram",
-    label: "Instagram",
-    icon: FaInstagram,
-    color: "#E4405F",
-    placeholder: "Username",
-    socialKey: "instagram",
-  },
-  {
-    key: "twitter",
-    label: "Twitter / X",
-    icon: FaTwitter,
-    color: "#1DA1F2",
-    placeholder: "Handle",
-    socialKey: "twitter",
-  },
-  {
-    key: "linkedin",
-    label: "LinkedIn",
-    icon: FaLinkedin,
-    color: "#0A66C2",
-    placeholder: "Profile slug",
-    socialKey: "linkedin",
-  },
-  {
-    key: "tiktok",
-    label: "TikTok",
-    icon: FaTiktok,
-    color: "#ff0050",
-    placeholder: "Username",
-    socialKey: "tiktok",
-  },
-];
-
-const DashboardSocials = ({ userData, onRefresh }) => {
-  const [form, setForm] = useState({});
+export default function DashboardSocials({
+  userData,
+  onRefresh,
+  onUserChange,
+  socialPreviewData,
+  onSocialPreviewChange,
+}) {
+  const [form, setForm] = useState(() => buildForm(userData));
   const [saving, setSaving] = useState(false);
-  const [showPreview, setShowPreview] = useState(false);
-  const [socialData, setSocialData] = useState(null);
   const [previewLoading, setPreviewLoading] = useState(false);
 
-  const token = localStorage.getItem("token");
-  const headers = { Authorization: `Bearer ${token}` };
-
   useEffect(() => {
-    if (userData) {
-      setForm({
-        youtubeId: userData.youtubeId || "",
-        githubUser: userData.githubUser || "",
-        telegramUser: userData.telegramUser || "",
-        instagram: userData.instagram || "",
-        twitter: userData.twitter || "",
-        linkedin: userData.linkedin || "",
-        tiktok: userData.tiktok || "",
-      });
-    }
+    setForm(buildForm(userData));
   }, [userData]);
 
-  const handleSave = async (e) => {
-    e.preventDefault();
+  const connectedPlatforms = SOCIAL_PLATFORM_FIELDS.filter(({ key }) => Boolean(form[key]));
+
+  async function handleSave(event) {
+    event.preventDefault();
     setSaving(true);
 
     try {
       await axios.put(
         `${API_BASE_URL}/api/users/social-profiles`,
         form,
-        { headers }
+        getDashboardAuthConfig(),
       );
-      toast.success("Social profiles saved!");
+      onUserChange?.((currentUser) => ({ ...currentUser, ...form }));
       onRefresh?.();
-    } catch (err) {
-      toast.error("Failed to save social profiles");
+      toast.success("Social accounts saved");
+    } catch {
+      toast.error("Failed to save social accounts");
     } finally {
       setSaving(false);
     }
-  };
+  }
 
-  const handlePreview = async () => {
-    setShowPreview(true);
+  async function handlePreview() {
     setPreviewLoading(true);
 
     try {
@@ -134,154 +72,123 @@ const DashboardSocials = ({ userData, onRefresh }) => {
         linkedin: form.linkedin || null,
         tiktok: form.tiktok || null,
       });
-      setSocialData(result);
-    } catch (err) {
-      console.error("Preview fetch failed:", err);
-      toast.error("Failed to fetch social profile previews");
+      onSocialPreviewChange?.(result);
+    } catch {
+      toast.error("Failed to fetch social preview data");
     } finally {
       setPreviewLoading(false);
     }
-  };
-
-  // Get connected platforms for preview
-  const connectedPlatforms = PLATFORMS.filter((p) => form[p.key]?.length > 0);
+  }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-    >
-      <h2 className="text-2xl font-bold text-[var(--text-primary)] mb-1">
-        Socials
-      </h2>
-      <p className="text-[var(--text-muted)] text-sm mb-8">
-        Connect your social media accounts to show rich profile cards
-      </p>
+    <div className="space-y-6">
+      <div>
+        <p className="text-sm font-medium text-[var(--text-secondary)]">Social Accounts</p>
+        <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-[var(--text-primary)]">
+          Turn plain handles into richer proof and social trust
+        </h1>
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--text-muted)]">
+          Connect the platforms your audience already recognizes so your page feels
+          more credible and more current at a glance.
+        </p>
+      </div>
 
-      <div className="flex flex-col lg:flex-row gap-8">
-        {/* Input form */}
-        <form onSubmit={handleSave} className="space-y-4 flex-1 max-w-xl">
-          {PLATFORMS.map((platform) => {
-            const IconComponent = platform.icon;
-            const value = form[platform.key] || "";
-            const isConnected = value.length > 0;
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <DashboardCard>
+          <form onSubmit={handleSave} className="space-y-4">
+            {SOCIAL_PLATFORM_FIELDS.map((platform) => {
+              const Icon = platform.icon;
+              const isConnected = Boolean(form[platform.key]);
 
-            return (
-              <div
-                key={platform.key}
-                className="flex items-center gap-4 p-4 rounded-xl border transition-colors"
-                style={{
-                  backgroundColor: isConnected ? "var(--card-bg)" : "transparent",
-                  borderColor: isConnected ? "var(--card-border)" : "var(--input-border)",
-                }}
-              >
+              return (
                 <div
-                  className="flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center"
-                  style={{ backgroundColor: `${platform.color}15` }}
+                  key={platform.key}
+                  className="flex items-center gap-4 rounded-[24px] border border-[var(--card-border)] bg-white/5 px-4 py-4"
                 >
-                  <IconComponent
-                    className="w-5 h-5"
-                    style={{ color: platform.color }}
+                  <div
+                    className="flex h-12 w-12 items-center justify-center rounded-2xl"
+                    style={{ backgroundColor: `${platform.color}18` }}
+                  >
+                    <Icon className="h-5 w-5" style={{ color: platform.color }} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <label className="text-sm font-semibold text-[var(--text-primary)]">
+                      {platform.label}
+                    </label>
+                    <input
+                      value={form[platform.key]}
+                      onChange={(event) =>
+                        setForm((currentForm) => ({
+                          ...currentForm,
+                          [platform.key]: event.target.value,
+                        }))
+                      }
+                      placeholder={platform.placeholder}
+                      className="mt-1 w-full bg-transparent text-sm text-[var(--text-secondary)] outline-none placeholder:text-[var(--text-muted)]"
+                    />
+                  </div>
+                  <div
+                    className={`h-2.5 w-2.5 rounded-full ${isConnected ? "bg-emerald-400" : "bg-white/15"}`}
                   />
                 </div>
+              );
+            })}
 
-                <div className="flex-1">
-                  <label className="block text-xs font-medium mb-1"
-                         style={{ color: "var(--text-secondary)" }}>
-                    {platform.label}
-                  </label>
-                  <input
-                    type="text"
-                    value={value}
-                    onChange={(e) =>
-                      setForm({ ...form, [platform.key]: e.target.value })
-                    }
-                    placeholder={platform.placeholder}
-                    className="w-full bg-transparent text-sm outline-none"
-                    style={{
-                      color: "var(--text-primary)",
-                    }}
-                  />
-                </div>
-
-                {isConnected && (
-                  <div className="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" />
-                )}
-              </div>
-            );
-          })}
-
-          <div className="flex items-center gap-3 mt-6">
-            <motion.button
-              type="submit"
-              disabled={saving}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl text-white
-                       text-sm font-medium disabled:opacity-50 hover:opacity-90 transition-opacity"
-              style={{ background: "var(--accent-gradient)" }}
-            >
-              {saving ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4" />
-              )}
-              {saving ? "Saving..." : "Save Socials"}
-            </motion.button>
-
-            {connectedPlatforms.length > 0 && (
+            <div className="flex flex-wrap items-center gap-3 pt-3">
               <motion.button
-                type="button"
-                onClick={handlePreview}
+                type="submit"
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
-                className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium transition-colors"
-                style={{
-                  color: "var(--accent)",
-                  backgroundColor: "var(--card-bg)",
-                  border: "1px solid var(--card-border)",
-                }}
+                disabled={saving}
+                className="dashboard-primary-button disabled:opacity-60"
               >
-                <Eye className="w-4 h-4" />
-                Preview Cards
+                <Save className="h-4 w-4" />
+                {saving ? "Saving..." : "Save Social Accounts"}
               </motion.button>
+              <button
+                type="button"
+                onClick={handlePreview}
+                disabled={!connectedPlatforms.length || previewLoading}
+                className="dashboard-secondary-button disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Eye className="h-4 w-4" />
+                {previewLoading ? "Refreshing preview..." : "Preview social cards"}
+              </button>
+            </div>
+          </form>
+        </DashboardCard>
+
+        <DashboardCard className="h-fit">
+          <p className="text-sm font-medium text-[var(--text-secondary)]">Preview cards</p>
+          <h3 className="mt-3 text-xl font-semibold text-[var(--text-primary)]">
+            How your social proof will look
+          </h3>
+          <div className="mt-5 space-y-3">
+            {previewLoading ? (
+              connectedPlatforms.map((platform) => (
+                <SocialCardSkeleton key={platform.key} />
+              ))
+            ) : connectedPlatforms.length ? (
+              connectedPlatforms.map((platform, index) => (
+                <SocialProfileCard
+                  key={platform.key}
+                  platform={platform.socialKey}
+                  data={socialPreviewData?.[platform.socialKey]}
+                  index={index}
+                  showDisconnected={true}
+                />
+              ))
+            ) : (
+              <div className="rounded-[24px] border border-dashed border-[var(--card-border)] px-4 py-8 text-center text-sm text-[var(--text-muted)]">
+                Connect at least one platform to preview social cards.
+              </div>
             )}
           </div>
-        </form>
-
-        {/* Live Preview Panel */}
-        {showPreview && (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex-1 max-w-md"
-          >
-            <h3 className="text-sm font-medium mb-4"
-                style={{ color: "var(--text-secondary)" }}>
-              Card Preview
-            </h3>
-            <div className="space-y-3">
-              {previewLoading ? (
-                connectedPlatforms.map((p) => (
-                  <SocialCardSkeleton key={p.key} />
-                ))
-              ) : (
-                connectedPlatforms.map((p, index) => (
-                  <SocialProfileCard
-                    key={p.key}
-                    platform={p.socialKey}
-                    data={socialData?.[p.socialKey]}
-                    index={index}
-                    showDisconnected={true}
-                  />
-                ))
-              )}
-            </div>
-          </motion.div>
-        )}
+        </DashboardCard>
       </div>
-    </motion.div>
+    </div>
   );
-};
+}
 
-export default DashboardSocials;
+
+

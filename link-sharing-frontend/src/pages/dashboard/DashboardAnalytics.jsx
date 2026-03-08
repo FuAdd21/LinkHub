@@ -1,20 +1,20 @@
-import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import axios from "axios";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
+﻿import {
   BarElement,
-  Title,
-  Tooltip,
+  CategoryScale,
+  Chart as ChartJS,
   Filler,
   Legend,
+  LineElement,
+  LinearScale,
+  PointElement,
+  Title,
+  Tooltip,
 } from "chart.js";
-import { Line, Bar } from "react-chartjs-2";
-import { TrendingUp, MousePointer2, Eye, Smartphone } from "lucide-react";
+import { Bar, Line } from "react-chartjs-2";
+import { Activity, MousePointer2, Smartphone, Trophy } from "lucide-react";
+import DashboardCard from "../../Components/dashboard/DashboardCard";
+import MetricCard from "../../Components/dashboard/MetricCard";
+import { formatCompactNumber } from "../../Components/dashboard/dashboardUtils";
 
 ChartJS.register(
   CategoryScale,
@@ -25,216 +25,186 @@ ChartJS.register(
   Title,
   Tooltip,
   Filler,
-  Legend
+  Legend,
 );
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
-
-const StatCard = ({ icon: Icon, label, value, color }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 10 }}
-    animate={{ opacity: 1, y: 0 }}
-    className="p-5 bg-white/5 border border-white/10 rounded-2xl"
-  >
-    <div className="flex items-center gap-3 mb-3">
-      <div
-        className="w-9 h-9 rounded-xl flex items-center justify-center"
-        style={{ backgroundColor: `${color}15` }}
-      >
-        <Icon className="w-4.5 h-4.5" style={{ color }} />
-      </div>
-      <span className="text-white/40 text-sm">{label}</span>
-    </div>
-    <p className="text-3xl font-bold text-white">{value}</p>
-  </motion.div>
-);
-
-const DashboardAnalytics = () => {
-  const [analytics, setAnalytics] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const token = localStorage.getItem("token");
-
-  useEffect(() => {
-    const fetchAnalytics = async () => {
-      try {
-        const res = await axios.get(`${API_BASE_URL}/api/analytics`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setAnalytics(res.data);
-      } catch (err) {
-        console.error("Failed to fetch analytics:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAnalytics();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="h-28 bg-white/5 rounded-2xl animate-pulse"
-            />
-          ))}
-        </div>
-        <div className="h-64 bg-white/5 rounded-2xl animate-pulse" />
-      </div>
-    );
-  }
-
-  if (!analytics) {
-    return (
-      <div className="text-center py-16 text-white/30">
-        <p>No analytics data yet</p>
-      </div>
-    );
-  }
-
-  // Chart data: Clicks per day
-  const clicksChartData = {
-    labels: (analytics.clicksPerDay || []).map((d) =>
-      new Date(d.date).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-      })
-    ),
-    datasets: [
-      {
-        label: "Clicks",
-        data: (analytics.clicksPerDay || []).map((d) => d.clicks),
-        fill: true,
-        backgroundColor: "rgba(139, 92, 246, 0.1)",
-        borderColor: "rgba(139, 92, 246, 0.8)",
-        borderWidth: 2,
-        pointRadius: 3,
-        pointBackgroundColor: "rgba(139, 92, 246, 1)",
-        tension: 0.4,
-      },
-    ],
-  };
-
-  // Chart data: Top links
-  const topLinksData = {
-    labels: (analytics.topLinks || []).map((l) =>
-      l.title.length > 20 ? l.title.substring(0, 20) + "..." : l.title
-    ),
-    datasets: [
-      {
-        label: "Clicks",
-        data: (analytics.topLinks || []).map((l) => l.clicks),
-        backgroundColor: [
-          "rgba(139, 92, 246, 0.7)",
-          "rgba(236, 72, 153, 0.7)",
-          "rgba(59, 130, 246, 0.7)",
-          "rgba(16, 185, 129, 0.7)",
-          "rgba(245, 158, 11, 0.7)",
-          "rgba(239, 68, 68, 0.7)",
-          "rgba(147, 51, 234, 0.7)",
-          "rgba(14, 165, 233, 0.7)",
-          "rgba(249, 115, 22, 0.7)",
-          "rgba(34, 197, 94, 0.7)",
-        ],
-        borderRadius: 8,
-      },
-    ],
-  };
-
-  const chartOptions = {
+function buildChartOptions() {
+  return {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
+      tooltip: {
+        backgroundColor: "rgba(15, 23, 42, 0.92)",
+        borderColor: "rgba(148, 163, 184, 0.2)",
+        borderWidth: 1,
+        padding: 12,
+        displayColors: false,
+      },
     },
     scales: {
       x: {
-        grid: { color: "rgba(255,255,255,0.03)" },
-        ticks: { color: "rgba(255,255,255,0.3)", font: { size: 11 } },
+        grid: { color: "rgba(148, 163, 184, 0.08)" },
+        ticks: { color: "rgba(226, 232, 240, 0.55)", font: { size: 11 } },
       },
       y: {
-        grid: { color: "rgba(255,255,255,0.03)" },
-        ticks: { color: "rgba(255,255,255,0.3)", font: { size: 11 } },
+        grid: { color: "rgba(148, 163, 184, 0.08)" },
+        ticks: { color: "rgba(226, 232, 240, 0.55)", font: { size: 11 } },
       },
     },
   };
+}
 
-  // Calculate device breakdown
-  const deviceMap = {};
-  (analytics.deviceStats || []).forEach((d) => {
-    deviceMap[d.device] = d.clicks;
-  });
+export default function DashboardAnalytics({ analytics }) {
+  const chartOptions = buildChartOptions();
+  const deviceStats = (analytics?.deviceStats || []).reduce((result, item) => {
+    result[item.device] = item.clicks;
+    return result;
+  }, {});
+
+  const clicksChartData = {
+    labels: (analytics?.clicksPerDay || []).map((entry) =>
+      new Date(entry.date).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      }),
+    ),
+    datasets: [
+      {
+        data: (analytics?.clicksPerDay || []).map((entry) => entry.clicks),
+        fill: true,
+        borderColor: "rgba(99, 102, 241, 0.95)",
+        backgroundColor: "rgba(99, 102, 241, 0.14)",
+        pointRadius: 3,
+        pointBackgroundColor: "rgba(34, 197, 94, 1)",
+        tension: 0.42,
+      },
+    ],
+  };
+
+  const topLinksData = {
+    labels: (analytics?.topLinks || []).map((link) =>
+      link.title.length > 18 ? `${link.title.slice(0, 18)}...` : link.title,
+    ),
+    datasets: [
+      {
+        data: (analytics?.topLinks || []).map((link) => link.clicks),
+        backgroundColor: [
+          "rgba(99, 102, 241, 0.78)",
+          "rgba(34, 197, 94, 0.78)",
+          "rgba(249, 115, 22, 0.78)",
+          "rgba(56, 189, 248, 0.78)",
+          "rgba(236, 72, 153, 0.78)",
+        ],
+        borderRadius: 999,
+      },
+    ],
+  };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-    >
-      <h2 className="text-2xl font-bold text-white mb-1">Analytics</h2>
-      <p className="text-white/40 text-sm mb-8">Track your link performance</p>
+    <div className="space-y-6">
+      <div>
+        <p className="text-sm font-medium text-[var(--text-secondary)]">Analytics</p>
+        <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-[var(--text-primary)]">
+          See which links are earning attention and where momentum is building
+        </h1>
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--text-muted)]">
+          Keep the dashboard focused on signal over noise with a clear trend line,
+          fast metrics, and a top-link leaderboard.
+        </p>
+      </div>
 
-      {/* Stat cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <StatCard
+      <div className="grid gap-4 md:grid-cols-4">
+        <MetricCard
           icon={MousePointer2}
-          label="Total Clicks"
-          value={analytics.totalClicks || 0}
-          color="#8B5CF6"
+          label="Total clicks"
+          value={analytics?.totalClicks || 0}
+          detail="Every recorded click across your public page."
+          accent="#6366F1"
         />
-        <StatCard
-          icon={TrendingUp}
-          label="Today"
-          value={analytics.todayClicks || 0}
-          color="#EC4899"
+        <MetricCard
+          icon={Activity}
+          label="Today's visits"
+          value={analytics?.todayClicks || 0}
+          detail="Fresh traffic coming in today."
+          accent="#22C55E"
         />
-        <StatCard
+        <MetricCard
           icon={Smartphone}
-          label="Mobile Clicks"
-          value={deviceMap.mobile || 0}
-          color="#3B82F6"
+          label="Mobile clicks"
+          value={deviceStats.mobile || 0}
+          detail="Audience sessions from phones and tablets."
+          accent="#0EA5E9"
+        />
+        <MetricCard
+          icon={Trophy}
+          label="Top link"
+          value={analytics?.topLinks?.[0]?.clicks || 0}
+          detail={analytics?.topLinks?.[0]?.title || "No top performer yet."}
+          accent="#F97316"
         />
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Clicks over time */}
-        <div className="p-6 bg-white/5 border border-white/10 rounded-2xl">
-          <h3 className="text-white font-medium text-sm mb-4">
-            Clicks Over Time
-          </h3>
-          <div className="h-56">
-            {analytics.clicksPerDay?.length > 0 ? (
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
+        <DashboardCard>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium text-[var(--text-secondary)]">Traffic trend</p>
+              <h3 className="mt-2 text-xl font-semibold text-[var(--text-primary)]">
+                Clicks over the last 30 days
+              </h3>
+            </div>
+            <div className="rounded-full border border-[var(--card-border)] bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]">
+              {analytics?.clicksPerDay?.length || 0} data points
+            </div>
+          </div>
+          <div className="mt-6 h-[320px]">
+            {analytics?.clicksPerDay?.length ? (
               <Line data={clicksChartData} options={chartOptions} />
             ) : (
-              <div className="h-full flex items-center justify-center text-white/20 text-sm">
-                No click data yet
+              <div className="flex h-full items-center justify-center rounded-[24px] border border-dashed border-[var(--card-border)] text-sm text-[var(--text-muted)]">
+                No click history yet.
               </div>
             )}
           </div>
-        </div>
+        </DashboardCard>
 
-        {/* Top links */}
-        <div className="p-6 bg-white/5 border border-white/10 rounded-2xl">
-          <h3 className="text-white font-medium text-sm mb-4">
-            Top Links
-          </h3>
-          <div className="h-56">
-            {analytics.topLinks?.length > 0 ? (
+        <DashboardCard>
+          <div>
+            <p className="text-sm font-medium text-[var(--text-secondary)]">Leaderboard</p>
+            <h3 className="mt-2 text-xl font-semibold text-[var(--text-primary)]">
+              Top performing links
+            </h3>
+          </div>
+          <div className="mt-6 h-[320px]">
+            {analytics?.topLinks?.length ? (
               <Bar data={topLinksData} options={chartOptions} />
             ) : (
-              <div className="h-full flex items-center justify-center text-white/20 text-sm">
-                No click data yet
+              <div className="flex h-full items-center justify-center rounded-[24px] border border-dashed border-[var(--card-border)] text-sm text-[var(--text-muted)]">
+                Publish links to unlock the leaderboard.
               </div>
             )}
           </div>
-        </div>
+          <div className="mt-6 space-y-3">
+            {(analytics?.topLinks || []).slice(0, 3).map((link) => (
+              <div
+                key={link.id}
+                className="flex items-center justify-between rounded-[22px] border border-[var(--card-border)] bg-white/5 px-4 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-[var(--text-primary)]">
+                    {link.title}
+                  </p>
+                  <p className="mt-1 truncate text-xs text-[var(--text-muted)]">{link.url}</p>
+                </div>
+                <div className="text-sm font-medium text-[var(--text-primary)]">
+                  {formatCompactNumber(link.clicks)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </DashboardCard>
       </div>
-    </motion.div>
+    </div>
   );
-};
-
-export default DashboardAnalytics;
+}

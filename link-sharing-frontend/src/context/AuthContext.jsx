@@ -1,26 +1,28 @@
-// src/context/AuthContext.jsx
+﻿// src/context/AuthContext.jsx
 import React, { createContext, useState, useEffect } from 'react';
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return !!localStorage.getItem('token');
+  });
+  const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem('user');
-    if (token) {
-      setIsAuthenticated(true);
-      if (storedUser) {
-        try {
-          setUser(JSON.parse(storedUser));
-        } catch (e) {
-          console.error("Failed to parse user from local storage", e);
-        }
+    if (storedUser) {
+      try {
+        return JSON.parse(storedUser);
+      } catch (e) {
+        console.error("Failed to parse user from local storage", e);
+        return null;
       }
     }
+    return null;
+  });
+
+  useEffect(() => {
+    // Optional: any side-effects related to Auth initialization, like validating the token with backend, could go here.
   }, []);
 
   const login = (token, userData) => {
@@ -32,6 +34,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setIsAuthenticated(false);
     setUser(null);
   };
