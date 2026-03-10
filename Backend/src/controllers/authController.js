@@ -11,11 +11,23 @@ export const register = async (req, res) => {
       return res.status(400).json({ error: "All fields are required" });
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+    const [existingUsers] = await db.query(
+      "SELECT id FROM clients WHERE email = ? LIMIT 1",
+      [normalizedEmail],
+    );
+
+    if (existingUsers.length > 0) {
+      return res
+        .status(409)
+        .json({ error: "An account with this email already exists" });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const [result] = await db.query(
       "INSERT INTO clients (name, email, password, phone) VALUES (?, ?, ?, ?)",
-      [name, email, hashedPassword, phone],
+      [name.trim(), normalizedEmail, hashedPassword, phone.trim()],
     );
 
     res.json({ message: "Client added securely!", clientId: result.insertId });
@@ -28,8 +40,12 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ message: "JWT configuration is missing" });
+    }
+
     const [results] = await db.query("SELECT * FROM clients WHERE email = ?", [
-      email,
+      email?.trim().toLowerCase(),
     ]);
 
     if (results.length === 0) {
@@ -46,7 +62,7 @@ export const login = async (req, res) => {
     const token = jwt.sign(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN },
+      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },
     );
 
     res.json({
@@ -63,7 +79,12 @@ export const login = async (req, res) => {
 
 export const getAllClients = async (req, res) => {
   try {
-    const [results] = await db.query("SELECT * FROM clients");
+    const [results] = await db.query(
+      `SELECT id, name, email, phone, username, bio, avatar, theme,
+              background_type, background_value,
+              youtubeId, githubUser, telegramUser, instagram, twitter, linkedin, tiktok
+       FROM clients`,
+    );
     res.json(results);
   } catch (err) {
     res.status(500).json({ error: err.message });

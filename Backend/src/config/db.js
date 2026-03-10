@@ -1,7 +1,7 @@
 import mysql from "mysql2/promise";
 import "dotenv/config";
 
-export const db = mysql.createPool({
+const DATABASE_CONFIG = {
   host: process.env.DB_HOST || "localhost",
   user: process.env.DB_USER || "appusers",
   password: process.env.DB_PASSWORD || "123mine",
@@ -9,12 +9,31 @@ export const db = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
-});
+};
+
+export const db = mysql.createPool(DATABASE_CONFIG);
+
+async function addMissingColumns(connection, tableName, columns) {
+  for (const [columnName, columnDefinition] of columns) {
+    try {
+      await connection.query(
+        `ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${columnDefinition}`,
+      );
+    } catch (error) {
+      // Duplicate-column errors are expected during idempotent bootstrapping.
+      if (error.code !== "ER_DUP_FIELDNAME") {
+        throw error;
+      }
+    }
+  }
+}
 
 export const initDatabase = async () => {
+  let connection;
+
   try {
-    const connection = await db.getConnection();
-    console.log("✅ Connected to MySQL!");
+    connection = await db.getConnection();
+    console.log("Connected to MySQL.");
 
     // Create links table with all columns if not exists
     await connection.query(`
@@ -62,13 +81,7 @@ export const initDatabase = async () => {
       ["scheduled_at", "DATETIME DEFAULT NULL"],
     ];
 
-    for (const [col, type] of linkColumns) {
-      try {
-        await connection.query(`ALTER TABLE links ADD COLUMN ${col} ${type}`);
-      } catch (e) {
-        /* column may already exist */
-      }
-    }
+    await addMissingColumns(connection, "links", linkColumns);
 
     // ──── Safe column additions for clients table ────
     const clientColumns = [
@@ -78,6 +91,7 @@ export const initDatabase = async () => {
       ["background_type", "VARCHAR(20) DEFAULT 'gradient'"],
       ["background_value", "VARCHAR(255) DEFAULT NULL"],
       ["avatar", "VARCHAR(512) DEFAULT NULL"],
+      ["banner_url", "VARCHAR(512) DEFAULT NULL"],
       ["youtubeId", "VARCHAR(100) DEFAULT NULL"],
       ["githubUser", "VARCHAR(100) DEFAULT NULL"],
       ["telegramUser", "VARCHAR(100) DEFAULT NULL"],
@@ -87,17 +101,13 @@ export const initDatabase = async () => {
       ["tiktok", "VARCHAR(100) DEFAULT NULL"],
     ];
 
-    for (const [col, type] of clientColumns) {
-      try {
-        await connection.query(`ALTER TABLE clients ADD COLUMN ${col} ${type}`);
-      } catch (e) {
-        /* column may already exist */
-      }
-    }
+    await addMissingColumns(connection, "clients", clientColumns);
 
-    connection.release();
-    console.log("✅ Database tables ready!");
+    console.log("Database tables ready.");
   } catch (err) {
-    console.error("❌ Database connection failed:", err.message);
+    console.error("Database connection failed:", err.message);
+    throw err;
+  } finally {
+    connection?.release();
   }
 };

@@ -15,6 +15,15 @@ const storage = multer.diskStorage({
 
 export const upload = multer({ storage });
 
+const bannerStorage = multer.diskStorage({
+  destination: (req, file, cb) =>
+    cb(null, path.join(__dirname, "../../uploads/banners")),
+  filename: (req, file, cb) =>
+    cb(null, `${req.user.id}${path.extname(file.originalname)}`),
+});
+
+export const uploadBanner = multer({ storage: bannerStorage });
+
 export const updateAvatar = async (req, res) => {
   try {
     if (!req.file) {
@@ -29,6 +38,25 @@ export const updateAvatar = async (req, res) => {
     ]);
 
     res.json({ avatar: avatarPath });
+  } catch (err) {
+    res.status(500).json({ message: "Database update failed" });
+  }
+};
+
+export const updateBanner = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const bannerPath = `/uploads/banners/${req.file.filename}`;
+
+    await db.query("UPDATE clients SET banner_url = ? WHERE id = ?", [
+      bannerPath,
+      req.user.id,
+    ]);
+
+    res.json({ banner_url: bannerPath });
   } catch (err) {
     res.status(500).json({ message: "Database update failed" });
   }
@@ -62,7 +90,7 @@ export const updateSocialProfiles = async (req, res) => {
         linkedin || null,
         tiktok || null,
         userId,
-      ]
+      ],
     );
 
     res.json({ message: "Social profiles updated successfully" });
@@ -80,10 +108,10 @@ export const getMe = async (req, res) => {
     }
 
     const [results] = await db.query(
-      `SELECT id, name, username, email, bio, avatar, theme, background_type, background_value,
+      `SELECT id, name, username, email, bio, avatar, banner_url, theme, background_type, background_value,
               youtubeId, githubUser, telegramUser, instagram, twitter, linkedin, tiktok
        FROM clients WHERE id = ?`,
-      [userId]
+      [userId],
     );
 
     if (results.length === 0) {

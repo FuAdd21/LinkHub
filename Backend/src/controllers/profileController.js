@@ -11,10 +11,10 @@ export const getPublicProfile = async (req, res) => {
 
     // Fetch user by username
     const [users] = await db.query(
-      `SELECT id, name, username, email, bio, avatar, theme, background_type, background_value,
+      `SELECT id, name, username, email, bio, avatar, banner_url, theme, background_type, background_value,
               youtubeId, githubUser, telegramUser, instagram, twitter, linkedin, tiktok
        FROM clients WHERE username = ?`,
-      [username.toLowerCase()]
+      [username.toLowerCase()],
     );
 
     if (users.length === 0) {
@@ -30,7 +30,7 @@ export const getPublicProfile = async (req, res) => {
        WHERE user_id = ? AND is_visible = 1
          AND (scheduled_at IS NULL OR scheduled_at <= NOW())
        ORDER BY position ASC, id DESC`,
-      [user.id]
+      [user.id],
     );
 
     // Parse profileData JSON for each link
@@ -45,6 +45,7 @@ export const getPublicProfile = async (req, res) => {
       username: user.username,
       bio: user.bio,
       avatar: user.avatar,
+      banner_url: user.banner_url,
       theme: user.theme || "dark-pro",
       background_type: user.background_type || "gradient",
       background_value: user.background_value,
@@ -93,7 +94,7 @@ export const setupUsername = async (req, res) => {
     // Check uniqueness
     const [existing] = await db.query(
       "SELECT id FROM clients WHERE username = ? AND id != ?",
-      [cleanUsername, userId]
+      [cleanUsername, userId],
     );
 
     if (existing.length > 0) {
@@ -141,6 +142,10 @@ export const updateProfile = async (req, res) => {
       updates.push("background_value = ?");
       values.push(background_value);
     }
+    if (req.body.banner_url !== undefined) {
+      updates.push("banner_url = ?");
+      values.push(req.body.banner_url);
+    }
 
     if (updates.length === 0) {
       return res.status(400).json({ message: "No fields to update" });
@@ -150,13 +155,13 @@ export const updateProfile = async (req, res) => {
 
     await db.query(
       `UPDATE clients SET ${updates.join(", ")} WHERE id = ?`,
-      values
+      values,
     );
 
     // Return updated profile
     const [updated] = await db.query(
-      `SELECT id, name, username, bio, avatar, theme, background_type, background_value FROM clients WHERE id = ?`,
-      [userId]
+      `SELECT id, name, username, bio, avatar, banner_url, theme, background_type, background_value FROM clients WHERE id = ?`,
+      [userId],
     );
 
     res.json({ message: "Profile updated", profile: updated[0] });
@@ -174,7 +179,7 @@ export const checkUsername = async (req, res) => {
 
     const [existing] = await db.query(
       "SELECT id FROM clients WHERE username = ?",
-      [cleanUsername]
+      [cleanUsername],
     );
 
     res.json({ available: existing.length === 0, username: cleanUsername });

@@ -2,23 +2,22 @@ import jwt from "jsonwebtoken";
 import "dotenv/config";
 
 export const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers["authorization"];
-  const token = authHeader && authHeader.split(" ")[1];
+  const authHeader = req.headers.authorization;
+  const [scheme, token] = authHeader?.split(" ") ?? [];
 
-  console.log("Auth middleware - token:", token ? "present" : "missing");
-  console.log("Auth header:", authHeader);
+  if (!process.env.JWT_SECRET) {
+    return res.status(500).json({ message: "JWT configuration is missing" });
+  }
 
-  if (!token) {
-    console.log("No token provided");
+  if (scheme !== "Bearer" || !token) {
     return res.status(401).json({ message: "No token provided" });
   }
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
-      console.log("Token verification error:", err.message);
       return res.status(403).json({ message: "Invalid or expired token" });
     }
-    console.log("Token verified, user:", user);
+
     req.user = user;
     next();
   });

@@ -19,6 +19,7 @@ const FALLBACK_CREATORS = [
     name: "Aura Stack",
     bio: "Creative engineer building immersive product launches and creator systems.",
     avatar: null,
+    banner_url: null,
     theme: "dark-pro",
     backgroundType: "gradient",
     backgroundValue: "linear-gradient(180deg, #09111f 0%, #121f37 100%)",
@@ -71,6 +72,7 @@ const FALLBACK_CREATORS = [
     name: "Sunframe Studio",
     bio: "Visual storyteller sharing travel films, tools, and behind-the-scenes breakdowns.",
     avatar: null,
+    banner_url: null,
     theme: "creator-mode",
     backgroundType: "gradient",
     backgroundValue: "linear-gradient(180deg, #180614 0%, #331228 100%)",
@@ -123,6 +125,7 @@ const FALLBACK_CREATORS = [
     name: "Glassnote",
     bio: "Brand strategist turning audience signals into refined digital experiences.",
     avatar: null,
+    banner_url: null,
     theme: "minimal",
     backgroundType: "solid",
     backgroundValue: "#f6f7fb",
@@ -227,6 +230,7 @@ function normalizeCreator(user, linksByUserId) {
     name: user.name,
     bio: user.bio || "Creator page powered by LinkHub.",
     avatar: user.avatar || null,
+    banner_url: user.banner_url || null,
     theme: user.theme || "dark-pro",
     backgroundType: user.background_type || "gradient",
     backgroundValue: user.background_value || null,
@@ -266,6 +270,7 @@ export const getFeaturedUsers = async (req, res) => {
         username,
         bio,
         avatar,
+        banner_url,
         theme,
         background_type,
         background_value,
@@ -280,7 +285,7 @@ export const getFeaturedUsers = async (req, res) => {
       WHERE username IS NOT NULL
         AND TRIM(username) <> ''
       ORDER BY id DESC
-      LIMIT 12`
+      LIMIT 12`,
     );
 
     if (!users.length) {
@@ -306,7 +311,7 @@ export const getFeaturedUsers = async (req, res) => {
         AND is_visible = 1
         AND (scheduled_at IS NULL OR scheduled_at <= NOW())
       ORDER BY user_id ASC, position ASC, id DESC`,
-      [userIds]
+      [userIds],
     );
 
     const linksByUserId = links.reduce((grouped, link) => {
@@ -337,9 +342,6 @@ export const getFeaturedUsers = async (req, res) => {
     res.json(featuredCreators);
   } catch (err) {
     console.error("getFeaturedUsers error:", err);
-    res
-      .status(500)
-      .json(FALLBACK_CREATORS.slice(0, MAX_FEATURED_USERS));
+    res.status(500).json(FALLBACK_CREATORS.slice(0, MAX_FEATURED_USERS));
   }
 };
-
