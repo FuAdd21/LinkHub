@@ -39,7 +39,6 @@ app.use("/", authRoutes);
 app.use("/api", linkRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api", featuredRoutes);
-app.use("/api/social", socialRoutes);
 app.use("/api/socials", socialRoutes);
 app.use("/api", profileRoutes);
 app.use("/api", analyticsRoutes);

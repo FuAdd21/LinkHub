@@ -8,9 +8,13 @@ import ProfileHeader from "../Components/ProfileHeader";
 import ShareButtons from "../Components/ShareButtons";
 import QRCodeGenerator from "../Components/QRCodeGenerator";
 import EditProfileModal from "../Components/EditProfileModal";
+import LinkCard from "../Components/LinkCard";
+import SocialCardPublic from "../Components/SocialCardPublic";
+import { API_BASE_URL, assetUrl } from "../api/config.js";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
+const SocialCardSkeleton = () => (
+  <div className="w-full h-[72px] rounded-xl bg-white/5 border border-white/10 animate-pulse" />
+);
 
 const PublicProfile = () => {
   const { username } = useParams();
@@ -140,11 +144,7 @@ const PublicProfile = () => {
               <div className="w-6 h-6 rounded-full overflow-hidden bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center">
                 {userData.avatar ? (
                   <img
-                    src={
-                      userData.avatar.startsWith("http")
-                        ? userData.avatar
-                        : `${API_BASE_URL}${userData.avatar}`
-                    }
+                    src={assetUrl(userData.avatar)}
                     alt="Owner"
                     className="w-full h-full object-cover"
                   />
@@ -240,24 +240,50 @@ const PublicProfile = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="space-y-3 mb-6"
+            className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6"
           >
-            {/* Removed socialsLoading logic as social profiles are now handled elsewhere or pre-fetched */}
+            {activeSocialPlatforms.map((platform, index) => (
+              <SocialCardPublic
+                key={platform}
+                platform={platform}
+                username={userData.socials[platform]}
+                index={index}
+              />
+            ))}
           </motion.div>
         )}
 
-        {/* Empty state */}
-        {(!userData.links || userData.links.length === 0) &&
-          activeSocialPlatforms.length === 0 && (
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center text-sm mt-8"
-              style={{ color: "var(--text-muted)" }}
-            >
-              No links yet — check back soon!
-            </motion.p>
-          )}
+        {/* Links */}
+        {(userData.links || []).filter(l => l.is_visible !== 0).length > 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="space-y-3 mb-8"
+          >
+            {(userData.links || [])
+              .filter(l => l.is_visible !== 0)
+              .map((link, index) => (
+                <LinkCard
+                  key={link.id}
+                  link={link}
+                  index={index}
+                  onTrackClick={(linkId) => {
+                    axios.post(`${API_BASE_URL}/api/analytics/click/${linkId}`).catch(console.error);
+                  }}
+                />
+              ))}
+          </motion.div>
+        ) : activeSocialPlatforms.length === 0 ? (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center text-sm mt-8"
+            style={{ color: "var(--text-muted)" }}
+          >
+            No links yet — check back soon!
+          </motion.p>
+        ) : null}
 
         {/* Share + QR */}
         <div className="flex items-center justify-center gap-3 mt-4">

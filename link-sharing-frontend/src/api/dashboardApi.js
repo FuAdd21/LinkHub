@@ -1,7 +1,5 @@
-﻿import axios from "axios";
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
+import axios from "axios";
+import { API_BASE_URL } from "./config.js";
 
 const DASHBOARD_CACHE_TTL = 30000;
 

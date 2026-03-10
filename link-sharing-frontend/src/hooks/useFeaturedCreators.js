@@ -1,6 +1,6 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { API_BASE_URL } from "../api/config.js";
 import {
-  API_BASE_URL,
   FEATURED_CREATORS_CACHE_TTL,
   FEATURED_FALLBACK_CREATORS,
   resolveFeaturedCreators,

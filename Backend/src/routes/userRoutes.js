@@ -11,19 +11,7 @@ import {
 import { authenticateToken } from "../middleware/authMiddleware.js";
 
 router.put("/avatar", authenticateToken, upload.single("avatar"), updateAvatar);
-router.post(
-  "/avatar",
-  authenticateToken,
-  upload.single("avatar"),
-  updateAvatar,
-);
 router.put(
-  "/banner",
-  authenticateToken,
-  uploadBanner.single("banner"),
-  updateBanner,
-);
-router.post(
   "/banner",
   authenticateToken,
   uploadBanner.single("banner"),

@@ -3,9 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { Camera, Save, X, Check, AlertCircle, Loader2 } from "lucide-react";
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
+import { API_BASE_URL } from "../api/config.js";
 
 const THEMES = [
   { id: "dark-pro", name: "Dark Pro", color: "#1a1a1a" },

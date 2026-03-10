@@ -5,9 +5,7 @@ import { AuthContext } from "../context/AuthContext";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
+import { API_BASE_URL } from "../api/config.js";
 
 const MotionDiv = motion.div;
 const MotionButton = motion.button;

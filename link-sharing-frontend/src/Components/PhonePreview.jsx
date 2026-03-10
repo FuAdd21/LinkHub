@@ -10,9 +10,7 @@ import {
   FaTiktok,
   FaGlobe,
 } from "react-icons/fa";
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
+import { assetUrl } from "../api/config.js";
 
 const PLATFORM_ICONS = {
   youtube: { icon: FaYoutube, color: "#FF0000" },
@@ -25,16 +23,7 @@ const PLATFORM_ICONS = {
 };
 
 const PhonePreview = ({ userData, links }) => {
-  const getAvatarUrl = () => {
-    if (userData?.avatar) {
-      return userData.avatar.startsWith("http")
-        ? userData.avatar
-        : `${API_BASE_URL}${userData.avatar}`;
-    }
-    return null;
-  };
-
-  const avatarUrl = getAvatarUrl();
+  const avatarUrl = userData?.avatar ? assetUrl(userData.avatar) : null;
   const visibleLinks = (links || []).filter((l) => l.is_visible !== 0);
 
   const getPlatformIcon = (platform) => {

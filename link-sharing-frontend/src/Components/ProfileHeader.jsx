@@ -1,21 +1,9 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { assetUrl } from "../api/config.js";
 
 const ProfileHeader = ({ user }) => {
-  const API_BASE_URL =
-    import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
-
-  const getAvatarUrl = () => {
-    if (user.avatar) {
-      return user.avatar.startsWith("http")
-        ? user.avatar
-        : `${API_BASE_URL}${user.avatar}`;
-    }
-    // Fallback: generate avatar from username initials
-    return null;
-  };
-
-  const avatarUrl = getAvatarUrl();
+  const avatarUrl = user.avatar ? assetUrl(user.avatar) : null;
 
   return (
     <motion.div

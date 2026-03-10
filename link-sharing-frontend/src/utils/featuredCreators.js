@@ -1,5 +1,4 @@
-﻿const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
+import { API_BASE_URL } from "../api/config.js";
 
 export const FEATURED_CREATORS_CACHE_TTL = 5 * 60 * 1000;
 
@@ -450,4 +449,4 @@ export function getCreatorInitial(value) {
   return (value || "C").trim().charAt(0).toUpperCase();
 }
 
-export { API_BASE_URL };
+
