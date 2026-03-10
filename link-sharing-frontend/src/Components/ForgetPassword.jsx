@@ -1,12 +1,10 @@
 // src/components/ForgotPassword.jsx
-/* eslint-disable no-unused-vars */
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import axios from 'axios';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const ForgotPassword = () => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -18,12 +16,17 @@ const ForgotPassword = () => {
 
     try {
       // Placeholder API call - replace with real endpoint
-      console.log('Forgot password request for:', email);
-      setMessage('If an account exists, a password reset link has been sent to your email.');
-      setEmail('');
-      setTimeout(() => navigate('/login'), 3000);
+      console.log("Forgot password request for:", email);
+      setMessage(
+        "If an account exists, a password reset link has been sent to your email.",
+      );
+      setEmail("");
+      setTimeout(() => navigate("/login"), 3000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to send reset link. Please try again.');
+      setError(
+        err.response?.data?.message ||
+          "Failed to send reset link. Please try again.",
+      );
     }
   };
 
@@ -43,7 +46,8 @@ const ForgotPassword = () => {
           Forgot Password
         </motion.h2>
         <p className="text-center text-white mb-6">
-          Enter your email address, and we’ll send you a link to reset your password.
+          Enter your email address, and we’ll send you a link to reset your
+          password.
         </p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
@@ -84,7 +88,10 @@ const ForgotPassword = () => {
         <p className="text-center text-gray-600 mt-6">
           <a
             href="#"
-            onClick={(e) => { e.preventDefault(); navigate('/login'); }}
+            onClick={(e) => {
+              e.preventDefault();
+              navigate("/login");
+            }}
             className="text-orange-600 hover:text-orange-800 font-semibold "
           >
             Back to Login

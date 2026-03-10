@@ -8,6 +8,9 @@ import { User, Mail, Lock, Phone, ArrowRight, Eye, EyeOff } from "lucide-react";
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
 
+const MotionDiv = motion.div;
+const MotionButton = motion.button;
+
 const Register = () => {
   const [form, setForm] = useState({
     name: "",
@@ -39,28 +42,29 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4 py-8">
-      {/* Ambient glow */}
-      <div className="fixed top-1/3 left-1/2 -translate-x-1/2 w-[400px] h-[400px] bg-pink-600/10 rounded-full blur-[120px]" />
+    <div className="app-auth-shell px-4 py-8">
+      <div className="app-auth-glow app-auth-glow-primary" />
+      <div className="app-auth-glow app-auth-glow-secondary" />
 
-      <motion.div
+      <MotionDiv
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="relative w-full max-w-md"
       >
-        {/* Logo */}
         <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold text-sm">
+          <div className="app-auth-logo-mark font-display text-sm font-bold">
             L
           </div>
-          <span className="text-white text-lg font-bold">LinkHub</span>
+          <span className="font-display text-lg font-bold text-white">
+            LinkHub
+          </span>
         </div>
 
-        <div className="bg-white/[0.03] border border-white/10 rounded-2xl p-8 backdrop-blur-sm">
+        <div className="app-auth-panel rounded-[1.75rem] p-8">
           <h2 className="text-2xl font-bold text-white text-center mb-2">
             Create your account
           </h2>
-          <p className="text-white/30 text-sm text-center mb-8">
+          <p className="text-sm text-center text-white/40 mb-8">
             Start building your link page in seconds
           </p>
 
@@ -77,8 +81,7 @@ const Register = () => {
                   onChange={(e) => updateField("name", e.target.value)}
                   placeholder="Your name"
                   required
-                  className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm
-                           placeholder-white/20 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors"
+                  className="app-auth-input py-3 pl-10 pr-4 text-sm"
                 />
               </div>
             </div>
@@ -95,8 +98,7 @@ const Register = () => {
                   onChange={(e) => updateField("email", e.target.value)}
                   placeholder="you@example.com"
                   required
-                  className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm
-                           placeholder-white/20 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors"
+                  className="app-auth-input py-3 pl-10 pr-4 text-sm"
                 />
               </div>
             </div>
@@ -113,8 +115,7 @@ const Register = () => {
                   onChange={(e) => updateField("phone", e.target.value)}
                   placeholder="+1 234 567 890"
                   required
-                  className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm
-                           placeholder-white/20 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors"
+                  className="app-auth-input py-3 pl-10 pr-4 text-sm"
                 />
               </div>
             </div>
@@ -132,8 +133,7 @@ const Register = () => {
                   placeholder="••••••••"
                   required
                   minLength={6}
-                  className="w-full pl-10 pr-10 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm
-                           placeholder-white/20 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-colors"
+                  className="app-auth-input py-3 pl-10 pr-10 text-sm"
                 />
                 <button
                   type="button"
@@ -149,13 +149,12 @@ const Register = () => {
               </div>
             </div>
 
-            <motion.button
+            <MotionButton
               type="submit"
               disabled={loading}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
-              className="w-full flex items-center justify-center gap-2 py-3 mt-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl
-                       text-sm font-medium disabled:opacity-50 hover:opacity-90 transition-opacity"
+              className="app-auth-button mt-2 py-3 text-sm font-medium disabled:opacity-50"
             >
               {loading ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -165,20 +164,17 @@ const Register = () => {
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
-            </motion.button>
+            </MotionButton>
           </form>
 
           <p className="text-center text-white/30 text-sm mt-6">
             Already have an account?{" "}
-            <Link
-              to="/login"
-              className="text-purple-400 hover:text-purple-300 font-medium transition-colors"
-            >
+            <Link to="/login" className="app-auth-link font-medium">
               Sign in
             </Link>
           </p>
         </div>
-      </motion.div>
+      </MotionDiv>
     </div>
   );
 };

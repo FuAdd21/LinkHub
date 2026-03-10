@@ -1,27 +1,97 @@
-import { Camera, Check, ExternalLink, Loader2, Save, UserCircle2 } from "lucide-react";
+import {
+  ImagePlus,
+  Camera,
+  Check,
+  ExternalLink,
+  Loader2,
+  Save,
+  UserCircle2,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import DashboardCard from "../../Components/dashboard/DashboardCard";
 import { API_BASE_URL, getDashboardAuthConfig } from "../../api/dashboardApi";
-import { getAvatarUrl, getPublicProfileUrl } from "../../Components/dashboard/dashboardUtils";
+import {
+  getAvatarUrl,
+  getPublicProfileUrl,
+} from "../../Components/dashboard/dashboardUtils";
 
-export default function DashboardProfile({ userData, onRefresh, onUserChange }) {
+export default function DashboardProfile({
+  userData,
+  onRefresh,
+  onUserChange,
+}) {
+  const resolveBannerUrl = (value) => {
+    if (!value) return null;
+    if (/^https?:\/\//i.test(value) || value.startsWith("data:")) {
+      return value;
+    }
+    return `${API_BASE_URL}${value.startsWith("/") ? value : `/${value}`}`;
+  };
+
   const [username, setUsername] = useState(userData?.username || "");
   const [bio, setBio] = useState(userData?.bio || "");
   const [usernameStatus, setUsernameStatus] = useState(null);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState(null);
+  const [bannerPreview, setBannerPreview] = useState(null);
   const fileInputRef = useRef(null);
+  const bannerInputRef = useRef(null);
 
   useEffect(() => {
     if (userData) {
       setUsername(userData.username || "");
       setBio(userData.bio || "");
       setAvatarPreview(null);
+      setBannerPreview(null);
     }
   }, [userData]);
+
+  async function handleBannerUpload(event) {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => setBannerPreview(reader.result);
+    reader.readAsDataURL(file);
+
+    const formData = new FormData();
+    formData.append("banner", file);
+
+    const authConfig = getDashboardAuthConfig();
+
+    setUploadingBanner(true);
+
+    try {
+      const response = await axios.put(
+        `${API_BASE_URL}/api/users/banner`,
+        formData,
+        {
+          ...authConfig,
+          headers: {
+            ...authConfig.headers,
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
+
+      onUserChange?.((currentUser) => ({
+        ...currentUser,
+        banner_url: response.data.banner_url,
+      }));
+      onRefresh?.();
+      toast.success("Banner uploaded");
+    } catch {
+      toast.error("Failed to upload banner");
+    } finally {
+      setUploadingBanner(false);
+    }
+  }
 
   async function checkUsername(value) {
     const cleanedValue = value.toLowerCase().replace(/[^a-z0-9_-]/g, "");
@@ -126,23 +196,67 @@ export default function DashboardProfile({ userData, onRefresh, onUserChange }) 
   }
 
   const avatarUrl = avatarPreview || getAvatarUrl(userData);
+  const bannerUrl = bannerPreview || resolveBannerUrl(userData?.banner_url);
 
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-medium text-[var(--text-secondary)]">My Page</p>
+        <p className="text-sm font-medium text-[var(--text-secondary)]">
+          My Page
+        </p>
         <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-[var(--text-primary)]">
           Shape the identity behind your LinkHub page
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--text-muted)]">
-          Keep your public page polished with a clear username, a concise bio, and
-          a profile image that feels instantly recognizable.
+          Keep your public page polished with a clear username, a concise bio,
+          and a profile image that feels instantly recognizable.
         </p>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
         <DashboardCard>
           <form onSubmit={handleSaveProfile} className="space-y-6">
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-[var(--text-primary)]">
+                Banner image
+              </p>
+              <button
+                type="button"
+                onClick={() => bannerInputRef.current?.click()}
+                className="group relative flex h-40 w-full items-center justify-center overflow-hidden rounded-[24px] border border-[var(--card-border)] bg-white/5"
+              >
+                {bannerUrl ? (
+                  <img
+                    src={bannerUrl}
+                    alt="Profile banner"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="h-full w-full bg-[linear-gradient(135deg,rgba(147,51,234,0.35),rgba(236,72,153,0.2),rgba(59,130,246,0.2))]" />
+                )}
+                <div className="absolute inset-0 flex items-center justify-center bg-slate-950/25 text-white opacity-0 transition group-hover:opacity-100">
+                  {uploadingBanner ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <div className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-slate-950/50 px-3 py-1.5 text-xs">
+                      <ImagePlus className="h-4 w-4" />
+                      Upload Banner
+                    </div>
+                  )}
+                </div>
+              </button>
+              <p className="text-xs text-[var(--text-muted)]">
+                Recommended size: 1500 x 500.
+              </p>
+              <input
+                ref={bannerInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleBannerUpload}
+                className="hidden"
+              />
+            </div>
+
             <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
               <button
                 type="button"
@@ -152,12 +266,16 @@ export default function DashboardProfile({ userData, onRefresh, onUserChange }) 
                 {avatarUrl ? (
                   <img
                     src={avatarUrl}
-                    alt={userData?.name || userData?.username || "Creator avatar"}
+                    alt={
+                      userData?.name || userData?.username || "Creator avatar"
+                    }
                     className="h-full w-full object-cover"
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-2xl font-semibold text-[var(--text-primary)]">
-                    {(userData?.username || userData?.name || "L").charAt(0).toUpperCase()}
+                    {(userData?.username || userData?.name || "L")
+                      .charAt(0)
+                      .toUpperCase()}
                   </div>
                 )}
                 <div className="absolute inset-0 flex items-center justify-center bg-slate-950/0 text-white opacity-0 transition group-hover:bg-slate-950/55 group-hover:opacity-100">
@@ -173,7 +291,8 @@ export default function DashboardProfile({ userData, onRefresh, onUserChange }) 
                   Profile photo
                 </p>
                 <p className="mt-2 max-w-sm text-sm leading-6 text-[var(--text-muted)]">
-                  Upload a square image for the cleanest dashboard and mobile preview.
+                  Upload a square image for the cleanest dashboard and mobile
+                  preview.
                 </p>
                 <input
                   ref={fileInputRef}
@@ -191,7 +310,9 @@ export default function DashboardProfile({ userData, onRefresh, onUserChange }) 
                   Username
                 </label>
                 <div className="dashboard-input-shell mt-2">
-                  <span className="text-sm text-[var(--text-muted)]">linkhub.com/</span>
+                  <span className="text-sm text-[var(--text-muted)]">
+                    linkhub.com/
+                  </span>
                   <input
                     id="username"
                     type="text"
@@ -219,7 +340,7 @@ export default function DashboardProfile({ userData, onRefresh, onUserChange }) 
                   Public page
                 </p>
                 <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">
-                  {userData?.username ? `linkhub.com/${userData.username}` : "Choose a username"}
+                  {username ? `linkhub.com/${username}` : "Choose a username"}
                 </p>
                 <a
                   href={getPublicProfileUrl(userData?.username || username)}
@@ -248,7 +369,9 @@ export default function DashboardProfile({ userData, onRefresh, onUserChange }) 
                   className="min-h-[140px] w-full resize-none bg-transparent text-sm leading-7 text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
                 />
               </div>
-              <p className="mt-2 text-right text-xs text-[var(--text-muted)]">{bio.length}/160</p>
+              <p className="mt-2 text-right text-xs text-[var(--text-muted)]">
+                {bio.length}/160
+              </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
@@ -267,6 +390,7 @@ export default function DashboardProfile({ userData, onRefresh, onUserChange }) 
                   setBio(userData?.bio || "");
                   setUsernameStatus(null);
                   setAvatarPreview(null);
+                  setBannerPreview(null);
                 }}
                 className="dashboard-secondary-button"
               >
@@ -277,7 +401,7 @@ export default function DashboardProfile({ userData, onRefresh, onUserChange }) 
         </DashboardCard>
 
         <DashboardCard className="h-fit">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/12 text-indigo-200">
+          <div className="dashboard-accent-icon h-12 w-12">
             <UserCircle2 className="h-5 w-5" />
           </div>
           <h3 className="mt-5 text-xl font-semibold text-[var(--text-primary)]">
@@ -290,7 +414,9 @@ export default function DashboardProfile({ userData, onRefresh, onUserChange }) 
             </div>
             <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
               <p className="font-medium text-[var(--text-primary)]">Username</p>
-              <p className="mt-1">Short, memorable, and easy to say out loud.</p>
+              <p className="mt-1">
+                Short, memorable, and easy to say out loud.
+              </p>
             </div>
             <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
               <p className="font-medium text-[var(--text-primary)]">Bio</p>

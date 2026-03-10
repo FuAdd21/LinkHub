@@ -127,10 +127,10 @@ export const DASHBOARD_THEMES = [
   {
     id: "dark-pro",
     name: "Midnight Studio",
-    accent: "#6366F1",
+    accent: "#9333EA",
     description: "Dark, crisp, and premium for creator-first pages.",
     preview:
-      "linear-gradient(145deg, rgba(15,23,42,1) 0%, rgba(30,41,59,1) 55%, rgba(15,23,42,1) 100%)",
+      "linear-gradient(145deg, rgba(10,10,10,1) 0%, rgba(24,18,37,1) 55%, rgba(12,8,18,1) 100%)",
   },
   {
     id: "neon-glow",
@@ -143,7 +143,7 @@ export const DASHBOARD_THEMES = [
   {
     id: "minimal",
     name: "Soft Canvas",
-    accent: "#6366F1",
+    accent: "#9333EA",
     description: "An airy light theme with minimal contrast.",
     preview:
       "linear-gradient(145deg, rgba(255,255,255,1) 0%, rgba(241,245,249,1) 60%, rgba(238,242,255,1) 100%)",
@@ -171,8 +171,8 @@ export const DASHBOARD_BACKGROUNDS = [
   },
   {
     value: "emerald-teal",
-    label: "Fresh Signal",
-    colors: "from-emerald-500 via-teal-400 to-cyan-500",
+    label: "Rosy Signal",
+    colors: "from-fuchsia-500 via-pink-500 to-rose-500",
   },
   {
     value: "amber-orange",

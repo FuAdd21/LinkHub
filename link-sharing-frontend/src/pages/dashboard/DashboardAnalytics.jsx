@@ -73,10 +73,10 @@ export default function DashboardAnalytics({ analytics }) {
       {
         data: (analytics?.clicksPerDay || []).map((entry) => entry.clicks),
         fill: true,
-        borderColor: "rgba(99, 102, 241, 0.95)",
-        backgroundColor: "rgba(99, 102, 241, 0.14)",
+        borderColor: "rgba(147, 51, 234, 0.95)",
+        backgroundColor: "rgba(147, 51, 234, 0.14)",
         pointRadius: 3,
-        pointBackgroundColor: "rgba(34, 197, 94, 1)",
+        pointBackgroundColor: "rgba(236, 72, 153, 1)",
         tension: 0.42,
       },
     ],
@@ -90,11 +90,11 @@ export default function DashboardAnalytics({ analytics }) {
       {
         data: (analytics?.topLinks || []).map((link) => link.clicks),
         backgroundColor: [
-          "rgba(99, 102, 241, 0.78)",
-          "rgba(34, 197, 94, 0.78)",
-          "rgba(249, 115, 22, 0.78)",
-          "rgba(56, 189, 248, 0.78)",
+          "rgba(147, 51, 234, 0.78)",
           "rgba(236, 72, 153, 0.78)",
+          "rgba(249, 115, 22, 0.78)",
+          "rgba(244, 114, 182, 0.78)",
+          "rgba(168, 85, 247, 0.78)",
         ],
         borderRadius: 999,
       },
@@ -104,13 +104,15 @@ export default function DashboardAnalytics({ analytics }) {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-medium text-[var(--text-secondary)]">Analytics</p>
+        <p className="text-sm font-medium text-[var(--text-secondary)]">
+          Analytics
+        </p>
         <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-[var(--text-primary)]">
           See which links are earning attention and where momentum is building
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--text-muted)]">
-          Keep the dashboard focused on signal over noise with a clear trend line,
-          fast metrics, and a top-link leaderboard.
+          Keep the dashboard focused on signal over noise with a clear trend
+          line, fast metrics, and a top-link leaderboard.
         </p>
       </div>
 
@@ -120,21 +122,21 @@ export default function DashboardAnalytics({ analytics }) {
           label="Total clicks"
           value={analytics?.totalClicks || 0}
           detail="Every recorded click across your public page."
-          accent="#6366F1"
+          accent="#9333EA"
         />
         <MetricCard
           icon={Activity}
           label="Today's visits"
           value={analytics?.todayClicks || 0}
           detail="Fresh traffic coming in today."
-          accent="#22C55E"
+          accent="#EC4899"
         />
         <MetricCard
           icon={Smartphone}
           label="Mobile clicks"
           value={deviceStats.mobile || 0}
           detail="Audience sessions from phones and tablets."
-          accent="#0EA5E9"
+          accent="#C026D3"
         />
         <MetricCard
           icon={Trophy}
@@ -149,7 +151,9 @@ export default function DashboardAnalytics({ analytics }) {
         <DashboardCard>
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-medium text-[var(--text-secondary)]">Traffic trend</p>
+              <p className="text-sm font-medium text-[var(--text-secondary)]">
+                Traffic trend
+              </p>
               <h3 className="mt-2 text-xl font-semibold text-[var(--text-primary)]">
                 Clicks over the last 30 days
               </h3>
@@ -171,7 +175,9 @@ export default function DashboardAnalytics({ analytics }) {
 
         <DashboardCard>
           <div>
-            <p className="text-sm font-medium text-[var(--text-secondary)]">Leaderboard</p>
+            <p className="text-sm font-medium text-[var(--text-secondary)]">
+              Leaderboard
+            </p>
             <h3 className="mt-2 text-xl font-semibold text-[var(--text-primary)]">
               Top performing links
             </h3>
@@ -195,7 +201,9 @@ export default function DashboardAnalytics({ analytics }) {
                   <p className="truncate text-sm font-semibold text-[var(--text-primary)]">
                     {link.title}
                   </p>
-                  <p className="mt-1 truncate text-xs text-[var(--text-muted)]">{link.url}</p>
+                  <p className="mt-1 truncate text-xs text-[var(--text-muted)]">
+                    {link.url}
+                  </p>
                 </div>
                 <div className="text-sm font-medium text-[var(--text-primary)]">
                   {formatCompactNumber(link.clicks)}

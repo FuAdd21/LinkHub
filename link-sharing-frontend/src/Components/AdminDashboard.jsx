@@ -15,8 +15,6 @@ import {
   Trash2,
   Globe,
   TrendingUp,
-  User,
-  Camera,
   Upload,
   LogOut,
   X,
@@ -461,22 +459,27 @@ const AdminDashboard = () => {
     fileInputRef.current.click();
   };
 
-  const handleAvatarChange = (e) => {
+  const handleAvatarChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
       setAvatarFile(file);
       const reader = new FileReader();
       reader.onloadend = () => setAvatar(reader.result);
       reader.readAsDataURL(file);
+      await handleAvatarUpload(file);
     }
   };
 
-  const handleAvatarUpload = async () => {
+  const handleAvatarUpload = async (selectedFile = avatarFile) => {
+    if (!selectedFile) {
+      return;
+    }
+
     try {
       setUploading(true);
       const token = localStorage.getItem("token");
       const formData = new FormData();
-      formData.append("avatar", avatarFile);
+      formData.append("avatar", selectedFile);
 
       const res = await axios.post(
         `${API_BASE_URL}/api/users/avatar`,
@@ -491,9 +494,9 @@ const AdminDashboard = () => {
 
       setAvatar(`${API_BASE_URL}${res.data.avatar}`);
       toast.success("Profile updated!");
-      setUploading(false);
     } catch {
       toast.error("Upload failed");
+    } finally {
       setUploading(false);
     }
   };
@@ -551,9 +554,14 @@ const AdminDashboard = () => {
                 </div>
                 <button
                   onClick={handleAvatarClick}
+                  disabled={uploading}
                   className="absolute -bottom-1 -right-1 w-6 h-6 bg-purple-500 rounded-full flex items-center justify-center shadow-lg hover:bg-purple-400 transition-colors"
                 >
-                  <Upload className="w-3 h-3 text-white" />
+                  {uploading ? (
+                    <div className="w-3 h-3 rounded-full border border-white/40 border-t-white animate-spin" />
+                  ) : (
+                    <Upload className="w-3 h-3 text-white" />
+                  )}
                 </button>
                 <input
                   type="file"

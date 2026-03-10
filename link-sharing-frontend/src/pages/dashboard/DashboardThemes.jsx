@@ -10,7 +10,9 @@ import {
 import { API_BASE_URL, getDashboardAuthConfig } from "../../api/dashboardApi";
 
 export default function DashboardThemes({ userData, onRefresh, onUserChange }) {
-  const [selectedTheme, setSelectedTheme] = useState(userData?.theme || "dark-pro");
+  const [selectedTheme, setSelectedTheme] = useState(
+    userData?.theme || "dark-pro",
+  );
   const [selectedBackground, setSelectedBackground] = useState(
     userData?.background_value || "purple-pink",
   );
@@ -57,23 +59,27 @@ export default function DashboardThemes({ userData, onRefresh, onUserChange }) {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-medium text-[var(--text-secondary)]">Themes</p>
+        <p className="text-sm font-medium text-[var(--text-secondary)]">
+          Themes
+        </p>
         <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-[var(--text-primary)]">
           Give your page a polished visual system that feels intentional
         </h1>
         <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--text-muted)]">
-          Choose a mood, adjust the background energy, and keep the dashboard preview
-          in sync while you experiment.
+          Choose a mood, adjust the background energy, and keep the dashboard
+          preview in sync while you experiment.
         </p>
       </div>
 
       <DashboardCard>
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/12 text-indigo-200">
+          <div className="dashboard-accent-icon h-12 w-12">
             <Sparkles className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-sm font-medium text-[var(--text-secondary)]">Theme collection</p>
+            <p className="text-sm font-medium text-[var(--text-secondary)]">
+              Theme collection
+            </p>
             <h3 className="mt-1 text-xl font-semibold text-[var(--text-primary)]">
               Pick the foundation for your creator page
             </h3>
@@ -89,8 +95,11 @@ export default function DashboardThemes({ userData, onRefresh, onUserChange }) {
               className="relative overflow-hidden rounded-[26px] border p-4 text-left transition hover:-translate-y-1"
               style={{
                 borderColor:
-                  selectedTheme === theme.id ? "var(--accent)" : "var(--card-border)",
-                backgroundColor: "color-mix(in srgb, var(--card-bg) 88%, transparent)",
+                  selectedTheme === theme.id
+                    ? "var(--accent)"
+                    : "var(--card-border)",
+                backgroundColor:
+                  "color-mix(in srgb, var(--card-bg) 88%, transparent)",
               }}
             >
               <div
@@ -99,7 +108,9 @@ export default function DashboardThemes({ userData, onRefresh, onUserChange }) {
               />
               <div className="mt-4 flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-sm font-semibold text-[var(--text-primary)]">{theme.name}</p>
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">
+                    {theme.name}
+                  </p>
                   <p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">
                     {theme.description}
                   </p>
@@ -117,11 +128,13 @@ export default function DashboardThemes({ userData, onRefresh, onUserChange }) {
 
       <DashboardCard>
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/12 text-emerald-200">
+          <div className="dashboard-accent-icon-secondary h-12 w-12">
             <Palette className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-sm font-medium text-[var(--text-secondary)]">Background accents</p>
+            <p className="text-sm font-medium text-[var(--text-secondary)]">
+              Background accents
+            </p>
             <h3 className="mt-1 text-xl font-semibold text-[var(--text-primary)]">
               Fine-tune the page atmosphere
             </h3>
@@ -140,10 +153,13 @@ export default function DashboardThemes({ userData, onRefresh, onUserChange }) {
                   selectedBackground === background.value
                     ? "var(--accent)"
                     : "var(--card-border)",
-                backgroundColor: "color-mix(in srgb, var(--card-bg) 88%, transparent)",
+                backgroundColor:
+                  "color-mix(in srgb, var(--card-bg) 88%, transparent)",
               }}
             >
-              <div className={`h-16 rounded-[18px] bg-gradient-to-r ${background.colors}`} />
+              <div
+                className={`h-16 rounded-[18px] bg-gradient-to-r ${background.colors}`}
+              />
               <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">
                 {background.label}
               </p>

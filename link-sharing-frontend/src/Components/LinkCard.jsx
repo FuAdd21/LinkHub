@@ -1,4 +1,3 @@
-import React from "react";
 import { motion } from "framer-motion";
 import {
   FaYoutube,
@@ -12,9 +11,6 @@ import {
   FaSpotify,
   FaFacebook,
 } from "react-icons/fa";
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
 
 const PLATFORM_CONFIG = {
   youtube: {
@@ -139,11 +135,7 @@ const LinkCard = ({ link, index, onTrackClick }) => {
           stroke="currentColor"
           strokeWidth={2}
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M9 5l7 7-7 7"
-          />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
         </svg>
       </div>
     </motion.a>

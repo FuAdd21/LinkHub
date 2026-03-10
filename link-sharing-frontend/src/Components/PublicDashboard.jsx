@@ -1,8 +1,10 @@
-/* eslint-disable no-unused-vars */
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import axios from 'axios';
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { motion } from "framer-motion";
+import axios from "axios";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
 
 const PublicDashboard = () => {
   const { username } = useParams();
@@ -13,10 +15,12 @@ const PublicDashboard = () => {
   useEffect(() => {
     const fetchLinks = async () => {
       try {
-        const response = await axios.get(`http://localhost:3002/api/links/${username}`);
+        const response = await axios.get(
+          `${API_BASE_URL}/api/profile/${username}`,
+        );
         setUserLinks(response.data.links || []);
       } catch (err) {
-        setError(err.response?.data?.message || 'Error loading user dashboard');
+        setError(err.response?.data?.message || "Error loading user dashboard");
       } finally {
         setLoading(false);
       }
@@ -38,7 +42,9 @@ const PublicDashboard = () => {
       </motion.h1>
 
       {userLinks.length === 0 ? (
-        <p className="text-center text-gray-600">This user hasn’t added any links yet.</p>
+        <p className="text-center text-gray-600">
+          This user hasn’t added any links yet.
+        </p>
       ) : (
         <ul className="max-w-xl mx-auto space-y-3">
           {userLinks.map((link) => (

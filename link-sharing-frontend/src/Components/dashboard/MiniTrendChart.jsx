@@ -16,7 +16,7 @@ export default function MiniTrendChart({ data = [] }) {
   }
 
   return (
-    <div className="relative h-28 overflow-hidden rounded-[24px] bg-[linear-gradient(180deg,rgba(99,102,241,0.16),rgba(99,102,241,0.02))]">
+    <div className="relative h-28 overflow-hidden rounded-[24px] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--accent)_18%,transparent),transparent)]">
       <svg
         viewBox="0 0 260 80"
         className="h-full w-full"
@@ -24,9 +24,15 @@ export default function MiniTrendChart({ data = [] }) {
         aria-hidden="true"
       >
         <defs>
-          <linearGradient id="mini-trend-line" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#6366F1" />
-            <stop offset="100%" stopColor="#22C55E" />
+          <linearGradient
+            id="mini-trend-line"
+            x1="0%"
+            y1="0%"
+            x2="100%"
+            y2="0%"
+          >
+            <stop offset="0%" stopColor="var(--accent)" />
+            <stop offset="100%" stopColor="var(--accent-secondary)" />
           </linearGradient>
         </defs>
         <MotionPath

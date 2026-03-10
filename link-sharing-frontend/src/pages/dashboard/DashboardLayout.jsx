@@ -1,4 +1,11 @@
-﻿import { lazy, Suspense, useContext, useEffect, useMemo, useState } from "react";
+﻿import {
+  lazy,
+  Suspense,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { BarChart3, Globe2, Sparkles } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
@@ -6,7 +13,11 @@ import DashboardCard from "../../Components/dashboard/DashboardCard";
 import MobilePreview from "../../Components/dashboard/MobilePreview";
 import Sidebar from "../../Components/dashboard/Sidebar";
 import TopNavbar from "../../Components/dashboard/TopNavbar";
-import { getConnectedPlatforms, getPageCompletion, getVisibleLinks } from "../../Components/dashboard/dashboardUtils";
+import {
+  getConnectedPlatforms,
+  getPageCompletion,
+  getVisibleLinks,
+} from "../../Components/dashboard/dashboardUtils";
 import useDashboardData from "../../hooks/useDashboardData";
 import { useSocialProfiles } from "../../hooks/useSocialProfiles";
 
@@ -24,7 +35,10 @@ function DashboardPageSkeleton() {
       <div className="h-10 w-64 animate-pulse rounded-2xl bg-white/5" />
       <div className="grid gap-4 md:grid-cols-3">
         {Array.from({ length: 3 }).map((_, index) => (
-          <div key={index} className="h-40 animate-pulse rounded-[28px] bg-white/5" />
+          <div
+            key={index}
+            className="h-40 animate-pulse rounded-[28px] bg-white/5"
+          />
         ))}
       </div>
       <div className="h-[320px] animate-pulse rounded-[28px] bg-white/5" />
@@ -45,17 +59,23 @@ function PreviewRail({ userData, links, analytics, socialPreviewData }) {
           Live preview
         </p>
         <div className="mt-4">
-          <MobilePreview user={userData} links={links} socialStats={socialPreviewData} />
+          <MobilePreview
+            user={userData}
+            links={links}
+            socialStats={socialPreviewData}
+          />
         </div>
       </DashboardCard>
 
       <DashboardCard>
         <div className="flex items-center gap-3">
-          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500/12 text-indigo-200">
+          <div className="dashboard-accent-icon h-11 w-11">
             <Sparkles className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-sm font-medium text-[var(--text-secondary)]">Utility panel</p>
+            <p className="text-sm font-medium text-[var(--text-secondary)]">
+              Utility panel
+            </p>
             <h3 className="mt-1 text-lg font-semibold text-[var(--text-primary)]">
               Key creator signals
             </h3>
@@ -63,20 +83,36 @@ function PreviewRail({ userData, links, analytics, socialPreviewData }) {
         </div>
         <div className="mt-5 grid gap-3">
           <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">Page completion</p>
-            <p className="mt-3 text-2xl font-semibold text-[var(--text-primary)]">{completion}%</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">
+              Page completion
+            </p>
+            <p className="mt-3 text-2xl font-semibold text-[var(--text-primary)]">
+              {completion}%
+            </p>
           </div>
           <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">Links live</p>
-            <p className="mt-3 text-2xl font-semibold text-[var(--text-primary)]">{visibleLinks.length}</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">
+              Links live
+            </p>
+            <p className="mt-3 text-2xl font-semibold text-[var(--text-primary)]">
+              {visibleLinks.length}
+            </p>
           </div>
           <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">Platforms connected</p>
-            <p className="mt-3 text-2xl font-semibold text-[var(--text-primary)]">{connectedPlatforms.length}</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">
+              Platforms connected
+            </p>
+            <p className="mt-3 text-2xl font-semibold text-[var(--text-primary)]">
+              {connectedPlatforms.length}
+            </p>
           </div>
           <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">Top performer</p>
-            <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">{topLink?.title || "No click data yet"}</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">
+              Top performer
+            </p>
+            <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">
+              {topLink?.title || "No click data yet"}
+            </p>
           </div>
         </div>
       </DashboardCard>
@@ -89,14 +125,8 @@ export default function DashboardLayout() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [socialPreviewData, setSocialPreviewData] = useState(null);
-  const {
-    snapshot,
-    loading,
-    error,
-    refresh,
-    updateUser,
-    updateLinks,
-  } = useDashboardData();
+  const { snapshot, loading, error, refresh, updateUser, updateLinks } =
+    useDashboardData();
 
   const userData = snapshot?.user ?? null;
   const links = snapshot?.links ?? [];
@@ -170,8 +200,12 @@ export default function DashboardLayout() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[var(--bg-primary)] px-4 text-center">
         <div>
-          <p className="text-lg font-semibold text-[var(--text-primary)]">Unable to load your dashboard</p>
-          <p className="mt-2 text-sm text-[var(--text-muted)]">Please refresh and try again.</p>
+          <p className="text-lg font-semibold text-[var(--text-primary)]">
+            Unable to load your dashboard
+          </p>
+          <p className="mt-2 text-sm text-[var(--text-muted)]">
+            Please refresh and try again.
+          </p>
         </div>
       </div>
     );
@@ -179,7 +213,7 @@ export default function DashboardLayout() {
 
   return (
     <div className="dashboard-shell min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.18),transparent_32%),radial-gradient(circle_at_85%_18%,rgba(34,197,94,0.12),transparent_22%),linear-gradient(180deg,rgba(15,23,42,0.98),rgba(15,23,42,1))]" />
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,rgba(147,51,234,0.18),transparent_32%),radial-gradient(circle_at_85%_18%,rgba(236,72,153,0.12),transparent_22%),linear-gradient(180deg,rgba(10,10,10,0.98),rgba(10,10,10,1))]" />
       <div className="grid min-h-screen lg:grid-cols-[284px_minmax(0,1fr)]">
         <Sidebar
           isOpen={sidebarOpen}
@@ -269,7 +303,10 @@ export default function DashboardLayout() {
                         />
                       }
                     />
-                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                    <Route
+                      path="*"
+                      element={<Navigate to="/dashboard" replace />}
+                    />
                   </Routes>
                 </Suspense>
               </main>
@@ -299,11 +336,13 @@ export default function DashboardLayout() {
                 <div className="dashboard-mobile-rail-item">
                   <DashboardCard className="h-full">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500/12 text-emerald-200">
+                      <div className="dashboard-accent-icon-secondary h-11 w-11">
                         <Globe2 className="h-5 w-5" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-[var(--text-secondary)]">Creator focus</p>
+                        <p className="text-sm font-medium text-[var(--text-secondary)]">
+                          Creator focus
+                        </p>
                         <h3 className="mt-1 text-lg font-semibold text-[var(--text-primary)]">
                           Keep this week simple
                         </h3>
@@ -325,18 +364,22 @@ export default function DashboardLayout() {
                 <div className="dashboard-mobile-rail-item">
                   <DashboardCard className="h-full">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-500/12 text-indigo-200">
+                      <div className="dashboard-accent-icon h-11 w-11">
                         <BarChart3 className="h-5 w-5" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-[var(--text-secondary)]">Traffic snapshot</p>
+                        <p className="text-sm font-medium text-[var(--text-secondary)]">
+                          Traffic snapshot
+                        </p>
                         <h3 className="mt-1 text-lg font-semibold text-[var(--text-primary)]">
                           {analytics?.todayClicks || 0} visits today
                         </h3>
                       </div>
                     </div>
                     <p className="mt-5 text-sm leading-7 text-[var(--text-muted)]">
-                      Your audience is currently engaging with {analytics?.topLinks?.[0]?.title || "your page"}. Use the full analytics view for the longer trend.
+                      Your audience is currently engaging with{" "}
+                      {analytics?.topLinks?.[0]?.title || "your page"}. Use the
+                      full analytics view for the longer trend.
                     </p>
                   </DashboardCard>
                 </div>

@@ -1,5 +1,4 @@
-﻿
-import {
+﻿import {
   ArrowUpRight,
   Eye,
   Link2,
@@ -14,7 +13,6 @@ import { Link } from "react-router-dom";
 import DashboardCard from "../../Components/dashboard/DashboardCard";
 import MetricCard from "../../Components/dashboard/MetricCard";
 import MiniTrendChart from "../../Components/dashboard/MiniTrendChart";
-import { SOCIAL_PLATFORM_FIELDS } from "../../Components/dashboard/dashboardConfig";
 import {
   formatCompactNumber,
   getAvatarUrl,
@@ -37,7 +35,7 @@ function SocialStatsCard({ userData, socialPreviewData }) {
             Your connected platforms
           </h3>
         </div>
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/12 text-emerald-300">
+        <div className="dashboard-accent-icon-secondary h-12 w-12">
           <Share2 className="h-5 w-5" />
         </div>
       </div>
@@ -69,7 +67,10 @@ function SocialStatsCard({ userData, socialPreviewData }) {
                     className="flex h-11 w-11 items-center justify-center rounded-2xl"
                     style={{ backgroundColor: `${platform.color}18` }}
                   >
-                    <Icon className="h-4.5 w-4.5" style={{ color: platform.color }} />
+                    <Icon
+                      className="h-4.5 w-4.5"
+                      style={{ color: platform.color }}
+                    />
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-[var(--text-primary)]">
@@ -83,7 +84,11 @@ function SocialStatsCard({ userData, socialPreviewData }) {
                   </div>
                 </div>
                 <div className="text-right text-xs text-[var(--text-muted)]">
-                  <p>{secondaryCount ? formatCompactNumber(secondaryCount) : "Live"}</p>
+                  <p>
+                    {secondaryCount
+                      ? formatCompactNumber(secondaryCount)
+                      : "Live"}
+                  </p>
                   <p className="mt-1 uppercase tracking-[0.2em]">active</p>
                 </div>
               </div>
@@ -106,14 +111,14 @@ function QuickActionsCard() {
       description: "Launch a new destination and keep the preview current.",
       to: "/dashboard/links",
       icon: Link2,
-      accent: "#6366F1",
+      accent: "#9333EA",
     },
     {
       label: "Connect Social Account",
       description: "Pull follower stats into your creator dashboard.",
       to: "/dashboard/socials",
       icon: Share2,
-      accent: "#22C55E",
+      accent: "#EC4899",
     },
     {
       label: "Change Theme",
@@ -135,7 +140,7 @@ function QuickActionsCard() {
             Move your page forward fast
           </h3>
         </div>
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/12 text-indigo-200">
+        <div className="dashboard-accent-icon h-12 w-12">
           <Sparkles className="h-5 w-5" />
         </div>
       </div>
@@ -153,7 +158,10 @@ function QuickActionsCard() {
               <div className="flex items-center gap-3">
                 <div
                   className="flex h-11 w-11 items-center justify-center rounded-2xl"
-                  style={{ backgroundColor: `${action.accent}18`, color: action.accent }}
+                  style={{
+                    backgroundColor: `${action.accent}18`,
+                    color: action.accent,
+                  }}
                 >
                   <Icon className="h-4.5 w-4.5" />
                 </div>
@@ -189,12 +197,15 @@ function AnalyticsSummaryCard({ analytics }) {
             Your traffic trend for the last 30 days
           </h3>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--text-muted)]">
-            Watch click momentum, daily visits, and the destination currently doing
-            the most work for your creator funnel.
+            Watch click momentum, daily visits, and the destination currently
+            doing the most work for your creator funnel.
           </p>
         </div>
         <div className="rounded-2xl border border-[var(--card-border)] bg-white/5 px-4 py-3 text-sm text-[var(--text-muted)]">
-          Top link: <span className="font-semibold text-[var(--text-primary)]">{topLink?.title || "No clicks yet"}</span>
+          Top link:{" "}
+          <span className="font-semibold text-[var(--text-primary)]">
+            {topLink?.title || "No clicks yet"}
+          </span>
         </div>
       </div>
 
@@ -219,7 +230,7 @@ function AnalyticsSummaryCard({ analytics }) {
           </div>
           <Link
             to="/dashboard/analytics"
-            className="flex items-center justify-between rounded-[24px] border border-[var(--card-border)] bg-[linear-gradient(145deg,rgba(99,102,241,0.14),rgba(34,197,94,0.08))] px-4 py-4 text-sm font-medium text-[var(--text-primary)] transition hover:border-white/20"
+            className="dashboard-highlight-panel flex items-center justify-between rounded-[24px] px-4 py-4 text-sm font-medium text-[var(--text-primary)] transition hover:border-white/20"
           >
             Open full analytics
             <ArrowUpRight className="h-4 w-4" />
@@ -246,16 +257,18 @@ export default function DashboardOverview({
       {
         label: "Total clicks",
         value: analytics?.totalClicks || 0,
-        detail: topLink ? `${topLink.title} is your top performer.` : "No click data yet.",
+        detail: topLink
+          ? `${topLink.title} is your top performer.`
+          : "No click data yet.",
         icon: MousePointer2,
-        accent: "#6366F1",
+        accent: "#9333EA",
       },
       {
         label: "Today's visits",
         value: analytics?.todayClicks || 0,
         detail: "Fresh audience activity from today.",
         icon: Eye,
-        accent: "#22C55E",
+        accent: "#EC4899",
       },
       {
         label: "Visible links",
@@ -265,7 +278,13 @@ export default function DashboardOverview({
         accent: "#F97316",
       },
     ],
-    [analytics?.todayClicks, analytics?.totalClicks, connectedPlatforms.length, topLink, visibleLinks.length],
+    [
+      analytics?.todayClicks,
+      analytics?.totalClicks,
+      connectedPlatforms.length,
+      topLink,
+      visibleLinks.length,
+    ],
   );
 
   return (
@@ -273,15 +292,16 @@ export default function DashboardOverview({
       <DashboardCard className="overflow-hidden p-0">
         <div className="grid gap-6 p-6 lg:grid-cols-[minmax(0,1fr)_280px] lg:p-8">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs uppercase tracking-[0.24em] text-emerald-200">
+            <div className="dashboard-accent-badge px-3 py-1 text-xs uppercase tracking-[0.24em]">
               Creator dashboard
             </div>
             <h1 className="mt-5 max-w-2xl font-display text-3xl font-semibold tracking-tight text-[var(--text-primary)] sm:text-4xl">
               Manage your creator page with clarity, speed, and fewer clicks.
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-[var(--text-muted)] sm:text-base">
-              Everything important is surfaced here: audience signals, page polish,
-              quick next actions, and a clean path to the parts of LinkHub you edit most.
+              Everything important is surfaced here: audience signals, page
+              polish, quick next actions, and a clean path to the parts of
+              LinkHub you edit most.
             </p>
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -294,7 +314,10 @@ export default function DashboardOverview({
                 View Public Page
                 <ArrowUpRight className="h-4 w-4" />
               </a>
-              <Link to="/dashboard/my-page" className="dashboard-secondary-button">
+              <Link
+                to="/dashboard/my-page"
+                className="dashboard-secondary-button"
+              >
                 Update My Page
               </Link>
             </div>
@@ -306,12 +329,16 @@ export default function DashboardOverview({
                 {avatarUrl ? (
                   <img
                     src={avatarUrl}
-                    alt={userData?.name || userData?.username || "Creator avatar"}
+                    alt={
+                      userData?.name || userData?.username || "Creator avatar"
+                    }
                     className="h-full w-full object-cover"
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-xl font-semibold text-[var(--text-primary)]">
-                    {(userData?.username || userData?.name || "L").charAt(0).toUpperCase()}
+                    {(userData?.username || userData?.name || "L")
+                      .charAt(0)
+                      .toUpperCase()}
                   </div>
                 )}
               </div>
@@ -320,7 +347,8 @@ export default function DashboardOverview({
                   @{userData?.username || "creator"}
                 </p>
                 <p className="mt-1 text-sm text-[var(--text-muted)]">
-                  {userData?.bio || "Add a short creator bio to introduce your page."}
+                  {userData?.bio ||
+                    "Add a short creator bio to introduce your page."}
                 </p>
               </div>
             </div>
@@ -361,7 +389,10 @@ export default function DashboardOverview({
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-        <SocialStatsCard userData={userData} socialPreviewData={socialPreviewData} />
+        <SocialStatsCard
+          userData={userData}
+          socialPreviewData={socialPreviewData}
+        />
         <QuickActionsCard />
       </div>
 
@@ -369,4 +400,3 @@ export default function DashboardOverview({
     </div>
   );
 }
-

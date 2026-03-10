@@ -10,7 +10,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DASHBOARD_NAV_ITEMS } from "./dashboardConfig";
-import { cx, getAvatarUrl, getPublicProfileUrl, getScheduledLinks } from "./dashboardUtils";
+import {
+  cx,
+  getAvatarUrl,
+  getPublicProfileUrl,
+  getScheduledLinks,
+} from "./dashboardUtils";
 
 function SearchResults({ results, onSelect }) {
   if (!results.length) {
@@ -80,7 +85,9 @@ export default function TopNavbar({
     }
 
     const routeMatches = DASHBOARD_NAV_ITEMS.filter((item) =>
-      `${item.label} ${item.description}`.toLowerCase().includes(normalizedQuery),
+      `${item.label} ${item.description}`
+        .toLowerCase()
+        .includes(normalizedQuery),
     ).map((item) => ({
       key: item.to,
       label: item.label,
@@ -139,8 +146,7 @@ export default function TopNavbar({
         : "No scheduled campaigns yet.",
     },
     {
-      title:
-        analytics?.topLinks?.[0]?.title || "No top link data yet",
+      title: analytics?.topLinks?.[0]?.title || "No top link data yet",
       body: analytics?.topLinks?.[0]
         ? "Current top-performing destination."
         : "Publish links to unlock leaderboard insights.",
@@ -200,7 +206,7 @@ export default function TopNavbar({
             )}
           >
             <Bell className="h-4.5 w-4.5" />
-            <span className="absolute right-3 top-3 h-2.5 w-2.5 rounded-full bg-emerald-400 shadow-[0_0_18px_rgba(52,211,153,0.65)]" />
+            <span className="absolute right-3 top-3 h-2.5 w-2.5 rounded-full bg-[var(--accent-secondary)] shadow-[0_0_18px_rgba(236,72,153,0.65)]" />
           </button>
           {notificationOpen ? (
             <div className="dashboard-floating-panel absolute right-0 top-[calc(100%+12px)] w-[320px] rounded-[26px] p-3">
@@ -241,7 +247,9 @@ export default function TopNavbar({
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-[var(--text-primary)]">
-                  {(user?.username || user?.name || "L").charAt(0).toUpperCase()}
+                  {(user?.username || user?.name || "L")
+                    .charAt(0)
+                    .toUpperCase()}
                 </div>
               )}
             </div>

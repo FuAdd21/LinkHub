@@ -6,20 +6,30 @@ import toast from "react-hot-toast";
 import { AuthContext } from "../context/AuthContext";
 import { Camera, Check, AlertCircle, ArrowRight, Loader2 } from "lucide-react";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
 
 const THEMES = [
   { id: "dark-pro", name: "Dark Pro", color: "#1a1a1a", border: "#333" },
-  { id: "minimal-light", name: "Minimal Light", color: "#f8f9fa", border: "#e5e7eb" },
-  { id: "neon-creator", name: "Neon Creator", color: "#0B0B1A", border: "#8B5CF6" },
-  { id: "gradient-studio", name: "Gradient Studio", color: "linear-gradient(135deg, #1e3a8a 0%, #701a75 100%)", border: "transparent" },
+  { id: "minimal", name: "Minimal Light", color: "#f8f9fa", border: "#e5e7eb" },
+  {
+    id: "neon-glow",
+    name: "Neon Creator",
+    color: "#0B0B1A",
+    border: "#8B5CF6",
+  },
+  {
+    id: "creator-mode",
+    name: "Gradient Studio",
+    color: "linear-gradient(135deg, #1e3a8a 0%, #701a75 100%)",
+    border: "transparent",
+  },
 ];
 
 const Onboarding = () => {
   const { user, login } = useContext(AuthContext);
   const navigate = useNavigate();
-  
-  const [step, setStep] = useState(1);
+
   const [username, setUsername] = useState("");
   const [usernameStatus, setUsernameStatus] = useState(null);
   const [bio, setBio] = useState("");
@@ -27,7 +37,7 @@ const Onboarding = () => {
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  
+
   const fileInputRef = useRef(null);
   const token = localStorage.getItem("token");
 
@@ -71,10 +81,18 @@ const Onboarding = () => {
 
     try {
       // 1. Set Username
-      await axios.put(`${API_BASE_URL}/api/profile/username`, { username }, { headers });
+      await axios.put(
+        `${API_BASE_URL}/api/profile/username`,
+        { username },
+        { headers },
+      );
 
       // 2. Set Bio and Theme
-      await axios.put(`${API_BASE_URL}/api/profile`, { bio, theme }, { headers });
+      await axios.put(
+        `${API_BASE_URL}/api/profile`,
+        { bio, theme },
+        { headers },
+      );
 
       // 3. Upload Avatar if selected
       if (avatarFile) {
@@ -90,10 +108,9 @@ const Onboarding = () => {
       login(token, updatedUser);
 
       toast.success("Profile created successfully!");
-      
+
       // 5. Redirect to owner view
       setTimeout(() => navigate(`/${username}`), 1000);
-
     } catch (err) {
       console.error(err);
       toast.error("An error occurred during setup.");
@@ -115,8 +132,12 @@ const Onboarding = () => {
           <div className="w-12 h-12 mx-auto rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold text-xl mb-6 shadow-lg shadow-purple-500/20">
             L
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Claim your identity</h1>
-          <p className="text-white/40">Set up your premium LinkHub profile in seconds.</p>
+          <h1 className="text-3xl font-bold text-white mb-2">
+            Claim your identity
+          </h1>
+          <p className="text-white/40">
+            Set up your premium LinkHub profile in seconds.
+          </p>
         </div>
 
         <div className="space-y-8">
@@ -128,7 +149,11 @@ const Onboarding = () => {
             >
               <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white/10 group-hover:border-purple-500 transition-colors bg-white/5 flex items-center justify-center">
                 {avatarPreview ? (
-                  <img src={avatarPreview} alt="Avatar Preview" className="w-full h-full object-cover" />
+                  <img
+                    src={avatarPreview}
+                    alt="Avatar Preview"
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <Camera className="w-8 h-8 text-white/20" />
                 )}
@@ -144,7 +169,9 @@ const Onboarding = () => {
               onChange={handleAvatarSelect}
               className="hidden"
             />
-            <p className="text-white/30 text-xs mt-3">Profile Photo (Optional)</p>
+            <p className="text-white/30 text-xs mt-3">
+              Profile Photo (Optional)
+            </p>
           </div>
 
           {/* Username Input */}
@@ -164,13 +191,21 @@ const Onboarding = () => {
                 className="w-full pl-[110px] pr-12 py-4 bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-all placeholder:text-white/20"
               />
               <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                {usernameStatus === "checking" && <Loader2 className="w-5 h-5 text-white/40 animate-spin" />}
-                {usernameStatus === "available" && <Check className="w-5 h-5 text-green-400" />}
-                {usernameStatus === "taken" && <AlertCircle className="w-5 h-5 text-red-500" />}
+                {usernameStatus === "checking" && (
+                  <Loader2 className="w-5 h-5 text-white/40 animate-spin" />
+                )}
+                {usernameStatus === "available" && (
+                  <Check className="w-5 h-5 text-green-400" />
+                )}
+                {usernameStatus === "taken" && (
+                  <AlertCircle className="w-5 h-5 text-red-500" />
+                )}
               </div>
             </div>
             {usernameStatus === "taken" && (
-              <p className="text-red-400 text-xs mt-2 ml-1">This username is already taken</p>
+              <p className="text-red-400 text-xs mt-2 ml-1">
+                This username is already taken
+              </p>
             )}
           </div>
 
@@ -200,7 +235,9 @@ const Onboarding = () => {
                   key={t.id}
                   onClick={() => setTheme(t.id)}
                   className={`relative h-20 rounded-xl overflow-hidden transition-all duration-300 ${
-                    theme === t.id ? "ring-2 ring-purple-500 ring-offset-2 ring-offset-[#0a0a0a] scale-95" : "hover:border-white/20 border border-white/10"
+                    theme === t.id
+                      ? "ring-2 ring-purple-500 ring-offset-2 ring-offset-[#0a0a0a] scale-95"
+                      : "hover:border-white/20 border border-white/10"
                   }`}
                   style={{
                     background: t.color,

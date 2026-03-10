@@ -1,64 +1,45 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
-import { Settings, LogOut, Edit3, Link2, Palette, ChevronDown } from "lucide-react";
-import ProfileHeader from "../components/ProfileHeader";
-import LinkCard from "../components/LinkCard";
-import SocialProfileCard, { SocialCardSkeleton } from "../components/SocialProfileCard";
-import ShareButtons from "../components/ShareButtons";
-import QRCodeGenerator from "../components/QRCodeGenerator";
+import { LogOut, Edit3, Link2, Palette, ChevronDown } from "lucide-react";
+import ProfileHeader from "../Components/ProfileHeader";
+import LinkCard from "../Components/LinkCard";
+import SocialProfileCard, {
+  SocialCardSkeleton,
+} from "../Components/SocialProfileCard";
+import ShareButtons from "../Components/ShareButtons";
+import QRCodeGenerator from "../Components/QRCodeGenerator";
 import { fetchSocialProfiles } from "../api/socialApi";
-import EditProfileModal from "../components/EditProfileModal";
+import EditProfileModal from "../Components/EditProfileModal";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
-
-// Social key mapping to backend query param names
-const SOCIAL_KEY_MAP = {
-  youtubeId: "youtube",
-  githubUser: "github",
-  telegramUser: "telegram",
-  instagram: "instagram",
-  twitter: "twitter",
-  linkedin: "linkedin",
-  tiktok: "tiktok",
-};
-
-// Map backend query param to platform name for card rendering
-const PARAM_TO_PLATFORM = {
-  youtube: "youtube",
-  github: "github",
-  telegram: "telegram",
-  instagram: "instagram",
-  twitter: "twitter",
-  linkedin: "linkedin",
-  tiktok: "tiktok",
-};
 
 const PublicProfile = () => {
   const { username } = useParams();
   const navigate = useNavigate();
   const { user, isAuthenticated, logout } = useContext(AuthContext);
-  
+
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [socialData, setSocialData] = useState(null);
   const [socialsLoading, setSocialsLoading] = useState(false);
-  
+
   // Owner State
   const isOwner = isAuthenticated && user?.username === username;
   const [ownerMenuOpen, setOwnerMenuOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
 
   // Fetch profile data
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await axios.get(
-        `${API_BASE_URL}/api/profile/${username}`
+        `${API_BASE_URL}/api/profile/${username}`,
       );
       setUserData(response.data);
     } catch (err) {
@@ -66,13 +47,13 @@ const PublicProfile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [username]);
 
   useEffect(() => {
     if (username) {
       fetchProfile();
     }
-  }, [username]);
+  }, [fetchProfile, username]);
 
   const handleProfileUpdate = (newUsername) => {
     if (newUsername && newUsername !== username) {
@@ -176,8 +157,8 @@ const PublicProfile = () => {
             Page not found
           </h2>
           <p className="text-white/40 text-sm">
-            The user <span className="text-purple-400">@{username}</span> doesn't
-            exist yet.
+            The user <span className="text-purple-400">@{username}</span>{" "}
+            doesn't exist yet.
           </p>
           <a
             href="/"
@@ -210,13 +191,23 @@ const PublicProfile = () => {
             >
               <div className="w-6 h-6 rounded-full overflow-hidden bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center">
                 {userData.avatar ? (
-                  <img src={userData.avatar.startsWith('http') ? userData.avatar : `${API_BASE_URL}${userData.avatar}`} alt="Owner" className="w-full h-full object-cover" />
+                  <img
+                    src={
+                      userData.avatar.startsWith("http")
+                        ? userData.avatar
+                        : `${API_BASE_URL}${userData.avatar}`
+                    }
+                    alt="Owner"
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   <span className="text-[10px] font-bold">You</span>
                 )}
               </div>
               My Profile
-              <ChevronDown className={`w-4 h-4 transition-transform ${ownerMenuOpen ? "rotate-180" : ""}`} />
+              <ChevronDown
+                className={`w-4 h-4 transition-transform ${ownerMenuOpen ? "rotate-180" : ""}`}
+              />
             </button>
 
             <AnimatePresence>
@@ -229,21 +220,30 @@ const PublicProfile = () => {
                   className="absolute right-0 mt-2 w-56 bg-[#151515] border border-white/10 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl z-50 py-2"
                 >
                   <button
-                    onClick={() => { setOwnerMenuOpen(false); setEditModalOpen(true); }}
+                    onClick={() => {
+                      setOwnerMenuOpen(false);
+                      setEditModalOpen(true);
+                    }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-sm text-white/80 hover:text-white hover:bg-white/5 transition-colors text-left"
                   >
                     <Edit3 className="w-4 h-4" />
                     Edit Profile
                   </button>
                   <button
-                    onClick={() => { setOwnerMenuOpen(false); navigate("/dashboard/links"); }}
+                    onClick={() => {
+                      setOwnerMenuOpen(false);
+                      navigate("/dashboard/links");
+                    }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-sm text-white/80 hover:text-white hover:bg-white/5 transition-colors text-left"
                   >
                     <Link2 className="w-4 h-4" />
                     Manage Links
                   </button>
                   <button
-                    onClick={() => { setOwnerMenuOpen(false); navigate("/dashboard/settings"); }}
+                    onClick={() => {
+                      setOwnerMenuOpen(false);
+                      navigate("/dashboard/settings");
+                    }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-sm text-white/80 hover:text-white hover:bg-white/5 transition-colors text-left"
                   >
                     <Palette className="w-4 h-4" />
@@ -295,22 +295,20 @@ const PublicProfile = () => {
             transition={{ delay: 0.4 }}
             className="space-y-3 mb-6"
           >
-            {socialsLoading ? (
-              // Skeleton loaders while fetching
-              activeSocialPlatforms.map((platform) => (
-                <SocialCardSkeleton key={platform} />
-              ))
-            ) : (
-              activeSocialPlatforms.map((platform, index) => (
-                <SocialProfileCard
-                  key={platform}
-                  platform={platform}
-                  data={socialData?.[platform]}
-                  index={index}
-                  showDisconnected={true}
-                />
-              ))
-            )}
+            {socialsLoading
+              ? // Skeleton loaders while fetching
+                activeSocialPlatforms.map((platform) => (
+                  <SocialCardSkeleton key={platform} />
+                ))
+              : activeSocialPlatforms.map((platform, index) => (
+                  <SocialProfileCard
+                    key={platform}
+                    platform={platform}
+                    data={socialData?.[platform]}
+                    index={index}
+                    showDisconnected={true}
+                  />
+                ))}
           </motion.div>
         )}
 

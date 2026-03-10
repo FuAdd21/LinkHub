@@ -1,7 +1,5 @@
-/* eslint-disable no-unused-vars */
-
-import { motion } from 'framer-motion';
-import { useLocation } from 'react-router-dom';
+import { motion } from "framer-motion";
+import { useLocation } from "react-router-dom";
 
 const Layout = ({ children }) => {
   const location = useLocation();

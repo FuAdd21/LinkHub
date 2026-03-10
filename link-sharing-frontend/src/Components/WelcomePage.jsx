@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
+import { FaGithub, FaInstagram, FaYoutube } from "react-icons/fa";
 import {
   ArrowRight,
   BadgeCheck,
@@ -15,17 +16,13 @@ import {
   SunMedium,
   WandSparkles,
 } from "lucide-react";
-import MobilePreviewCard, {
-  MobilePreviewSkeleton,
-} from "./MobilePreviewCard";
+import MobilePreviewCard, { MobilePreviewSkeleton } from "./MobilePreviewCard";
+import CreatorShowcaseSection from "./CreatorShowcaseSection";
 import useFeaturedCreators from "../hooks/useFeaturedCreators";
 import {
   FEATURED_FALLBACK_CREATORS,
   THEME_SHOWCASE_PRESETS,
-  formatCompactNumber,
-  getCreatorTheme,
   normalizeCreator,
-  resolveAssetUrl,
   resolveFeaturedCreators,
 } from "../utils/featuredCreators";
 
@@ -59,29 +56,31 @@ const FEATURE_CARDS = [
 const HERO_CARD_LAYOUT = [
   {
     className:
-      "left-1/2 top-8 -translate-x-1/2 lg:left-8 lg:top-4 lg:translate-x-0",
+      "left-1/2 top-4 z-20 -translate-x-1/2 md:left-[6%] md:top-10 md:translate-x-0 lg:top-8",
     visibility: "flex",
-    rotation: -10,
-    floatOffset: -18,
-    parallaxX: 22,
-    parallaxY: -14,
-  },
-  {
-    className: "right-2 top-24 hidden md:flex lg:right-6",
-    visibility: "hidden md:flex",
-    rotation: 8,
+    rotation: -7,
     floatOffset: -12,
-    parallaxX: -18,
-    parallaxY: 10,
+    parallaxX: 22,
+    parallaxY: -16,
+    scale: 1,
+    duration: 6.2,
   },
   {
-    className: "bottom-0 left-8 hidden lg:flex",
+    className: "right-[4%] top-16 hidden lg:flex",
     visibility: "hidden lg:flex",
-    rotation: 12,
+    rotation: 8,
     floatOffset: -16,
-    parallaxX: 16,
-    parallaxY: -10,
+    parallaxX: -20,
+    parallaxY: 12,
+    scale: 0.94,
+    duration: 7.4,
   },
+];
+
+const HERO_SOCIAL_PROOF = [
+  { icon: FaYoutube, label: "YouTube" },
+  { icon: FaGithub, label: "GitHub" },
+  { icon: FaInstagram, label: "Instagram" },
 ];
 
 function getInitialLandingMode() {
@@ -90,102 +89,6 @@ function getInitialLandingMode() {
   }
 
   return window.localStorage.getItem("linkhub-landing-mode") || "dark";
-}
-
-function ShowcaseCard({ creator, isLightMode }) {
-  const theme = getCreatorTheme(
-    creator.theme,
-    creator.backgroundType,
-    creator.backgroundValue
-  );
-  const avatarUrl = resolveAssetUrl(creator.avatar);
-  const audienceLabel = creator.stats.followers
-    ? `${formatCompactNumber(creator.stats.followers)} followers`
-    : "Audience syncing";
-
-  return (
-    <Link to={`/${creator.username}`} className="group block">
-      <div className="landing-glass landing-elevate rounded-[30px] p-5">
-        <div
-          className="mb-4 h-32 rounded-[24px] border"
-          style={{
-            background: theme.screenBackground,
-            borderColor: theme.screenBorder,
-          }}
-        />
-        <div className="flex items-center gap-3">
-          <div
-            className={`h-14 w-14 overflow-hidden rounded-full border ${
-              isLightMode
-                ? "border-slate-200 bg-slate-100"
-                : "border-white/10 bg-white/5"
-            }`}
-          >
-            {avatarUrl ? (
-              <img
-                src={avatarUrl}
-                alt={creator.username}
-                className="h-full w-full object-cover"
-                loading="lazy"
-              />
-            ) : (
-              <div
-                className={`flex h-full w-full items-center justify-center text-lg font-semibold ${
-                  isLightMode ? "text-slate-700" : "text-white/80"
-                }`}
-              >
-                {creator.username.charAt(0).toUpperCase()}
-              </div>
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p
-              className={`truncate text-base font-semibold ${
-                isLightMode ? "text-slate-950" : "text-white"
-              }`}
-            >
-              @{creator.username}
-            </p>
-            <p
-              className={`truncate text-sm ${
-                isLightMode ? "text-slate-500" : "text-white/50"
-              }`}
-            >
-              {creator.bio}
-            </p>
-          </div>
-        </div>
-        <div
-          className={`mt-4 flex items-center justify-between rounded-[22px] border px-4 py-3 text-sm ${
-            isLightMode
-              ? "border-slate-200 bg-white text-slate-600"
-              : "border-white/10 bg-white/5 text-white/70"
-          }`}
-        >
-          <span>{audienceLabel}</span>
-          <ChevronRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-function ShowcaseSkeleton({ isLightMode }) {
-  const skeletonClass = isLightMode ? "bg-slate-200/70" : "bg-white/5";
-
-  return (
-    <div className="landing-glass rounded-[30px] p-5">
-      <div className={`mb-4 h-32 animate-pulse rounded-[24px] ${skeletonClass}`} />
-      <div className="flex items-center gap-3">
-        <div className={`h-14 w-14 animate-pulse rounded-full ${skeletonClass}`} />
-        <div className="flex-1 space-y-2">
-          <div className={`h-4 w-28 animate-pulse rounded-full ${skeletonClass}`} />
-          <div className={`h-3 w-40 animate-pulse rounded-full ${skeletonClass}`} />
-        </div>
-      </div>
-      <div className={`mt-4 h-12 animate-pulse rounded-[22px] ${skeletonClass}`} />
-    </div>
-  );
 }
 
 const WelcomePage = () => {
@@ -199,6 +102,7 @@ const WelcomePage = () => {
   const featuredCreators = creators.length
     ? creators.map(normalizeCreator)
     : resolveFeaturedCreators(FEATURED_FALLBACK_CREATORS, 3);
+  const heroCreators = featuredCreators.slice(0, 2);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -242,7 +146,7 @@ const WelcomePage = () => {
 
   const toggleLandingMode = () => {
     setLandingMode((currentMode) =>
-      currentMode === "dark" ? "light" : "dark"
+      currentMode === "dark" ? "light" : "dark",
     );
   };
 
@@ -261,13 +165,6 @@ const WelcomePage = () => {
   const secondaryButtonClass = isLightMode
     ? "border-slate-200 bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-950 shadow-[0_18px_40px_rgba(148,163,184,0.16)]"
     : "border-white/10 bg-white/5 text-white/80 backdrop-blur-xl hover:bg-white/10 hover:text-white";
-  const heroStageShadowClass = isLightMode ? "bg-slate-300/45" : "bg-black/45";
-  const heroStageBaseClass = isLightMode
-    ? "border-slate-200/90 bg-white/85"
-    : "border-white/10 bg-white/5 backdrop-blur-xl";
-  const heroStageFrameClass = isLightMode
-    ? "border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(241,245,249,0.72))]"
-    : "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))]";
   const panelClass = isLightMode
     ? "border-slate-200 bg-white text-slate-700"
     : "border-white/10 bg-white/5 text-white/60";
@@ -281,7 +178,9 @@ const WelcomePage = () => {
     ? "border-slate-200 bg-white"
     : "border-white/10 bg-white/5";
   const ctaInnerClass = isLightMode ? "bg-white/88" : "bg-slate-950/85";
-  const footerBorderClass = isLightMode ? "border-slate-200" : "border-white/10";
+  const footerBorderClass = isLightMode
+    ? "border-slate-200"
+    : "border-white/10";
   const footerTextClass = isLightMode ? "text-slate-500" : "text-white/45";
 
   const themePreviewCreator = {
@@ -310,28 +209,41 @@ const WelcomePage = () => {
         <div className="landing-orb-secondary absolute right-0 top-40 h-[24rem] w-[24rem] rounded-full blur-[150px]" />
       </div>
 
-      <header className="landing-header sticky top-0 z-50 border-b backdrop-blur-2xl">
+      <header className="landing-header absolute inset-x-0 top-0 z-50 border-b backdrop-blur-2xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
           <Link to="/" className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#6366f1,#22c55e)] text-sm font-bold text-white shadow-[0_12px_30px_rgba(99,102,241,0.35)]">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#9333ea,#ec4899)] text-sm font-bold text-white shadow-[0_12px_30px_rgba(147,51,234,0.35)]">
               LH
             </div>
             <div>
-              <p className={`font-display text-base font-semibold tracking-tight ${primaryTextClass}`}>
+              <p
+                className={`font-display text-base font-semibold tracking-tight ${primaryTextClass}`}
+              >
                 LinkHub
               </p>
-              <p className={`text-xs ${softTextClass}`}>Creator operating system</p>
+              <p className={`text-xs ${softTextClass}`}>
+                Creator operating system
+              </p>
             </div>
           </Link>
 
           <nav className="hidden items-center gap-8 text-sm md:flex">
-            <a href="#features" className={`transition-colors ${headerLinkClass}`}>
+            <a
+              href="#features"
+              className={`transition-colors ${headerLinkClass}`}
+            >
               Features
             </a>
-            <a href="#creators" className={`transition-colors ${headerLinkClass}`}>
+            <a
+              href="#creators"
+              className={`transition-colors ${headerLinkClass}`}
+            >
               Creators
             </a>
-            <a href="#themes" className={`transition-colors ${headerLinkClass}`}>
+            <a
+              href="#themes"
+              className={`transition-colors ${headerLinkClass}`}
+            >
               Themes
             </a>
           </nav>
@@ -363,7 +275,7 @@ const WelcomePage = () => {
             </button>
             <button
               onClick={handlePrimaryAction}
-              className="landing-ripple rounded-full bg-[linear-gradient(135deg,#6366f1,#22c55e)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_16px_35px_rgba(99,102,241,0.35)] transition-transform duration-200 hover:-translate-y-0.5"
+              className="landing-ripple rounded-full bg-[linear-gradient(135deg,#9333ea,#ec4899)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_16px_35px_rgba(147,51,234,0.35)] transition-transform duration-200 hover:-translate-y-0.5"
             >
               Create your LinkHub
             </button>
@@ -372,90 +284,108 @@ const WelcomePage = () => {
       </header>
 
       <main className="relative z-10">
-        <section className="px-6 pb-20 pt-20 lg:px-8 lg:pb-28 lg:pt-24">
-          <div className="mx-auto grid max-w-7xl items-center gap-16 lg:grid-cols-[1.02fr_0.98fr]">
+        <section className="relative flex min-h-screen items-center overflow-hidden px-6 pt-28 lg:px-8 lg:pt-32">
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute left-[8%] top-[20%] h-44 w-44 rounded-full bg-fuchsia-500/14 blur-[110px]" />
+            <div className="absolute right-[10%] top-[24%] h-72 w-72 rounded-full bg-violet-500/18 blur-[150px]" />
+            <div className="absolute bottom-[12%] left-[42%] h-40 w-40 rounded-full bg-pink-500/10 blur-[120px]" />
+            <div
+              className="absolute inset-0 opacity-[0.06]"
+              style={{
+                backgroundImage:
+                  "radial-gradient(rgba(255,255,255,0.8) 0.7px, transparent 0.7px)",
+                backgroundSize: "18px 18px",
+                maskImage:
+                  "linear-gradient(180deg, rgba(0,0,0,0.35), rgba(0,0,0,0.9) 28%, rgba(0,0,0,0.35))",
+              }}
+            />
+          </div>
+
+          <div className="mx-auto grid w-full max-w-7xl items-center gap-12 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-10">
             <motion.div
-              initial={{ opacity: 0, y: 18 }}
+              initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.72, ease: "easeOut" }}
+              className="relative z-10 max-w-[39rem]"
             >
               <div
                 className={`mb-6 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm ${chipClass}`}
               >
-                <BadgeCheck className="h-4 w-4 text-emerald-400" />
-                Real creator previews pulled into the homepage.
+                <Sparkles className="h-4 w-4 text-fuchsia-300" />
+                Real creator previews pulled from the platform
               </div>
               <h1
-                className={`font-display max-w-2xl text-5xl font-semibold leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl ${primaryTextClass}`}
+                className={`text-balance font-display max-w-3xl text-[clamp(3rem,7vw,5.8rem)] font-semibold leading-[0.94] tracking-[-0.05em] ${primaryTextClass}`}
               >
-                Your entire internet presence. One powerful page.
+                <span className="block">Your entire</span>
+                <span className="mt-1 block">internet presence.</span>
+                <span className="mt-3 block bg-[linear-gradient(135deg,#a855f7,#ec4899)] bg-clip-text text-transparent">
+                  One powerful page.
+                </span>
               </h1>
-              <p className={`mt-6 max-w-xl text-lg leading-8 ${secondaryTextClass}`}>
-                LinkHub turns your social presence into a living profile with real stats,
-                smart connections, and beautiful themes that feel built for modern creators.
+              <p
+                className={`mt-6 max-w-2xl text-balance text-lg leading-8 ${secondaryTextClass}`}
+              >
+                LinkHub turns your social presence into a living profile with
+                real previews, smart links, social proof, and creator-first
+                themes that explain your value instantly.
               </p>
 
               <div className="mt-8 flex flex-col gap-4 sm:flex-row">
-                <button
+                <motion.button
                   onClick={handlePrimaryAction}
-                  className="landing-ripple inline-flex items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#6366f1,#22c55e)] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_18px_45px_rgba(99,102,241,0.35)] transition-transform duration-200 hover:-translate-y-1"
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  whileTap={{ scale: 0.985 }}
+                  className="landing-ripple inline-flex items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#9333ea,#ec4899)] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_20px_55px_rgba(147,51,234,0.36)] transition-transform duration-200 hover:shadow-[0_24px_65px_rgba(236,72,153,0.28)]"
                 >
                   Create your LinkHub
                   <ArrowRight className="h-4 w-4" />
-                </button>
-                <button
+                </motion.button>
+                <motion.button
                   onClick={handleExploreCreators}
+                  whileHover={{ scale: 1.015 }}
+                  whileTap={{ scale: 0.985 }}
                   className={`inline-flex items-center justify-center gap-2 rounded-full border px-6 py-3.5 text-sm font-semibold transition-colors ${secondaryButtonClass}`}
                 >
                   Explore creators
                   <ChevronRight className="h-4 w-4" />
-                </button>
+                </motion.button>
               </div>
 
-              <div className="mt-10 grid gap-4 sm:grid-cols-3">
-                {[
-                  {
-                    value: "Real user pages",
-                    label:
-                      "Homepage cards are rendered from creator data, not static mockups.",
-                  },
-                  {
-                    value: "Theme-aware",
-                    label:
-                      "Preview cards adapt to the creator theme and background style.",
-                  },
-                  {
-                    value: "Fast by default",
-                    label:
-                      "Caching, lazy assets, and skeleton states keep the landing page responsive.",
-                  },
-                ].map((item) => (
-                  <div key={item.value} className="landing-glass rounded-[26px] p-4">
-                    <p className={`font-display text-sm font-semibold ${primaryTextClass}`}>
-                      {item.value}
-                    </p>
-                    <p className={`mt-2 text-sm leading-6 ${softTextClass}`}>{item.label}</p>
-                  </div>
-                ))}
+              <div className="mt-7 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+                <div className="flex items-center gap-3">
+                  {HERO_SOCIAL_PROOF.map((platform) => {
+                    const Icon = platform.icon;
+
+                    return (
+                      <div
+                        key={platform.label}
+                        className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-white/70 backdrop-blur-xl"
+                      >
+                        <Icon className="h-4 w-4" />
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className={`max-w-xl text-sm leading-6 ${softTextClass}`}>
+                  Used by creators across YouTube, GitHub, and Instagram.
+                </p>
               </div>
             </motion.div>
 
             <div
-              className="relative mx-auto min-h-[620px] w-full max-w-[620px]"
+              className="relative mx-auto flex h-[380px] w-full max-w-[640px] items-center justify-center sm:h-[460px] lg:h-[620px]"
               onMouseMove={handleHeroMouseMove}
               onMouseLeave={handleHeroMouseLeave}
             >
-              <div
-                className={`absolute inset-x-12 bottom-8 h-28 rounded-full blur-3xl ${heroStageShadowClass}`}
-              />
-              <div
-                className={`absolute inset-x-8 bottom-14 h-36 rounded-[3rem] border ${heroStageBaseClass}`}
-              />
-              <div
-                className={`absolute inset-0 rounded-[3rem] border ${heroStageFrameClass}`}
-              />
+              <div className="absolute inset-0 rounded-[3rem] border border-white/10 bg-[radial-gradient(circle_at_50%_48%,rgba(147,51,234,0.18),transparent_32%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] backdrop-blur-xl" />
+              <div className="absolute inset-x-[12%] bottom-[12%] h-28 rounded-full bg-fuchsia-500/18 blur-[90px]" />
+              <div className="absolute inset-x-[18%] top-[18%] h-24 rounded-full bg-violet-500/12 blur-[80px]" />
+              <div className="absolute left-[14%] top-[14%] h-40 w-40 rounded-[2.5rem] border border-white/8 bg-white/5 backdrop-blur-2xl" />
+              <div className="absolute right-[8%] bottom-[14%] hidden h-32 w-32 rounded-[2.2rem] border border-white/8 bg-white/5 backdrop-blur-2xl lg:block" />
+              <div className="absolute left-1/2 top-1/2 h-[72%] w-[72%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/8 opacity-40" />
 
-              {(loading ? [0, 1, 2] : featuredCreators).map((creator, index) => {
+              {(loading ? [0, 1] : heroCreators).map((creator, index) => {
                 const layout = HERO_CARD_LAYOUT[index];
 
                 return (
@@ -463,11 +393,12 @@ const WelcomePage = () => {
                     key={loading ? `skeleton-${index}` : creator.id}
                     animate={{ y: [0, layout.floatOffset, 0] }}
                     transition={{
-                      duration: 5.6 + index,
+                      duration: layout.duration,
                       repeat: Infinity,
                       ease: "easeInOut",
                     }}
                     className={`absolute ${layout.className} ${layout.visibility}`}
+                    style={{ scale: layout.scale }}
                   >
                     <motion.div
                       animate={{
@@ -475,17 +406,42 @@ const WelcomePage = () => {
                         y: pointer.y * layout.parallaxY,
                         rotate: layout.rotation + pointer.x * 5,
                       }}
-                      transition={{ type: "spring", stiffness: 120, damping: 16 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 120,
+                        damping: 16,
+                      }}
+                      whileHover={{ scale: 1.03 }}
+                      className="relative"
                     >
+                      <div className="pointer-events-none absolute -inset-6 rounded-[3rem] bg-[radial-gradient(circle,rgba(236,72,153,0.16),transparent_68%)] blur-2xl" />
                       {loading ? (
                         <MobilePreviewSkeleton />
                       ) : (
-                        <MobilePreviewCard creator={creator} priority={index === 0} />
+                        <MobilePreviewCard
+                          creator={creator}
+                          priority={index === 0}
+                        />
                       )}
                     </motion.div>
                   </motion.div>
                 );
               })}
+
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+                className="absolute bottom-5 left-4 right-4 rounded-[1.75rem] border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-xl sm:left-8 sm:right-auto sm:w-[18rem]"
+              >
+                <p className="text-[11px] uppercase tracking-[0.24em] text-white/45">
+                  Why it works
+                </p>
+                <p className="mt-2 text-sm font-medium text-white/88">
+                  One clear page for links, audience proof, and creator
+                  identity.
+                </p>
+              </motion.div>
             </div>
           </div>
         </section>
@@ -496,7 +452,7 @@ const WelcomePage = () => {
               <div
                 className={`mb-4 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm ${chipClass}`}
               >
-                <WandSparkles className="h-4 w-4 text-indigo-300" />
+                <WandSparkles className="h-4 w-4 text-fuchsia-300" />
                 Product capabilities
               </div>
               <h2
@@ -516,10 +472,12 @@ const WelcomePage = () => {
                   transition={{ duration: 0.45, delay: index * 0.08 }}
                   className="landing-glass landing-elevate rounded-[30px] p-6"
                 >
-                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgba(99,102,241,0.22),rgba(34,197,94,0.2))]">
+                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,rgba(147,51,234,0.22),rgba(236,72,153,0.2))]">
                     <feature.icon className="h-5 w-5 text-white" />
                   </div>
-                  <h3 className={`font-display text-xl font-semibold ${primaryTextClass}`}>
+                  <h3
+                    className={`font-display text-xl font-semibold ${primaryTextClass}`}
+                  >
                     {feature.title}
                   </h3>
                   <p className={`mt-3 text-sm leading-7 ${secondaryTextClass}`}>
@@ -531,44 +489,15 @@ const WelcomePage = () => {
           </div>
         </section>
 
-        <section id="creators" className="px-6 py-20 lg:px-8">
-          <div className="mx-auto max-w-7xl">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-2xl">
-                <div
-                  className={`mb-4 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm ${chipClass}`}
-                >
-                  <Sparkles className="h-4 w-4 text-emerald-300" />
-                  Live creator showcase
-                </div>
-                <h2
-                  className={`font-display text-4xl font-semibold tracking-tight sm:text-5xl ${primaryTextClass}`}
-                >
-                  Real LinkHub users, surfaced as the product itself.
-                </h2>
-              </div>
-              <div className="landing-glass rounded-full px-4 py-2 text-sm">
-                {source === "fallback"
-                  ? "Showing curated placeholder creators while the database is empty."
-                  : "Showing live creator data from /api/users/featured."}
-              </div>
-            </div>
-
-            <div className="mt-12 grid gap-5 lg:grid-cols-3">
-              {loading
-                ? [0, 1, 2].map((item) => (
-                    <ShowcaseSkeleton key={item} isLightMode={isLightMode} />
-                  ))
-                : featuredCreators.map((creator) => (
-                    <ShowcaseCard
-                      key={creator.id}
-                      creator={creator}
-                      isLightMode={isLightMode}
-                    />
-                  ))}
-            </div>
-          </div>
-        </section>
+        <CreatorShowcaseSection
+          creators={featuredCreators}
+          loading={loading}
+          source={source}
+          chipClass={chipClass}
+          primaryTextClass={primaryTextClass}
+          secondaryTextClass={secondaryTextClass}
+          isLightMode={isLightMode}
+        />
 
         <section id="themes" className="px-6 py-20 lg:px-8">
           <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
@@ -584,9 +513,12 @@ const WelcomePage = () => {
               >
                 The same creator page can shift tone instantly.
               </h2>
-              <p className={`mt-5 max-w-xl text-base leading-8 ${secondaryTextClass}`}>
+              <p
+                className={`mt-5 max-w-xl text-base leading-8 ${secondaryTextClass}`}
+              >
                 LinkHub themes are not just color swaps. They change atmosphere,
-                contrast, and depth so creators can match their audience and their work.
+                contrast, and depth so creators can match their audience and
+                their work.
               </p>
 
               <div className="mt-8 space-y-3">
@@ -602,15 +534,19 @@ const WelcomePage = () => {
                   >
                     <div className="flex items-center justify-between gap-4">
                       <div>
-                        <p className={`font-display text-lg font-semibold ${primaryTextClass}`}>
+                        <p
+                          className={`font-display text-lg font-semibold ${primaryTextClass}`}
+                        >
                           {themeOption.title}
                         </p>
-                        <p className={`mt-1 text-sm leading-6 ${secondaryTextClass}`}>
+                        <p
+                          className={`mt-1 text-sm leading-6 ${secondaryTextClass}`}
+                        >
                           {themeOption.description}
                         </p>
                       </div>
                       {activeTheme === themeOption.id && (
-                        <BadgeCheck className="h-5 w-5 flex-shrink-0 text-emerald-300" />
+                        <BadgeCheck className="h-5 w-5 flex-shrink-0 text-fuchsia-300" />
                       )}
                     </div>
                   </button>
@@ -659,10 +595,14 @@ const WelcomePage = () => {
                       key={item.title}
                       className={`rounded-[26px] border p-5 ${innerThemeCardClass}`}
                     >
-                      <p className={`font-display text-lg font-semibold ${primaryTextClass}`}>
+                      <p
+                        className={`font-display text-lg font-semibold ${primaryTextClass}`}
+                      >
                         {item.title}
                       </p>
-                      <p className={`mt-2 text-sm leading-7 ${secondaryTextClass}`}>
+                      <p
+                        className={`mt-2 text-sm leading-7 ${secondaryTextClass}`}
+                      >
                         {item.description}
                       </p>
                     </div>
@@ -674,7 +614,7 @@ const WelcomePage = () => {
         </section>
 
         <section className="px-6 pb-24 pt-8 lg:px-8">
-          <div className="mx-auto max-w-6xl rounded-[40px] border border-white/10 bg-[linear-gradient(135deg,rgba(99,102,241,0.24),rgba(34,197,94,0.16))] p-[1px] shadow-[0_30px_90px_rgba(15,23,42,0.3)]">
+          <div className="mx-auto max-w-6xl rounded-[40px] border border-white/10 bg-[linear-gradient(135deg,rgba(147,51,234,0.24),rgba(236,72,153,0.16))] p-[1px] shadow-[0_30px_90px_rgba(15,23,42,0.3)]">
             <div
               className={`rounded-[40px] px-8 py-12 backdrop-blur-2xl lg:px-12 lg:py-14 ${ctaInnerClass}`}
             >
@@ -683,7 +623,7 @@ const WelcomePage = () => {
                   <p
                     className={`mb-4 inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm ${panelClass}`}
                   >
-                    <Link2 className="h-4 w-4 text-emerald-300" />
+                    <Link2 className="h-4 w-4 text-fuchsia-300" />
                     Built to outgrow simple link pages
                   </p>
                   <h2
@@ -691,9 +631,12 @@ const WelcomePage = () => {
                   >
                     Launch a page that feels more like a product than a profile.
                   </h2>
-                  <p className={`mt-4 max-w-xl text-base leading-8 ${secondaryTextClass}`}>
-                    Start with a polished LinkHub page, then keep iterating with analytics,
-                    themes, and richer creator modules as your audience grows.
+                  <p
+                    className={`mt-4 max-w-xl text-base leading-8 ${secondaryTextClass}`}
+                  >
+                    Start with a polished LinkHub page, then keep iterating with
+                    analytics, themes, and richer creator modules as your
+                    audience grows.
                   </p>
                 </div>
 
@@ -728,13 +671,22 @@ const WelcomePage = () => {
             <p>Modern creator pages with live previews and real data.</p>
           </div>
           <div className="flex items-center gap-6">
-            <a href="#features" className={`transition-colors ${headerLinkClass}`}>
+            <a
+              href="#features"
+              className={`transition-colors ${headerLinkClass}`}
+            >
               Features
             </a>
-            <a href="#creators" className={`transition-colors ${headerLinkClass}`}>
+            <a
+              href="#creators"
+              className={`transition-colors ${headerLinkClass}`}
+            >
               Creators
             </a>
-            <a href="#themes" className={`transition-colors ${headerLinkClass}`}>
+            <a
+              href="#themes"
+              className={`transition-colors ${headerLinkClass}`}
+            >
               Themes
             </a>
           </div>
