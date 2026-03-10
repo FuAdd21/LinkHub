@@ -86,8 +86,8 @@ export default function DashboardProfile({
       }));
       onRefresh?.();
       toast.success("Banner uploaded");
-    } catch {
-      toast.error("Failed to upload banner");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to upload banner");
     } finally {
       setUploadingBanner(false);
     }
@@ -188,8 +188,8 @@ export default function DashboardProfile({
       }));
       onRefresh?.();
       toast.success("Avatar uploaded");
-    } catch {
-      toast.error("Failed to upload avatar");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to upload avatar");
     } finally {
       setUploadingAvatar(false);
     }

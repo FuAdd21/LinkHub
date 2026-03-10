@@ -20,31 +20,27 @@ import {
 function SearchResults({ results, onSelect }) {
   if (!results.length) {
     return (
-      <div className="px-4 py-5 text-sm text-[var(--text-muted)]">
+      <div className="px-4 py-3 text-sm text-zinc-500">
         No matches yet. Try "links" or "analytics".
       </div>
     );
   }
 
   return (
-    <div className="py-2">
+    <div className="py-1.5">
       {results.map((result) => (
         <button
           key={result.key}
           type="button"
           onClick={() => onSelect(result)}
-          className="flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-white/5"
+          className="flex w-full items-center gap-3 px-3 py-2 text-left transition hover:bg-[#1e1e1e]"
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/5 text-[var(--text-primary)]">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#27272a] text-zinc-300">
             <result.icon className="h-4 w-4" />
           </div>
           <div>
-            <p className="text-sm font-medium text-[var(--text-primary)]">
-              {result.label}
-            </p>
-            <p className="mt-1 text-xs text-[var(--text-muted)]">
-              {result.description}
-            </p>
+            <p className="text-sm font-medium text-zinc-200">{result.label}</p>
+            <p className="text-xs text-zinc-500">{result.description}</p>
           </div>
         </button>
       ))}
@@ -154,19 +150,19 @@ export default function TopNavbar({
   ];
 
   return (
-    <header className="sticky top-0 z-30 border-b border-[var(--card-border)] bg-[color-mix(in_srgb,var(--bg-primary)_82%,transparent)] px-4 py-4 backdrop-blur-xl sm:px-6">
+    <header className="sticky top-0 z-30 border-b border-[#1e1e1e] bg-[#09090b] px-4 py-3 sm:px-6">
       <div className="flex items-center gap-3 lg:gap-4">
         <button
           type="button"
           onClick={onMenuClick}
-          className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--card-border)] bg-white/5 text-[var(--text-primary)] transition hover:bg-white/10 lg:hidden"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-[#1e1e1e] bg-[#121214] text-zinc-400 transition hover:bg-[#1e1e1e] lg:hidden"
         >
-          <Menu className="h-4.5 w-4.5" />
+          <Menu className="h-4 w-4" />
         </button>
 
         <div ref={searchRef} className="relative flex-1">
-          <div className="dashboard-search-shell">
-            <Search className="h-4 w-4 text-[var(--text-muted)]" />
+          <div className="flex h-10 w-full md:max-w-md items-center gap-2 rounded-xl border border-[#1e1e1e] bg-[#121214] px-3 shadow-sm transition-colors focus-within:border-zinc-700 focus-within:ring-1 focus-within:ring-zinc-700">
+            <Search className="h-4 w-4 text-zinc-500" />
             <input
               value={query}
               onFocus={() => setSearchOpen(true)}
@@ -174,16 +170,16 @@ export default function TopNavbar({
                 setQuery(event.target.value);
                 setSearchOpen(true);
               }}
-              placeholder="Search views, links, and shortcuts"
-              className="w-full bg-transparent text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
+              placeholder="Search..."
+              className="flex-1 bg-transparent text-sm text-zinc-200 outline-none placeholder:text-zinc-600"
             />
-            <span className="hidden rounded-xl border border-[var(--card-border)] bg-white/5 px-2 py-1 text-[11px] font-medium text-[var(--text-muted)] sm:inline-flex">
-              Ctrl K
+            <span className="hidden rounded bg-[#1e1e1e] px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 sm:inline-flex border border-zinc-800">
+              ⌘ K
             </span>
           </div>
 
           {searchOpen ? (
-            <div className="dashboard-floating-panel absolute inset-x-0 top-[calc(100%+12px)] overflow-hidden rounded-[26px]">
+            <div className="absolute inset-x-0 mt-2 md:max-w-md top-full overflow-hidden rounded-xl border border-[#1e1e1e] bg-[#121214] shadow-2xl">
               <SearchResults
                 results={searchResults}
                 onSelect={(result) => {

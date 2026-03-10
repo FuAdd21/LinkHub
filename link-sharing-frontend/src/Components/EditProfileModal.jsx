@@ -3,60 +3,32 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { Camera, Save, X, Check, AlertCircle, Loader2 } from "lucide-react";
-import {
-  FaYoutube,
-  FaGithub,
-  FaTelegram,
-  FaInstagram,
-  FaTwitter,
-  FaLinkedin,
-  FaTiktok,
-} from "react-icons/fa";
-import { parseSocialLink } from "../utils/socialParser";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3002";
 
 const THEMES = [
   { id: "dark-pro", name: "Dark Pro", color: "#1a1a1a" },
   { id: "minimal-light", name: "Light", color: "#f8f9fa" },
   { id: "neon-creator", name: "Neon", color: "#0B0B1A" },
-  { id: "gradient-studio", name: "Gradient", color: "linear-gradient(135deg, #1e3a8a 0%, #701a75 100%)" },
-];
-
-const PLATFORMS = [
-  { key: "youtubeId", label: "YouTube", icon: FaYoutube, color: "#FF0000" },
-  { key: "githubUser", label: "GitHub", icon: FaGithub, color: "#ffffff" },
-  { key: "telegramUser", label: "Telegram", icon: FaTelegram, color: "#0088cc" },
-  { key: "instagram", label: "Instagram", icon: FaInstagram, color: "#E4405F" },
-  { key: "twitter", label: "Twitter", icon: FaTwitter, color: "#1DA1F2" },
-  { key: "linkedin", label: "LinkedIn", icon: FaLinkedin, color: "#0A66C2" },
-  { key: "tiktok", label: "TikTok", icon: FaTiktok, color: "#ff0050" },
+  {
+    id: "gradient-studio",
+    name: "Gradient",
+    color: "linear-gradient(135deg, #1e3a8a 0%, #701a75 100%)",
+  },
 ];
 
 const EditProfileModal = ({ isOpen, onClose, userData, onSaveSuccess }) => {
-  const [activeTab, setActiveTab] = useState("general"); // 'general' or 'socials'
-  
   // General State
   const [username, setUsername] = useState(userData?.username || "");
   const [bio, setBio] = useState(userData?.bio || "");
   const [theme, setTheme] = useState(userData?.theme || "dark-pro");
   const [usernameStatus, setUsernameStatus] = useState(null);
-  
+
   // Avatar State
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
   const fileInputRef = useRef(null);
-  
-  // Socials State
-  const [socialForm, setSocialForm] = useState({
-    youtubeId: userData?.socials?.youtube || "",
-    githubUser: userData?.socials?.github || "",
-    telegramUser: userData?.socials?.telegram || "",
-    instagram: userData?.socials?.instagram || "",
-    twitter: userData?.socials?.twitter || "",
-    linkedin: userData?.socials?.linkedin || "",
-    tiktok: userData?.socials?.tiktok || "",
-  });
 
   const [saving, setSaving] = useState(false);
   const token = localStorage.getItem("token");
@@ -66,15 +38,6 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSaveSuccess }) => {
       setUsername(userData.username || "");
       setBio(userData.bio || "");
       setTheme(userData.theme || "dark-pro");
-      setSocialForm({
-        youtubeId: userData.socials?.youtube || "",
-        githubUser: userData.socials?.github || "",
-        telegramUser: userData.socials?.telegram || "",
-        instagram: userData.socials?.instagram || "",
-        twitter: userData.socials?.twitter || "",
-        linkedin: userData.socials?.linkedin || "",
-        tiktok: userData.socials?.tiktok || "",
-      });
       setAvatarPreview(null);
       setAvatarFile(null);
       setUsernameStatus("available");
@@ -131,16 +94,21 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSaveSuccess }) => {
     try {
       // 1. Save Username (if changed)
       if (username !== userData?.username) {
-        await axios.put(`${API_BASE_URL}/api/profile/username`, { username }, { headers });
+        await axios.put(
+          `${API_BASE_URL}/api/profile/username`,
+          { username },
+          { headers },
+        );
       }
 
       // 2. Save Bio and Theme
-      await axios.put(`${API_BASE_URL}/api/profile`, { bio, theme }, { headers });
+      await axios.put(
+        `${API_BASE_URL}/api/profile`,
+        { bio, theme },
+        { headers },
+      );
 
-      // 3. Save Socials
-      await axios.put(`${API_BASE_URL}/api/users/social-profiles`, socialForm, { headers });
-
-      // 4. Upload Avatar
+      // 3. Upload Avatar
       if (avatarFile) {
         const formData = new FormData();
         formData.append("avatar", avatarFile);
@@ -164,10 +132,16 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSaveSuccess }) => {
   useEffect(() => {
     if (isOpen) document.body.style.overflow = "hidden";
     else document.body.style.overflow = "unset";
-    return () => { document.body.style.overflow = "unset"; };
+    return () => {
+      document.body.style.overflow = "unset";
+    };
   }, [isOpen]);
 
-  const avatarSrc = avatarPreview || (userData?.avatar?.startsWith("http") ? userData.avatar : `${API_BASE_URL}${userData.avatar}`);
+  const avatarSrc =
+    avatarPreview ||
+    (userData?.avatar?.startsWith("http")
+      ? userData.avatar
+      : `${API_BASE_URL}${userData.avatar}`);
 
   return (
     <AnimatePresence>
@@ -201,182 +175,130 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSaveSuccess }) => {
               </button>
             </div>
 
-            {/* Tabs */}
-            <div className="flex border-b border-white/5">
-              <button
-                onClick={() => setActiveTab("general")}
-                className={`flex-1 py-4 text-sm font-medium transition-colors ${
-                  activeTab === "general" ? "text-purple-400 border-b-2 border-purple-400" : "text-white/50 hover:text-white"
-                }`}
-              >
-                General
-              </button>
-              <button
-                onClick={() => setActiveTab("socials")}
-                className={`flex-1 py-4 text-sm font-medium transition-colors ${
-                  activeTab === "socials" ? "text-purple-400 border-b-2 border-purple-400" : "text-white/50 hover:text-white"
-                }`}
-              >
-                Social Connect
-              </button>
-            </div>
-
             {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto p-6 space-y-8">
-              {activeTab === "general" ? (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                  {/* Avatar section */}
-                  <div className="flex items-center gap-6">
-                    <div
-                      className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-white/10 bg-white/5 flex items-center justify-center cursor-pointer group"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      {avatarSrc && avatarSrc !== API_BASE_URL + "null" ? (
-                        <img src={avatarSrc} alt="Avatar" className="w-full h-full object-cover" />
-                      ) : (
-                        <Camera className="w-6 h-6 text-white/30" />
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="space-y-6"
+              >
+                {/* Avatar section */}
+                <div className="flex items-center gap-6">
+                  <div
+                    className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-white/10 bg-white/5 flex items-center justify-center cursor-pointer group"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    {avatarSrc && avatarSrc !== API_BASE_URL + "null" ? (
+                      <img
+                        src={avatarSrc}
+                        alt="Avatar"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Camera className="w-6 h-6 text-white/30" />
+                    )}
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Camera className="w-5 h-5 text-white" />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-white">
+                      Profile Photo
+                    </p>
+                    <div className="flex gap-3 mt-2">
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-xs bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-white transition-colors"
+                      >
+                        Change
+                      </button>
+                      {avatarFile && (
+                        <button
+                          onClick={clearAvatar}
+                          className="text-xs text-red-400 hover:bg-red-500/10 px-3 py-1.5 rounded-lg transition-colors"
+                        >
+                          Remove
+                        </button>
                       )}
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Camera className="w-5 h-5 text-white" />
-                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium text-white">Profile Photo</p>
-                      <div className="flex gap-3 mt-2">
-                        <button
-                          onClick={() => fileInputRef.current?.click()}
-                          className="text-xs bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-white transition-colors"
-                        >
-                          Change
-                        </button>
-                        {avatarFile && (
-                          <button
-                            onClick={clearAvatar}
-                            className="text-xs text-red-400 hover:bg-red-500/10 px-3 py-1.5 rounded-lg transition-colors"
-                          >
-                            Remove
-                          </button>
-                        )}
-                      </div>
-                    </div>
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarSelect}
+                    className="hidden"
+                  />
+                </div>
+
+                {/* Username section */}
+                <div>
+                  <label className="block text-white/60 text-sm font-medium mb-2">
+                    Username
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 text-sm">
+                      linkhub.com/
+                    </span>
                     <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleAvatarSelect}
-                      className="hidden"
+                      type="text"
+                      value={username}
+                      onChange={(e) => checkUsername(e.target.value)}
+                      className="w-full pl-[105px] pr-10 py-3 bg-black/40 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20"
                     />
-                  </div>
-
-                  {/* Username section */}
-                  <div>
-                    <label className="block text-white/60 text-sm font-medium mb-2">Username</label>
-                    <div className="relative">
-                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 text-sm">linkhub.com/</span>
-                      <input
-                        type="text"
-                        value={username}
-                        onChange={(e) => checkUsername(e.target.value)}
-                        className="w-full pl-[105px] pr-10 py-3 bg-black/40 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20"
-                      />
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                        {usernameStatus === "checking" && <Loader2 className="w-4 h-4 text-white/40 animate-spin" />}
-                        {usernameStatus === "available" && <Check className="w-4 h-4 text-green-400" />}
-                        {usernameStatus === "taken" && <AlertCircle className="w-4 h-4 text-red-500" />}
-                      </div>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      {usernameStatus === "checking" && (
+                        <Loader2 className="w-4 h-4 text-white/40 animate-spin" />
+                      )}
+                      {usernameStatus === "available" && (
+                        <Check className="w-4 h-4 text-green-400" />
+                      )}
+                      {usernameStatus === "taken" && (
+                        <AlertCircle className="w-4 h-4 text-red-500" />
+                      )}
                     </div>
                   </div>
+                </div>
 
-                  {/* Bio section */}
-                  <div>
-                    <label className="block text-white/60 text-sm font-medium mb-2">Bio</label>
-                    <textarea
-                      value={bio}
-                      onChange={(e) => setBio(e.target.value)}
-                      maxLength={160}
-                      rows={3}
-                      className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 resize-none"
-                    />
-                  </div>
+                {/* Bio section */}
+                <div>
+                  <label className="block text-white/60 text-sm font-medium mb-2">
+                    Bio
+                  </label>
+                  <textarea
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    maxLength={160}
+                    rows={3}
+                    className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 resize-none"
+                  />
+                </div>
 
-                  {/* Theme section */}
-                  <div>
-                    <label className="block text-white/60 text-sm font-medium mb-3">Global Theme</label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {THEMES.map((t) => (
-                        <button
-                          key={t.id}
-                          onClick={() => setTheme(t.id)}
-                          className={`relative h-14 rounded-xl overflow-hidden transition-all duration-300 ${
-                            theme === t.id ? "ring-2 ring-purple-500 ring-offset-2 ring-offset-[#111]" : "hover:scale-[1.02] border border-white/5"
-                          }`}
-                          style={{ background: t.color }}
-                        >
-                          <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold mix-blend-difference text-white">
-                            {t.name}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
+                {/* Theme section */}
+                <div>
+                  <label className="block text-white/60 text-sm font-medium mb-3">
+                    Global Theme
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {THEMES.map((t) => (
+                      <button
+                        key={t.id}
+                        onClick={() => setTheme(t.id)}
+                        className={`relative h-14 rounded-xl overflow-hidden transition-all duration-300 ${
+                          theme === t.id
+                            ? "ring-2 ring-purple-500 ring-offset-2 ring-offset-[#111]"
+                            : "hover:scale-[1.02] border border-white/5"
+                        }`}
+                        style={{ background: t.color }}
+                      >
+                        <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold mix-blend-difference text-white">
+                          {t.name}
+                        </span>
+                      </button>
+                    ))}
                   </div>
-                </motion.div>
-              ) : (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                  {/* Auto-Import Link */}
-                  <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-xl p-4">
-                    <label className="block text-white/80 text-sm font-semibold mb-2">⚡ Auto-Import Social Profile</label>
-                    <p className="text-white/40 text-xs mb-3">Paste any YouTube, Twitter, Instagram, LinkedIn, or TikTok link and we'll automatically detect it.</p>
-                    <div className="relative">
-                      <input
-                        type="url"
-                        placeholder="e.g., https://twitter.com/elonmusk"
-                        onChange={(e) => {
-                          const input = e.target.value;
-                          if (!input) return;
-                          
-                          const result = parseSocialLink(input);
-                          if (result) {
-                            setSocialForm(prev => ({ ...prev, [result.platformKey]: result.handle }));
-                            const platformName = PLATFORMS.find(p => p.key === result.platformKey)?.label;
-                            toast.success(`Extracted ${result.handle} for ${platformName}!`);
-                            e.target.value = ''; // Clear input after successful extraction
-                          } else if (input.includes('http')) {
-                            toast.error("Could not auto-detect platform from this link.");
-                          }
-                        }}
-                        className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white text-sm focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <p className="text-white/50 text-sm mb-2">Or enter handles manually:</p>
-                    {PLATFORMS.map((platform) => {
-                      const IconComponent = platform.icon;
-                      const hasValue = !!socialForm[platform.key];
-                      return (
-                        <div key={platform.key} className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${hasValue ? 'bg-white/5 border-white/20' : 'bg-black/20 border-white/5'}`}>
-                          <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-white/5 shadow-inner">
-                            <IconComponent className="w-5 h-5" style={{ color: platform.color }} />
-                          </div>
-                          <div className="flex-1">
-                            <input
-                              type="text"
-                              value={socialForm[platform.key]}
-                              onChange={(e) => setSocialForm({ ...socialForm, [platform.key]: e.target.value })}
-                              placeholder="@username or handle"
-                              className="w-full bg-transparent text-sm text-white font-medium focus:outline-none placeholder:text-white/20 placeholder:font-normal"
-                            />
-                          </div>
-                          {hasValue && (
-                            <div className="w-2 h-2 rounded-full bg-green-400 mr-2 shadow-[0_0_8px_rgba(74,222,128,0.5)]" />
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              )}
+                </div>
+              </motion.div>
             </div>
 
             {/* Footer */}

@@ -31,20 +31,22 @@ function LinkModal({ form, editingLink, isOpen, onClose, onChange, onSubmit }) {
             animate={{ y: 0, opacity: 1, scale: 1 }}
             exit={{ y: 10, opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="dashboard-floating-panel w-full max-w-lg rounded-[28px] p-6"
+            className="w-full max-w-lg rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-black p-6 shadow-sm"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-medium text-[var(--text-secondary)]">Link editor</p>
-                <h3 className="mt-1 text-xl font-semibold text-[var(--text-primary)]">
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  Link editor
+                </p>
+                <h3 className="mt-1 text-xl font-semibold text-gray-900 dark:text-white">
                   {editingLink ? "Update link" : "Add a new link"}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={onClose}
-                className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[var(--card-border)] bg-white/5 text-[var(--text-primary)]"
+                className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 dark:border-gray-800 bg-gray-50 hover:bg-gray-100 dark:bg-neutral-900 dark:hover:bg-neutral-800 text-gray-600 dark:text-gray-400 transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -52,25 +54,31 @@ function LinkModal({ form, editingLink, isOpen, onClose, onChange, onSubmit }) {
 
             <form onSubmit={onSubmit} className="mt-6 space-y-4">
               <div>
-                <label className="dashboard-field-label" htmlFor="title">
+                <label
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  htmlFor="title"
+                >
                   Title
                 </label>
-                <div className="dashboard-input-shell mt-2">
+                <div className="mt-2 rounded-md border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 focus-within:ring-1 focus-within:ring-black dark:focus-within:ring-white transition-shadow">
                   <input
                     id="title"
                     required
                     value={form.title}
                     onChange={(event) => onChange("title", event.target.value)}
                     placeholder="My latest video"
-                    className="w-full bg-transparent text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
+                    className="w-full bg-transparent text-sm text-gray-900 dark:text-white outline-none placeholder:text-gray-400 dark:placeholder:text-gray-600"
                   />
                 </div>
               </div>
               <div>
-                <label className="dashboard-field-label" htmlFor="url">
+                <label
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  htmlFor="url"
+                >
                   Destination URL
                 </label>
-                <div className="dashboard-input-shell mt-2">
+                <div className="mt-2 rounded-md border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 focus-within:ring-1 focus-within:ring-black dark:focus-within:ring-white transition-shadow">
                   <input
                     id="url"
                     required
@@ -78,29 +86,41 @@ function LinkModal({ form, editingLink, isOpen, onClose, onChange, onSubmit }) {
                     value={form.url}
                     onChange={(event) => onChange("url", event.target.value)}
                     placeholder="https://youtube.com/@username"
-                    className="w-full bg-transparent text-sm text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
+                    className="w-full bg-transparent text-sm text-gray-900 dark:text-white outline-none placeholder:text-gray-400 dark:placeholder:text-gray-600"
                   />
                 </div>
               </div>
               <div>
-                <label className="dashboard-field-label" htmlFor="schedule">
+                <label
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  htmlFor="schedule"
+                >
                   Schedule (optional)
                 </label>
-                <div className="dashboard-input-shell mt-2">
+                <div className="mt-2 rounded-md border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 focus-within:ring-1 focus-within:ring-black dark:focus-within:ring-white transition-shadow">
                   <input
                     id="schedule"
                     type="datetime-local"
                     value={form.scheduled_at}
-                    onChange={(event) => onChange("scheduled_at", event.target.value)}
-                    className="w-full bg-transparent text-sm text-[var(--text-primary)] outline-none"
+                    onChange={(event) =>
+                      onChange("scheduled_at", event.target.value)
+                    }
+                    className="w-full bg-transparent text-sm text-gray-900 dark:text-white outline-none"
                   />
                 </div>
               </div>
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <button type="submit" className="dashboard-primary-button">
+              <div className="flex flex-wrap items-center gap-3 pt-4">
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-md bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100 text-sm font-medium transition-colors"
+                >
                   {editingLink ? "Save changes" : "Add link"}
                 </button>
-                <button type="button" onClick={onClose} className="dashboard-secondary-button">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-black text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-900 text-sm font-medium transition-colors"
+                >
                   Cancel
                 </button>
               </div>
@@ -112,7 +132,11 @@ function LinkModal({ form, editingLink, isOpen, onClose, onChange, onSubmit }) {
   );
 }
 
-export default function DashboardLinks({ links: initialLinks, onRefresh, onLinksChange }) {
+export default function DashboardLinks({
+  links: initialLinks,
+  onRefresh,
+  onLinksChange,
+}) {
   const [links, setLinks] = useState(initialLinks || []);
   const [showModal, setShowModal] = useState(false);
   const [editingLink, setEditingLink] = useState(null);
@@ -247,28 +271,30 @@ export default function DashboardLinks({ links: initialLinks, onRefresh, onLinks
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-8">
         <div>
-          <p className="text-sm font-medium text-[var(--text-secondary)]">Links</p>
-          <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-[var(--text-primary)]">
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Links
+          </p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
             Keep your page clean, current, and easy to scan
           </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--text-muted)]">
-            Reorder links, hide outdated campaigns, and schedule launches without
-            cluttering the creator experience.
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600 dark:text-gray-400">
+            Reorder links, hide outdated campaigns, and schedule launches
+            without cluttering the creator experience.
           </p>
         </div>
         <button
           type="button"
           onClick={openAddModal}
-          className="dashboard-primary-button"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100 text-sm font-medium transition-colors"
         >
           <Plus className="h-4 w-4" />
           Add New Link
         </button>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
         <div>
           <LinkList
             links={links}
@@ -278,23 +304,26 @@ export default function DashboardLinks({ links: initialLinks, onRefresh, onLinks
             onDelete={handleDelete}
           />
         </div>
-        <DashboardCard className="h-fit">
-          <p className="text-sm font-medium text-[var(--text-secondary)]">Why this matters</p>
-          <h3 className="mt-3 text-xl font-semibold text-[var(--text-primary)]">
+        <div className="h-fit rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-black p-6 shadow-sm">
+          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+            Why this matters
+          </p>
+          <h3 className="mt-2 text-lg font-semibold text-gray-900 dark:text-white">
             Less clutter, more clicks
           </h3>
-          <div className="mt-5 space-y-3 text-sm text-[var(--text-muted)]">
-            <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
+          <div className="mt-4 space-y-3 text-sm text-gray-600 dark:text-gray-400">
+            <div className="rounded-md border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-neutral-900 p-3">
               Highlight the links you want visitors to act on today.
             </div>
-            <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
-              Hide seasonal campaigns instead of deleting historical performance.
+            <div className="rounded-md border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-neutral-900 p-3">
+              Hide seasonal campaigns instead of deleting historical
+              performance.
             </div>
-            <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
+            <div className="rounded-md border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-neutral-900 p-3">
               Use scheduling to prep launches before they go live.
             </div>
           </div>
-        </DashboardCard>
+        </div>
       </div>
 
       <LinkModal

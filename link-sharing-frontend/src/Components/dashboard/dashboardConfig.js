@@ -39,12 +39,6 @@ export const DASHBOARD_NAV_ITEMS = [
     icon: Link2,
   },
   {
-    to: "/dashboard/socials",
-    label: "Social Accounts",
-    description: "Connect your channels and profiles",
-    icon: UserCircle2,
-  },
-  {
     to: "/dashboard/themes",
     label: "Themes",
     description: "Change the look of your page",

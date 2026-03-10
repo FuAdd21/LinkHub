@@ -9,37 +9,25 @@ export default function MiniTrendChart({ data = [] }) {
 
   if (!path) {
     return (
-      <div className="flex h-28 items-center justify-center rounded-[24px] border border-dashed border-[var(--card-border)] text-sm text-[var(--text-muted)]">
+      <div className="flex h-20 items-center justify-center rounded-md border border-neutral-800 bg-neutral-900/50 text-sm text-neutral-500">
         No click trend yet
       </div>
     );
   }
 
   return (
-    <div className="relative h-28 overflow-hidden rounded-[24px] bg-[linear-gradient(180deg,color-mix(in_srgb,var(--accent)_18%,transparent),transparent)]">
+    <div className="relative h-20 overflow-hidden rounded-md border border-neutral-800 bg-[#0a0a0a]">
       <svg
         viewBox="0 0 260 80"
         className="h-full w-full"
         preserveAspectRatio="none"
         aria-hidden="true"
       >
-        <defs>
-          <linearGradient
-            id="mini-trend-line"
-            x1="0%"
-            y1="0%"
-            x2="100%"
-            y2="0%"
-          >
-            <stop offset="0%" stopColor="var(--accent)" />
-            <stop offset="100%" stopColor="var(--accent-secondary)" />
-          </linearGradient>
-        </defs>
         <MotionPath
           d={path}
           fill="none"
-          stroke="url(#mini-trend-line)"
-          strokeWidth="3"
+          stroke="#404040"
+          strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
           initial={{ pathLength: 0, opacity: 0.35 }}
@@ -47,7 +35,6 @@ export default function MiniTrendChart({ data = [] }) {
           transition={{ duration: 0.8, ease: "easeOut" }}
         />
       </svg>
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[var(--bg-primary)]/35 to-transparent" />
     </div>
   );
 }

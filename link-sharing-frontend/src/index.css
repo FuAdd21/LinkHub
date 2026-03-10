@@ -1,4 +1,4 @@
-﻿@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap");
+﻿@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -115,26 +115,22 @@
 }
 
 [data-landing-mode="dark"] {
-  --landing-page-bg: #050816;
+  --landing-page-bg: #000000;
   --landing-text: #ffffff;
-  --landing-muted: rgba(255, 255, 255, 0.62);
+  --landing-muted: rgba(255, 255, 255, 0.7);
   --landing-soft: rgba(255, 255, 255, 0.45);
-  --landing-border: rgba(255, 255, 255, 0.1);
-  --landing-glass-bg: rgba(8, 15, 28, 0.58);
-  --landing-glass-text: rgba(255, 255, 255, 0.62);
-  --landing-card-shadow: 0 22px 80px rgba(2, 6, 23, 0.22);
-  --landing-header-bg: rgba(2, 6, 23, 0.55);
+  --landing-border: rgba(255, 255, 255, 0.08);
+  --landing-glass-bg: rgba(10, 10, 10, 0.4);
+  --landing-glass-text: #ffffff;
+  --landing-card-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  --landing-header-bg: rgba(0, 0, 0, 0.6);
   --landing-backdrop:
-    radial-gradient(circle at top, rgba(99, 102, 241, 0.18), transparent 38%),
-    radial-gradient(
-      circle at 20% 20%,
-      rgba(34, 197, 94, 0.08),
-      transparent 24%
-    ),
-    linear-gradient(180deg, #040816 0%, #071126 56%, #040816 100%);
-  --landing-orb-primary: rgba(99, 102, 241, 0.12);
-  --landing-orb-secondary: rgba(34, 211, 238, 0.12);
-  --landing-grid-line: rgba(148, 163, 184, 0.08);
+    radial-gradient(circle at 15% 50%, rgba(139, 92, 246, 0.12), transparent 40%),
+    radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.12), transparent 40%),
+    linear-gradient(180deg, #000000 0%, #050505 100%);
+  --landing-orb-primary: rgba(139, 92, 246, 0.15);
+  --landing-orb-secondary: rgba(59, 130, 246, 0.15);
+  --landing-grid-line: rgba(255, 255, 255, 0.03);
 }
 
 [data-landing-mode="light"] {

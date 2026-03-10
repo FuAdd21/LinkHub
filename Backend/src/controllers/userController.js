@@ -1,28 +1,49 @@
 import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 import { db } from "../config/db.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const avatarUploadDir = path.join(__dirname, "../../uploads/avatars");
+const bannerUploadDir = path.join(__dirname, "../../uploads/banners");
+
+fs.mkdirSync(avatarUploadDir, { recursive: true });
+fs.mkdirSync(bannerUploadDir, { recursive: true });
+
+const imageOnlyFileFilter = (req, file, cb) => {
+  if (!file.mimetype?.startsWith("image/")) {
+    cb(new Error("Only image files are allowed"));
+    return;
+  }
+
+  cb(null, true);
+};
 
 const storage = multer.diskStorage({
-  destination: (req, file, cb) =>
-    cb(null, path.join(__dirname, "../../uploads/avatars")),
+  destination: (req, file, cb) => cb(null, avatarUploadDir),
   filename: (req, file, cb) =>
     cb(null, `${req.user.id}${path.extname(file.originalname)}`),
 });
 
-export const upload = multer({ storage });
+export const upload = multer({
+  storage,
+  fileFilter: imageOnlyFileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
 
 const bannerStorage = multer.diskStorage({
-  destination: (req, file, cb) =>
-    cb(null, path.join(__dirname, "../../uploads/banners")),
+  destination: (req, file, cb) => cb(null, bannerUploadDir),
   filename: (req, file, cb) =>
     cb(null, `${req.user.id}${path.extname(file.originalname)}`),
 });
 
-export const uploadBanner = multer({ storage: bannerStorage });
+export const uploadBanner = multer({
+  storage: bannerStorage,
+  fileFilter: imageOnlyFileFilter,
+  limits: { fileSize: 8 * 1024 * 1024 },
+});
 
 export const updateAvatar = async (req, res) => {
   try {
@@ -39,7 +60,10 @@ export const updateAvatar = async (req, res) => {
 
     res.json({ avatar: avatarPath });
   } catch (err) {
-    res.status(500).json({ message: "Database update failed" });
+    console.error("updateAvatar error:", err);
+    res.status(500).json({
+      message: err.sqlMessage || err.message || "Database update failed",
+    });
   }
 };
 
@@ -58,7 +82,10 @@ export const updateBanner = async (req, res) => {
 
     res.json({ banner_url: bannerPath });
   } catch (err) {
-    res.status(500).json({ message: "Database update failed" });
+    console.error("updateBanner error:", err);
+    res.status(500).json({
+      message: err.sqlMessage || err.message || "Database update failed",
+    });
   }
 };
 

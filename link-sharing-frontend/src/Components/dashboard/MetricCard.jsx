@@ -6,33 +6,23 @@ export default function MetricCard({
   label,
   value,
   detail,
-  accent,
+  accent, // Kept to avoid breaking props if passed, but ignored in styling
 }) {
   const IconComponent = Icon;
 
   return (
     <DashboardCard className="overflow-hidden">
       <div className="mb-5 flex items-center justify-between">
-        <div
-          className="flex h-12 w-12 items-center justify-center rounded-2xl"
-          style={{
-            backgroundColor: `${accent}18`,
-            color: accent,
-          }}
-        >
-          <IconComponent className="h-5 w-5" />
+        <div className="flex h-10 w-10 items-center justify-center rounded-md border border-neutral-800 bg-neutral-900 text-neutral-400">
+          <IconComponent className="h-4 w-4" />
         </div>
-        <div
-          className="h-2.5 w-2.5 rounded-full shadow-[0_0_18px_currentColor]"
-          style={{ color: accent, backgroundColor: accent }}
-        />
       </div>
-      <p className="text-sm font-medium text-[var(--text-secondary)]">{label}</p>
-      <div className="mt-2 text-3xl font-semibold tracking-tight text-[var(--text-primary)]">
+      <p className="text-sm font-medium text-neutral-400">{label}</p>
+      <div className="mt-2 text-2xl font-semibold tracking-tight text-neutral-100">
         <AnimatedCounter value={value} />
       </div>
       {detail ? (
-        <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">{detail}</p>
+        <p className="mt-1 text-sm text-neutral-500">{detail}</p>
       ) : null}
     </DashboardCard>
   );

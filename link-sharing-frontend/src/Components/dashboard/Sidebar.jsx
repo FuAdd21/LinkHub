@@ -22,61 +22,60 @@ export default function Sidebar({ isOpen, onClose, user, links }) {
       />
       <aside
         className={cx(
-          "fixed inset-y-0 left-0 z-50 flex w-[284px] flex-col border-r border-white/10 bg-[color-mix(in_srgb,var(--nav-bg)_96%,transparent)] px-4 py-5 shadow-2xl backdrop-blur-xl transition-transform duration-300 lg:sticky lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-[284px] flex-col border-r border-[#1e1e1e] bg-[#09090b] px-4 py-5 transition-transform duration-300 lg:sticky lg:translate-x-0",
           isOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
         <div className="flex items-center justify-between px-2">
           <div className="flex items-center gap-3">
-            <div
-              className="flex h-11 w-11 items-center justify-center rounded-2xl font-display text-lg font-semibold text-white shadow-[0_20px_40px_rgba(147,51,234,0.28)]"
-              style={{ background: "var(--logo-gradient)" }}
-            >
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-lg font-bold text-black">
               L
             </div>
             <div>
-              <p className="text-sm font-semibold text-white">LinkHub</p>
-              <p className="text-xs text-slate-400">Creator control center</p>
+              <p className="text-sm font-semibold tracking-tight text-zinc-100">
+                LinkHub
+              </p>
+              <p className="text-[11px] text-zinc-500 font-medium tracking-wide">
+                CREATOR SPACE
+              </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10 lg:hidden"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-zinc-800 text-zinc-400 transition hover:bg-zinc-800 lg:hidden"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
-        <div className="dashboard-surface mt-8 rounded-[28px] p-4">
+        <div className="mt-8 rounded-2xl border border-[#1e1e1e] bg-[#121214] p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs uppercase tracking-[0.28em] text-slate-500">
-                Page health
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
+                Page Health
               </p>
-              <p className="mt-2 text-2xl font-semibold text-white">
+              <p className="mt-1 text-2xl font-bold tracking-tight text-white">
                 {completion}%
               </p>
             </div>
-            <div className="dashboard-accent-icon h-12 w-12">
-              <Sparkles className="h-5 w-5" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1e1e1e]">
+              <Sparkles className="h-4 w-4 text-zinc-400" />
             </div>
           </div>
-          <div className="mt-4 h-2 rounded-full bg-white/10">
+          <div className="mt-4 h-1.5 rounded-full bg-[#1e1e1e]">
             <MotionDiv
               initial={{ width: 0 }}
               animate={{ width: `${completion}%` }}
-              className="h-full rounded-full"
-              style={{ background: "var(--accent-gradient)" }}
+              className="h-full rounded-full bg-white"
             />
           </div>
-          <p className="mt-3 text-sm leading-6 text-slate-400">
-            Add a bio, links, and connected socials to complete the creator
-            setup.
+          <p className="mt-3 text-xs text-zinc-500">
+            Add a bio and your first links to reach 100%.
           </p>
         </div>
 
-        <nav className="mt-6 flex-1 space-y-1.5">
+        <nav className="mt-6 flex-1 space-y-1">
           {DASHBOARD_NAV_ITEMS.map((item) => {
             const IconComponent = item.icon;
 
@@ -90,52 +89,21 @@ export default function Sidebar({ isOpen, onClose, user, links }) {
                 {({ isActive }) => (
                   <div
                     className={cx(
-                      "group relative overflow-hidden rounded-2xl px-4 py-3.5 transition",
+                      "group flex items-center gap-3 rounded-lg px-3 py-2.5 transition",
                       isActive
-                        ? "bg-[color-mix(in_srgb,var(--accent)_18%,white_3%)] text-white shadow-[0_18px_45px_rgba(147,51,234,0.22)]"
-                        : "text-slate-400 hover:bg-white/6 hover:text-white",
+                        ? "bg-[#1e1e1e] text-zinc-100"
+                        : "text-zinc-400 hover:bg-[#121214] hover:text-zinc-100",
                     )}
                   >
-                    <div
+                    <IconComponent
                       className={cx(
-                        "absolute inset-y-3 left-0 w-1 rounded-full transition",
+                        "h-4 w-4 shrink-0 transition",
                         isActive
-                          ? "bg-[var(--accent-secondary)]"
-                          : "bg-transparent group-hover:bg-white/20",
+                          ? "text-zinc-100"
+                          : "text-zinc-500 group-hover:text-zinc-300",
                       )}
                     />
-                    <div className="flex items-start gap-3">
-                      <div
-                        className={cx(
-                          "mt-0.5 flex h-10 w-10 items-center justify-center rounded-2xl transition",
-                          isActive
-                            ? "bg-slate-950/70 text-white"
-                            : "bg-white/5 text-slate-300 group-hover:bg-white/10 group-hover:text-white",
-                        )}
-                      >
-                        <IconComponent className="h-4.5 w-4.5" />
-                      </div>
-                      <div>
-                        <p
-                          className={cx(
-                            "text-sm font-semibold",
-                            isActive ? "text-white" : "text-current",
-                          )}
-                        >
-                          {item.label}
-                        </p>
-                        <p
-                          className={cx(
-                            "mt-1 text-xs leading-5",
-                            isActive
-                              ? "text-white/60"
-                              : "text-slate-500 group-hover:text-slate-300",
-                          )}
-                        >
-                          {item.description}
-                        </p>
-                      </div>
-                    </div>
+                    <span className="text-sm font-medium">{item.label}</span>
                   </div>
                 )}
               </NavLink>
@@ -147,17 +115,15 @@ export default function Sidebar({ isOpen, onClose, user, links }) {
           href={getPublicProfileUrl(user?.username)}
           target="_blank"
           rel="noopener noreferrer"
-          className="dashboard-highlight-panel mt-4 flex items-center justify-between rounded-[26px] px-4 py-4 text-sm text-white transition hover:border-white/20"
+          className="mt-4 flex items-center justify-between rounded-xl border border-[#1e1e1e] bg-[#121214] px-4 py-3 transition hover:bg-[#1e1e1e]"
         >
           <div>
-            <p className="font-semibold">View public page</p>
-            <p className="mt-1 text-xs text-slate-300">
-              {user?.username
-                ? `linkhub.com/${user.username}`
-                : "Set a username first"}
+            <p className="text-xs font-semibold text-zinc-100">Live preview</p>
+            <p className="text-[10px] text-zinc-500">
+              {user?.username ? `linkhub.com/${user.username}` : "Not claimed"}
             </p>
           </div>
-          <ArrowUpRight className="h-4 w-4" />
+          <ArrowUpRight className="h-4 w-4 text-zinc-400" />
         </a>
       </aside>
     </>

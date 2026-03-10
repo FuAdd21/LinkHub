@@ -35,21 +35,26 @@ function buildChartOptions() {
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: "rgba(15, 23, 42, 0.92)",
-        borderColor: "rgba(148, 163, 184, 0.2)",
+        backgroundColor: "var(--bg-primary, #ffffff)",
+        titleColor: "var(--text-primary, #171717)",
+        bodyColor: "var(--text-secondary, #737373)",
+        borderColor: "var(--card-border, #e5e7eb)",
         borderWidth: 1,
         padding: 12,
         displayColors: false,
+        cornerRadius: 6,
       },
     },
     scales: {
       x: {
-        grid: { color: "rgba(148, 163, 184, 0.08)" },
-        ticks: { color: "rgba(226, 232, 240, 0.55)", font: { size: 11 } },
+        grid: { display: false },
+        ticks: { color: "var(--text-muted, #a3a3a3)", font: { size: 12 } },
+        border: { display: false },
       },
       y: {
-        grid: { color: "rgba(148, 163, 184, 0.08)" },
-        ticks: { color: "rgba(226, 232, 240, 0.55)", font: { size: 11 } },
+        grid: { color: "var(--card-border, #e5e7eb)", borderDash: [4, 4] },
+        ticks: { color: "var(--text-muted, #a3a3a3)", font: { size: 12 } },
+        border: { display: false },
       },
     },
   };
@@ -73,11 +78,14 @@ export default function DashboardAnalytics({ analytics }) {
       {
         data: (analytics?.clicksPerDay || []).map((entry) => entry.clicks),
         fill: true,
-        borderColor: "rgba(147, 51, 234, 0.95)",
-        backgroundColor: "rgba(147, 51, 234, 0.14)",
-        pointRadius: 3,
-        pointBackgroundColor: "rgba(236, 72, 153, 1)",
-        tension: 0.42,
+        borderColor: "var(--text-primary, #171717)",
+        backgroundColor: "rgba(23, 23, 23, 0.03)",
+        borderWidth: 2,
+        pointRadius: 4,
+        pointBackgroundColor: "var(--bg-primary, #ffffff)",
+        pointBorderColor: "var(--text-primary, #171717)",
+        pointBorderWidth: 2,
+        tension: 0.2,
       },
     ],
   };
@@ -89,14 +97,11 @@ export default function DashboardAnalytics({ analytics }) {
     datasets: [
       {
         data: (analytics?.topLinks || []).map((link) => link.clicks),
-        backgroundColor: [
-          "rgba(147, 51, 234, 0.78)",
-          "rgba(236, 72, 153, 0.78)",
-          "rgba(249, 115, 22, 0.78)",
-          "rgba(244, 114, 182, 0.78)",
-          "rgba(168, 85, 247, 0.78)",
-        ],
-        borderRadius: 999,
+        backgroundColor: "var(--text-primary, #171717)",
+        hoverBackgroundColor: "var(--text-secondary, #404040)",
+        borderRadius: 4,
+        barThickness: 32,
+        maxBarThickness: 40,
       },
     ],
   };
@@ -122,28 +127,28 @@ export default function DashboardAnalytics({ analytics }) {
           label="Total clicks"
           value={analytics?.totalClicks || 0}
           detail="Every recorded click across your public page."
-          accent="#9333EA"
+          accent="var(--text-primary, #171717)"
         />
         <MetricCard
           icon={Activity}
           label="Today's visits"
           value={analytics?.todayClicks || 0}
           detail="Fresh traffic coming in today."
-          accent="#EC4899"
+          accent="var(--text-primary, #171717)"
         />
         <MetricCard
           icon={Smartphone}
           label="Mobile clicks"
           value={deviceStats.mobile || 0}
           detail="Audience sessions from phones and tablets."
-          accent="#C026D3"
+          accent="var(--text-primary, #171717)"
         />
         <MetricCard
           icon={Trophy}
           label="Top link"
           value={analytics?.topLinks?.[0]?.clicks || 0}
           detail={analytics?.topLinks?.[0]?.title || "No top performer yet."}
-          accent="#F97316"
+          accent="var(--text-primary, #171717)"
         />
       </div>
 
@@ -158,15 +163,15 @@ export default function DashboardAnalytics({ analytics }) {
                 Clicks over the last 30 days
               </h3>
             </div>
-            <div className="rounded-full border border-[var(--card-border)] bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]">
+            <div className="rounded-md border border-[var(--card-border)] bg-transparent px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
               {analytics?.clicksPerDay?.length || 0} data points
             </div>
           </div>
-          <div className="mt-6 h-[320px]">
+          <div className="mt-8 h-[320px]">
             {analytics?.clicksPerDay?.length ? (
               <Line data={clicksChartData} options={chartOptions} />
             ) : (
-              <div className="flex h-full items-center justify-center rounded-[24px] border border-dashed border-[var(--card-border)] text-sm text-[var(--text-muted)]">
+              <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-[var(--card-border)] text-sm text-[var(--text-muted)]">
                 No click history yet.
               </div>
             )}
@@ -182,26 +187,26 @@ export default function DashboardAnalytics({ analytics }) {
               Top performing links
             </h3>
           </div>
-          <div className="mt-6 h-[320px]">
+          <div className="mt-8 h-[320px]">
             {analytics?.topLinks?.length ? (
               <Bar data={topLinksData} options={chartOptions} />
             ) : (
-              <div className="flex h-full items-center justify-center rounded-[24px] border border-dashed border-[var(--card-border)] text-sm text-[var(--text-muted)]">
+              <div className="flex h-full items-center justify-center rounded-lg border border-dashed border-[var(--card-border)] text-sm text-[var(--text-muted)]">
                 Publish links to unlock the leaderboard.
               </div>
             )}
           </div>
-          <div className="mt-6 space-y-3">
+          <div className="mt-8 space-y-3">
             {(analytics?.topLinks || []).slice(0, 3).map((link) => (
               <div
                 key={link.id}
-                className="flex items-center justify-between rounded-[22px] border border-[var(--card-border)] bg-white/5 px-4 py-3"
+                className="flex items-center justify-between rounded-lg border border-[var(--card-border)] bg-transparent px-4 py-3"
               >
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-[var(--text-primary)]">
+                  <p className="truncate text-sm font-medium text-[var(--text-primary)]">
                     {link.title}
                   </p>
-                  <p className="mt-1 truncate text-xs text-[var(--text-muted)]">
+                  <p className="mt-0.5 truncate text-[13px] text-[var(--text-muted)]">
                     {link.url}
                   </p>
                 </div>

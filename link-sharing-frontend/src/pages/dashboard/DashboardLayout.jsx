@@ -24,7 +24,6 @@ import { useSocialProfiles } from "../../hooks/useSocialProfiles";
 const DashboardOverview = lazy(() => import("./DashboardOverview"));
 const DashboardProfile = lazy(() => import("./DashboardProfile"));
 const DashboardLinks = lazy(() => import("./DashboardLinks"));
-const DashboardSocials = lazy(() => import("./DashboardSocials"));
 const DashboardThemes = lazy(() => import("./DashboardThemes"));
 const DashboardAnalytics = lazy(() => import("./DashboardAnalytics"));
 const DashboardSettings = lazy(() => import("./DashboardSettings"));
@@ -264,18 +263,6 @@ export default function DashboardLayout() {
                           links={links}
                           onRefresh={refresh}
                           onLinksChange={updateLinks}
-                        />
-                      }
-                    />
-                    <Route
-                      path="socials"
-                      element={
-                        <DashboardSocials
-                          userData={userData}
-                          onRefresh={refresh}
-                          onUserChange={updateUser}
-                          socialPreviewData={socialPreviewData}
-                          onSocialPreviewChange={setSocialPreviewData}
                         />
                       }
                     />

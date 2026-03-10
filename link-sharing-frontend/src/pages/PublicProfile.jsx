@@ -6,12 +6,8 @@ import axios from "axios";
 import { LogOut, Edit3, Link2, Palette, ChevronDown } from "lucide-react";
 import ProfileHeader from "../Components/ProfileHeader";
 import LinkCard from "../Components/LinkCard";
-import SocialProfileCard, {
-  SocialCardSkeleton,
-} from "../Components/SocialProfileCard";
 import ShareButtons from "../Components/ShareButtons";
 import QRCodeGenerator from "../Components/QRCodeGenerator";
-import { fetchSocialProfiles } from "../api/socialApi";
 import EditProfileModal from "../Components/EditProfileModal";
 
 const API_BASE_URL =
@@ -25,8 +21,6 @@ const PublicProfile = () => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [socialData, setSocialData] = useState(null);
-  const [socialsLoading, setSocialsLoading] = useState(false);
 
   // Owner State
   const isOwner = isAuthenticated && user?.username === username;
@@ -64,39 +58,6 @@ const PublicProfile = () => {
   };
 
   // Fetch social data once we have user data with social handles
-  useEffect(() => {
-    if (!userData?.socials) return;
-
-    const socials = userData.socials;
-    // Build the params for the social API
-    const hasAnySocial = Object.values(socials).some((v) => v);
-    if (!hasAnySocial) return;
-
-    setSocialsLoading(true);
-
-    const fetchData = async () => {
-      try {
-        const result = await fetchSocialProfiles({
-          youtubeId: socials.youtube || socials.youtubeId || null,
-          githubUser: socials.github || socials.githubUser || null,
-          telegramUser: socials.telegram || socials.telegramUser || null,
-          instagram: socials.instagram || null,
-          twitter: socials.twitter || null,
-          linkedin: socials.linkedin || null,
-          tiktok: socials.tiktok || null,
-        });
-        setSocialData(result);
-      } catch (err) {
-        console.error("Failed to fetch social profiles:", err);
-      } finally {
-        setSocialsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [userData]);
-
-  // Apply theme via data attribute
   useEffect(() => {
     if (userData?.theme) {
       document.documentElement.setAttribute("data-theme", userData.theme);
@@ -156,13 +117,7 @@ const PublicProfile = () => {
           <h2 className="text-white text-xl font-semibold mb-2">
             Page not found
           </h2>
-          <p className="text-white/40 text-sm">
-            The user <span className="text-purple-400">@{username}</span>{" "}
-            doesn't exist yet.
-          </p>
-          <a
-            href="/"
-            className="inline-block mt-6 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
+          <a href="/" className="inline-block mt-6 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
           >
             Create your own LinkHub
           </a>
@@ -209,7 +164,6 @@ const PublicProfile = () => {
                 className={`w-4 h-4 transition-transform ${ownerMenuOpen ? "rotate-180" : ""}`}
               />
             </button>
-
             <AnimatePresence>
               {ownerMenuOpen && (
                 <motion.div
@@ -298,32 +252,10 @@ const PublicProfile = () => {
             {socialsLoading
               ? // Skeleton loaders while fetching
                 activeSocialPlatforms.map((platform) => (
-                  <SocialCardSkeleton key={platform} />
+                  <div key={platform} className="w-full h-16 rounded-2xl bg-white/5 animate-pulse" />
                 ))
-              : activeSocialPlatforms.map((platform, index) => (
-                  <SocialProfileCard
-                    key={platform}
-                    platform={platform}
-                    data={socialData?.[platform]}
-                    index={index}
-                    showDisconnected={true}
-                  />
-                ))}
+              : null}
           </motion.div>
-        )}
-
-        {/* Links */}
-        {userData.links && userData.links.length > 0 && (
-          <div className="space-y-2.5 mb-6">
-            {userData.links.map((link, index) => (
-              <LinkCard
-                key={link.id}
-                link={link}
-                index={index}
-                onTrackClick={trackClick}
-              />
-            ))}
-          </div>
         )}
 
         {/* Empty state */}
@@ -364,7 +296,6 @@ const PublicProfile = () => {
           </a>
         </motion.div>
       </motion.div>
-
       {/* ─── LIVE EDITING MODAL ─── */}
       <EditProfileModal
         isOpen={editModalOpen}
