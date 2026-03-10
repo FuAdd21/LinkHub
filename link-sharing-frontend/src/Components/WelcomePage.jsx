@@ -4,20 +4,16 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   BarChart3,
-  ChevronRight,
   Globe2,
-  Layers,
   Link2,
   Moon,
   Palette,
   Share2,
   Sparkles,
-  Sun,
   UserPlus,
-  Wand2,
   Zap,
   CheckCircle2,
-  LayoutTemplate
+  LayoutTemplate,
 } from "lucide-react";
 import MobilePreviewCard, { MobilePreviewSkeleton } from "./MobilePreviewCard";
 import useFeaturedCreators from "../hooks/useFeaturedCreators";
@@ -25,7 +21,6 @@ import {
   FEATURED_FALLBACK_CREATORS,
   THEME_SHOWCASE_PRESETS,
   normalizeCreator,
-  resolveAssetUrl,
   resolveFeaturedCreators,
 } from "../utils/featuredCreators";
 
@@ -66,32 +61,29 @@ const HOW_IT_WORKS = [
   {
     step: "01",
     title: "Create your profile",
-    description: "Claim your unique LinkHub URL and set up your core identity in seconds."
+    description:
+      "Claim your unique LinkHub URL and set up your core identity in seconds.",
   },
   {
     step: "02",
     title: "Add your content",
-    description: "Drop in links, socials, videos, and products. We format them perfectly."
+    description:
+      "Drop in links, socials, videos, and products. We format them perfectly.",
   },
   {
     step: "03",
     title: "Share anywhere",
-    description: "Put your LinkHub link in your bio and watch your engagement grow."
-  }
+    description:
+      "Put your LinkHub link in your bio and watch your engagement grow.",
+  },
 ];
-
-function getInitialLandingMode() {
-  if (typeof window === "undefined") return "dark";
-  return window.localStorage.getItem("linkhub-landing-mode") || "dark";
-}
 
 const WelcomePage = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
-  const [landingMode, setLandingMode] = useState("dark"); // Force dark mode as default premium
   const [activeTheme, setActiveTheme] = useState(THEME_SHOWCASE_PRESETS[0].id);
   const { creators, loading } = useFeaturedCreators(4);
-  
+
   const featuredCreators = creators.length
     ? creators.map(normalizeCreator)
     : resolveFeaturedCreators(FEATURED_FALLBACK_CREATORS, 4);
@@ -129,7 +121,10 @@ const WelcomePage = () => {
   };
 
   return (
-    <div data-landing-mode="dark" className="landing-page relative min-h-screen bg-[#000000] text-white selection:bg-purple-500/30 overflow-x-hidden font-sans">
+    <div
+      data-landing-mode="dark"
+      className="landing-page relative min-h-screen bg-[#000000] text-white selection:bg-purple-500/30 overflow-x-hidden font-sans"
+    >
       {/* Premium Background Effects */}
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_15%_50%,rgba(139,92,246,0.12),transparent_40%),radial-gradient(circle_at_85%_30%,rgba(59,130,246,0.12),transparent_40%),linear-gradient(180deg,#000000_0%,#050505_100%)]" />
@@ -143,14 +138,27 @@ const WelcomePage = () => {
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 font-bold text-white shadow-[0_0_20px_rgba(139,92,246,0.4)]">
               LH
             </div>
-            <span className="font-semibold tracking-tight text-white">LinkHub</span>
+            <span className="font-semibold tracking-tight text-white">
+              LinkHub
+            </span>
           </Link>
 
           <nav className="hidden items-center gap-8 text-sm font-medium text-white/60 md:flex">
-            <a href="#features" className="hover:text-white transition-colors">Features</a>
-            <a href="#how-it-works" className="hover:text-white transition-colors">How it works</a>
-            <a href="#templates" className="hover:text-white transition-colors">Templates</a>
-            <a href="#showcase" className="hover:text-white transition-colors">Showcase</a>
+            <a href="#features" className="hover:text-white transition-colors">
+              Features
+            </a>
+            <a
+              href="#how-it-works"
+              className="hover:text-white transition-colors"
+            >
+              How it works
+            </a>
+            <a href="#templates" className="hover:text-white transition-colors">
+              Templates
+            </a>
+            <a href="#showcase" className="hover:text-white transition-colors">
+              Showcase
+            </a>
           </nav>
 
           <div className="flex items-center gap-4">
@@ -182,18 +190,20 @@ const WelcomePage = () => {
               <Sparkles className="h-4 w-4" />
               <span>LinkHub v2.0 is now live</span>
             </div>
-            
+
             <h1 className="text-5xl lg:text-7xl font-bold tracking-tight text-white mb-6 leading-[1.1]">
-              One link to <br/>
+              One link to <br />
               <span className="bg-gradient-to-r from-violet-400 via-fuchsia-400 to-pink-400 bg-clip-text text-transparent">
                 rule your audience.
               </span>
             </h1>
-            
+
             <p className="text-lg text-white/60 mb-10 max-w-xl leading-relaxed">
-              LinkHub gives you a premium, lightning-fast landing page to showcase your latest work, social links, and products—all in one place that looks absolutely stunning.
+              LinkHub gives you a premium, lightning-fast landing page to
+              showcase your latest work, social links, and products—all in one
+              place that looks absolutely stunning.
             </p>
-            
+
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <button
                 onClick={handlePrimaryAction}
@@ -203,20 +213,30 @@ const WelcomePage = () => {
                 <ArrowRight className="h-4 w-4" />
               </button>
               <button
-                onClick={() => document.getElementById("showcase")?.scrollIntoView({ behavior: "smooth" })}
+                onClick={() =>
+                  document
+                    .getElementById("showcase")
+                    ?.scrollIntoView({ behavior: "smooth" })
+                }
                 className="w-full sm:w-auto flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-8 py-4 text-base font-medium text-white backdrop-blur-sm transition-all hover:bg-white/10"
               >
                 View Showcase
               </button>
             </div>
-            
+
             <div className="mt-10 flex items-center gap-4 text-sm text-white/50">
               <div className="flex -space-x-2">
-                {[1,2,3,4].map((i) => (
-                  <div key={i} className="h-8 w-8 rounded-full border border-black bg-gradient-to-br from-violet-500 to-fuchsia-500" />
+                {[1, 2, 3, 4].map((i) => (
+                  <div
+                    key={i}
+                    className="h-8 w-8 rounded-full border border-black bg-gradient-to-br from-violet-500 to-fuchsia-500"
+                  />
                 ))}
               </div>
-              <p>Trusted by <span className="text-white">100,000+</span> creators worldwide.</p>
+              <p>
+                Trusted by <span className="text-white">100,000+</span> creators
+                worldwide.
+              </p>
             </div>
           </div>
 
@@ -224,9 +244,12 @@ const WelcomePage = () => {
             {/* Abstract 3D Orb Effect */}
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="h-[300px] w-[300px] lg:h-[400px] lg:w-[400px] rounded-full bg-gradient-to-tr from-violet-600 to-fuchsia-600 opacity-60 blur-[80px] animate-pulse" />
-              <div className="absolute h-[250px] w-[250px] lg:h-[300px] lg:w-[300px] rounded-full bg-gradient-to-bl from-blue-500 to-cyan-400 opacity-50 blur-[60px]" style={{ mixBlendMode: 'screen' }} />
+              <div
+                className="absolute h-[250px] w-[250px] lg:h-[300px] lg:w-[300px] rounded-full bg-gradient-to-bl from-blue-500 to-cyan-400 opacity-50 blur-[60px]"
+                style={{ mixBlendMode: "screen" }}
+              />
             </div>
-            
+
             <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -243,16 +266,31 @@ const WelcomePage = () => {
         </section>
 
         {/* 2. Social Proof */}
-        <section id="stats" className="border-y border-white/[0.08] bg-white/[0.02] py-12 px-6">
+        <section
+          id="stats"
+          className="border-y border-white/[0.08] bg-white/[0.02] py-12 px-6"
+        >
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 opacity-60">
-            <p className="text-sm font-semibold uppercase tracking-widest text-center md:text-left">Powering modern creators at</p>
+            <p className="text-sm font-semibold uppercase tracking-widest text-center md:text-left">
+              Powering modern creators at
+            </p>
             <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-8 grayscale">
-               {/* Faked Premium Logos using text for simplicity/speed but styled beautifully */}
-               <span className="font-display text-2xl font-bold tracking-tighter">Vercel</span>
-               <span className="font-display text-2xl font-bold tracking-tight">Spotify</span>
-               <span className="font-display text-2xl font-bold tracking-widest italic">TED</span>
-               <span className="font-display text-2xl font-bold tracking-tight">Discord</span>
-               <span className="font-display text-2xl flex items-center gap-1 font-bold"><Zap className="h-5 w-5 fill-current"/> Stripe</span>
+              {/* Faked Premium Logos using text for simplicity/speed but styled beautifully */}
+              <span className="font-display text-2xl font-bold tracking-tighter">
+                Vercel
+              </span>
+              <span className="font-display text-2xl font-bold tracking-tight">
+                Spotify
+              </span>
+              <span className="font-display text-2xl font-bold tracking-widest italic">
+                TED
+              </span>
+              <span className="font-display text-2xl font-bold tracking-tight">
+                Discord
+              </span>
+              <span className="font-display text-2xl flex items-center gap-1 font-bold">
+                <Zap className="h-5 w-5 fill-current" /> Stripe
+              </span>
             </div>
           </div>
         </section>
@@ -264,7 +302,8 @@ const WelcomePage = () => {
               Features that feel like magic.
             </h2>
             <p className="text-lg text-white/60">
-              Everything you need to grow your audience, beautifully packaged into an interface you'll actually love using.
+              Everything you need to grow your audience, beautifully packaged
+              into an interface you'll actually love using.
             </p>
           </div>
 
@@ -283,8 +322,12 @@ const WelcomePage = () => {
                   <div className="mb-6 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-violet-300 ring-1 ring-white/20 group-hover:bg-violet-500/20 group-hover:text-violet-200 transition-all">
                     <feature.icon className="h-6 w-6" />
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-3">{feature.title}</h3>
-                  <p className="text-white/60 leading-relaxed">{feature.description}</p>
+                  <h3 className="text-xl font-semibold text-white mb-3">
+                    {feature.title}
+                  </h3>
+                  <p className="text-white/60 leading-relaxed">
+                    {feature.description}
+                  </p>
                 </div>
               </motion.div>
             ))}
@@ -292,7 +335,10 @@ const WelcomePage = () => {
         </section>
 
         {/* 4. How It Works Section */}
-        <section id="how-it-works" className="py-24 px-6 lg:px-8 bg-gradient-to-b from-transparent to-white/[0.02]">
+        <section
+          id="how-it-works"
+          className="py-24 px-6 lg:px-8 bg-gradient-to-b from-transparent to-white/[0.02]"
+        >
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-col lg:flex-row gap-16 items-center">
               <div className="flex-1 space-y-12">
@@ -301,10 +347,11 @@ const WelcomePage = () => {
                     Zero to complete in minutes.
                   </h2>
                   <p className="text-lg text-white/60">
-                    We removed the friction. Building your internet home is now as easy as updating a social profile.
+                    We removed the friction. Building your internet home is now
+                    as easy as updating a social profile.
                   </p>
                 </div>
-                
+
                 <div className="space-y-8">
                   {HOW_IT_WORKS.map((item, idx) => (
                     <div key={idx} className="flex gap-6">
@@ -312,82 +359,100 @@ const WelcomePage = () => {
                         {item.step}
                       </div>
                       <div>
-                        <h3 className="text-xl font-semibold text-white mb-2">{item.title}</h3>
+                        <h3 className="text-xl font-semibold text-white mb-2">
+                          {item.title}
+                        </h3>
                         <p className="text-white/60">{item.description}</p>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-              
+
               <div className="flex-1 relative w-full aspect-square max-w-md mx-auto">
-                 <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-fuchsia-600/20 to-violet-600/20 blur-[80px]" />
-                 <div className="absolute inset-4 rounded-[40px] border border-white/20 bg-black/60 shadow-2xl backdrop-blur-xl flex flex-col justify-center p-8 gap-4 overflow-hidden">
-                    <div className="h-20 w-20 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 mx-auto mb-4" />
-                    <div className="h-6 w-3/4 bg-white/10 rounded-full mx-auto" />
-                    <div className="h-4 w-1/2 bg-white/5 rounded-full mx-auto mb-8" />
-                    
-                    <div className="h-14 w-full bg-white/5 rounded-2xl border border-white/10" />
-                    <div className="h-14 w-full bg-white/5 rounded-2xl border border-white/10" />
-                    <div className="h-14 w-full bg-gradient-to-r from-violet-600/50 to-fuchsia-600/50 rounded-2xl border border-fuchsia-500/30" />
-                 </div>
+                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-fuchsia-600/20 to-violet-600/20 blur-[80px]" />
+                <div className="absolute inset-4 rounded-[40px] border border-white/20 bg-black/60 shadow-2xl backdrop-blur-xl flex flex-col justify-center p-8 gap-4 overflow-hidden">
+                  <div className="h-20 w-20 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 mx-auto mb-4" />
+                  <div className="h-6 w-3/4 bg-white/10 rounded-full mx-auto" />
+                  <div className="h-4 w-1/2 bg-white/5 rounded-full mx-auto mb-8" />
+
+                  <div className="h-14 w-full bg-white/5 rounded-2xl border border-white/10" />
+                  <div className="h-14 w-full bg-white/5 rounded-2xl border border-white/10" />
+                  <div className="h-14 w-full bg-gradient-to-r from-violet-600/50 to-fuchsia-600/50 rounded-2xl border border-fuchsia-500/30" />
+                </div>
               </div>
             </div>
           </div>
         </section>
 
         {/* 5. Template Preview (New) */}
-        <section id="templates" className="py-24 px-6 lg:px-8 max-w-7xl mx-auto scroll-mt-20">
+        <section
+          id="templates"
+          className="py-24 px-6 lg:px-8 max-w-7xl mx-auto scroll-mt-20"
+        >
           <div className="flex flex-col lg:flex-row gap-16 items-center">
             <div className="flex-1 order-2 lg:order-1">
-               <div className="grid grid-cols-2 gap-4">
-                  {THEME_SHOWCASE_PRESETS.map((preset) => (
-                    <button
-                      key={preset.id}
-                      onClick={() => setActiveTheme(preset.id)}
-                      className={`group relative rounded-2xl border p-4 text-left transition-all ${
-                        activeTheme === preset.id 
-                          ? "border-violet-500 bg-violet-500/10" 
-                          : "border-white/10 bg-white/5 hover:border-white/20"
+              <div className="grid grid-cols-2 gap-4">
+                {THEME_SHOWCASE_PRESETS.map((preset) => (
+                  <button
+                    key={preset.id}
+                    onClick={() => setActiveTheme(preset.id)}
+                    className={`group relative rounded-2xl border p-4 text-left transition-all ${
+                      activeTheme === preset.id
+                        ? "border-violet-500 bg-violet-500/10"
+                        : "border-white/10 bg-white/5 hover:border-white/20"
+                    }`}
+                  >
+                    <div
+                      className={`mb-3 flex h-10 w-10 items-center justify-center rounded-lg ${
+                        activeTheme === preset.id
+                          ? "bg-violet-500 text-white"
+                          : "bg-white/10 text-white/70"
                       }`}
                     >
-                      <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-lg ${
-                        activeTheme === preset.id ? "bg-violet-500 text-white" : "bg-white/10 text-white/70"
-                      }`}>
-                        <Palette className="h-5 w-5" />
-                      </div>
-                      <h4 className="font-semibold text-white text-sm mb-1">{preset.title}</h4>
-                      <p className="text-white/40 text-xs leading-relaxed">{preset.description}</p>
-                      {activeTheme === preset.id && (
-                        <motion.div layoutId="active-glow" className="absolute inset-0 rounded-2xl ring-2 ring-violet-500/50 pointer-events-none" />
-                      )}
-                    </button>
-                  ))}
-               </div>
+                      <Palette className="h-5 w-5" />
+                    </div>
+                    <h4 className="font-semibold text-white text-sm mb-1">
+                      {preset.title}
+                    </h4>
+                    <p className="text-white/40 text-xs leading-relaxed">
+                      {preset.description}
+                    </p>
+                    {activeTheme === preset.id && (
+                      <motion.div
+                        layoutId="active-glow"
+                        className="absolute inset-0 rounded-2xl ring-2 ring-violet-500/50 pointer-events-none"
+                      />
+                    )}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="flex-1 order-1 lg:order-2">
               <h2 className="text-4xl lg:text-5xl font-bold tracking-tight text-white mb-6">
-                Infinite styles. <br/> One profile.
+                Infinite styles. <br /> One profile.
               </h2>
               <p className="text-lg text-white/60 mb-8">
-                LinkHub themes aren't just colors. They change the entire atmosphere, typography, and spacing of your page to match your brand's voice.
+                LinkHub themes aren't just colors. They change the entire
+                atmosphere, typography, and spacing of your page to match your
+                brand's voice.
               </p>
-              
+
               <div className="relative aspect-[4/3] bg-white/[0.02] rounded-[32px] border border-white/10 p-8 flex items-center justify-center overflow-hidden">
-                 <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-fuchsia-500/5" />
-                 <AnimatePresence mode="wait">
-                   <motion.div
-                     key={activeTheme}
-                     initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                     exit={{ opacity: 0, scale: 1.1, y: -20 }}
-                     transition={{ duration: 0.4, ease: "easeOut" }}
-                     className="relative z-10 w-full max-w-[280px]"
-                   >
-                     <MobilePreviewCard creator={themePreviewCreator} />
-                   </motion.div>
-                 </AnimatePresence>
+                <div className="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-fuchsia-500/5" />
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={activeTheme}
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 1.1, y: -20 }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                    className="relative z-10 w-full max-w-[280px]"
+                  >
+                    <MobilePreviewCard creator={themePreviewCreator} />
+                  </motion.div>
+                </AnimatePresence>
               </div>
             </div>
           </div>
@@ -401,7 +466,8 @@ const WelcomePage = () => {
                 Built for top tier creators.
               </h2>
               <p className="text-lg text-white/60">
-                Join thousands of creators who use LinkHub as their central hub across the internet.
+                Join thousands of creators who use LinkHub as their central hub
+                across the internet.
               </p>
             </div>
             <button className="flex items-center gap-2 text-white hover:text-violet-300 transition-colors font-medium">
@@ -410,26 +476,28 @@ const WelcomePage = () => {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-             {featuredCreators.slice(0, 4).map((creator, idx) => (
-               <motion.div 
-                 key={idx}
-                 className="relative w-full aspect-[9/16] max-h-[500px] rounded-[32px] border border-white/10 bg-black/40 overflow-hidden group shadow-xl"
-                 initial={{ opacity: 0, y: 20 }}
-                 whileInView={{ opacity: 1, y: 0 }}
-                 viewport={{ once: true }}
-                 transition={{ delay: idx * 0.1 }}
-               >
-                 <div className="pointer-events-none absolute inset-0 transform scale-[0.65] origin-top translate-y-[-2%]">
-                   <MobilePreviewCard creator={creator} priority={idx === 0} />
-                 </div>
-                 {/* Card overlay for the "Grid of example pages" look */}
-                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
-                 <div className="absolute bottom-6 left-6 right-6">
-                    <p className="text-white font-semibold text-lg">{creator.displayName}</p>
-                    <p className="text-white/60 text-sm">@{creator.username}</p>
-                 </div>
-               </motion.div>
-             ))}
+            {featuredCreators.slice(0, 4).map((creator, idx) => (
+              <motion.div
+                key={idx}
+                className="relative w-full aspect-[9/16] max-h-[500px] rounded-[32px] border border-white/10 bg-black/40 overflow-hidden group shadow-xl"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.1 }}
+              >
+                <div className="pointer-events-none absolute inset-0 transform scale-[0.65] origin-top translate-y-[-2%]">
+                  <MobilePreviewCard creator={creator} priority={idx === 0} />
+                </div>
+                {/* Card overlay for the "Grid of example pages" look */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+                <div className="absolute bottom-6 left-6 right-6">
+                  <p className="text-white font-semibold text-lg">
+                    {creator.displayName}
+                  </p>
+                  <p className="text-white/60 text-sm">@{creator.username}</p>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </section>
 
@@ -438,7 +506,7 @@ const WelcomePage = () => {
           <div className="relative rounded-[40px] overflow-hidden border border-white/20 bg-black w-full">
             <div className="absolute inset-0 bg-gradient-to-br from-violet-600/30 via-fuchsia-600/20 to-black pointer-events-none" />
             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none" />
-            
+
             <div className="relative z-10 px-6 py-24 md:py-32 text-center flex flex-col items-center justify-center">
               <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-white/10 text-white backdrop-blur-md border border-white/20">
                 <LayoutTemplate className="h-8 w-8" />
@@ -447,9 +515,10 @@ const WelcomePage = () => {
                 Ready to elevate your online presence?
               </h2>
               <p className="text-lg text-white/70 mb-10 max-w-xl mx-auto">
-                Create your LinkHub in seconds. It's free, beautifully designed, and ready to help you convert your audience.
+                Create your LinkHub in seconds. It's free, beautifully designed,
+                and ready to help you convert your audience.
               </p>
-              
+
               <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                 <button
                   onClick={handlePrimaryAction}
@@ -459,7 +528,8 @@ const WelcomePage = () => {
                 </button>
               </div>
               <p className="mt-6 text-sm text-white/50 flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4" /> No credit card required. Free forever design.
+                <CheckCircle2 className="h-4 w-4" /> No credit card required.
+                Free forever design.
               </p>
             </div>
           </div>
@@ -474,16 +544,25 @@ const WelcomePage = () => {
               <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 font-bold text-white shadow-lg shadow-violet-500/20">
                 LH
               </div>
-              <span className="font-semibold tracking-tight text-white text-xl">LinkHub</span>
+              <span className="font-semibold tracking-tight text-white text-xl">
+                LinkHub
+              </span>
             </Link>
             <p className="text-white/50 text-sm max-w-sm mb-6">
-              The premium creator operating system. Beautiful, fast, and built for conversion.
+              The premium creator operating system. Beautiful, fast, and built
+              for conversion.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-white/40 hover:text-white transition-colors">
+              <a
+                href="#"
+                className="text-white/40 hover:text-white transition-colors"
+              >
                 <TwitterIcon />
               </a>
-              <a href="#" className="text-white/40 hover:text-white transition-colors">
+              <a
+                href="#"
+                className="text-white/40 hover:text-white transition-colors"
+              >
                 <GitHubIcon />
               </a>
             </div>
@@ -492,38 +571,87 @@ const WelcomePage = () => {
           <div>
             <h4 className="font-semibold text-white mb-6">Product</h4>
             <ul className="space-y-4 text-sm text-white/50">
-              <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Integrations</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Changelog</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Docs</a></li>
+              <li>
+                <a href="#" className="hover:text-white transition-colors">
+                  Features
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-white transition-colors">
+                  Integrations
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-white transition-colors">
+                  Pricing
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-white transition-colors">
+                  Changelog
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-white transition-colors">
+                  Docs
+                </a>
+              </li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-semibold text-white mb-6">Resources</h4>
             <ul className="space-y-4 text-sm text-white/50">
-              <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Community</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Creator Showcase</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
+              <li>
+                <a href="#" className="hover:text-white transition-colors">
+                  Blog
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-white transition-colors">
+                  Community
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-white transition-colors">
+                  Creator Showcase
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-white transition-colors">
+                  Help Center
+                </a>
+              </li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-semibold text-white mb-6">Legal</h4>
             <ul className="space-y-4 text-sm text-white/50">
-              <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
+              <li>
+                <a href="#" className="hover:text-white transition-colors">
+                  Privacy Policy
+                </a>
+              </li>
+              <li>
+                <a href="#" className="hover:text-white transition-colors">
+                  Terms of Service
+                </a>
+              </li>
             </ul>
           </div>
         </div>
-        
+
         <div className="max-w-7xl mx-auto border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-           <p className="text-sm text-white/40">© {new Date().getFullYear()} LinkHub Inc. All rights reserved.</p>
-           <div className="flex items-center gap-4 text-sm text-white/40">
-              <span>Status: <span className="text-emerald-400">All systems operational</span></span>
-           </div>
+          <p className="text-sm text-white/40">
+            © {new Date().getFullYear()} LinkHub Inc. All rights reserved.
+          </p>
+          <div className="flex items-center gap-4 text-sm text-white/40">
+            <span>
+              Status:{" "}
+              <span className="text-emerald-400">All systems operational</span>
+            </span>
+          </div>
         </div>
       </footer>
     </div>

@@ -5,7 +5,6 @@
   Link2,
   Palette,
   Settings2,
-  UserCircle2,
 } from "lucide-react";
 
 import {

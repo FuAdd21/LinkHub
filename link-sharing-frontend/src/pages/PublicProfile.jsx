@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { LogOut, Edit3, Link2, Palette, ChevronDown } from "lucide-react";
 import ProfileHeader from "../Components/ProfileHeader";
-import LinkCard from "../Components/LinkCard";
 import ShareButtons from "../Components/ShareButtons";
 import QRCodeGenerator from "../Components/QRCodeGenerator";
 import EditProfileModal from "../Components/EditProfileModal";
@@ -67,14 +66,6 @@ const PublicProfile = () => {
     };
   }, [userData?.theme]);
 
-  const trackClick = async (linkId) => {
-    try {
-      await axios.post(`${API_BASE_URL}/api/analytics/click/${linkId}`);
-    } catch {
-      // Silent fail
-    }
-  };
-
   // ──── Loading State ────
   if (loading) {
     return (
@@ -117,7 +108,9 @@ const PublicProfile = () => {
           <h2 className="text-white text-xl font-semibold mb-2">
             Page not found
           </h2>
-          <a href="/" className="inline-block mt-6 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
+          <a
+            href="/"
+            className="inline-block mt-6 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full text-sm font-medium hover:opacity-90 transition-opacity"
           >
             Create your own LinkHub
           </a>
@@ -249,12 +242,7 @@ const PublicProfile = () => {
             transition={{ delay: 0.4 }}
             className="space-y-3 mb-6"
           >
-            {socialsLoading
-              ? // Skeleton loaders while fetching
-                activeSocialPlatforms.map((platform) => (
-                  <div key={platform} className="w-full h-16 rounded-2xl bg-white/5 animate-pulse" />
-                ))
-              : null}
+            {/* Removed socialsLoading logic as social profiles are now handled elsewhere or pre-fetched */}
           </motion.div>
         )}
 

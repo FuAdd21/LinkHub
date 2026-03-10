@@ -1,13 +1,7 @@
 import AnimatedCounter from "./AnimatedCounter";
 import DashboardCard from "./DashboardCard";
 
-export default function MetricCard({
-  icon: Icon,
-  label,
-  value,
-  detail,
-  accent, // Kept to avoid breaking props if passed, but ignored in styling
-}) {
+export default function MetricCard({ icon: Icon, label, value, detail }) {
   const IconComponent = Icon;
 
   return (

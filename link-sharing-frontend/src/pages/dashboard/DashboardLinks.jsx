@@ -3,7 +3,6 @@ import { Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import DashboardCard from "../../Components/dashboard/DashboardCard";
 import LinkList from "../../Components/dashboard/LinkList";
 import { API_BASE_URL, getDashboardAuthConfig } from "../../api/dashboardApi";
 

@@ -36,7 +36,7 @@ export const getPublicProfile = async (req, res) => {
     // Parse profileData JSON for each link
     const parsedLinks = links.map((link) => ({
       ...link,
-      profileData: link.profileData ? JSON.parse(link.profileData) : null,
+      profileData: typeof link.profileData === "string" ? JSON.parse(link.profileData) : link.profileData,
     }));
 
     res.json({

@@ -17,7 +17,7 @@ export const getLinks = async (req, res) => {
 
     const parsed = results.map((link) => ({
       ...link,
-      profileData: link.profileData ? JSON.parse(link.profileData) : null,
+      profileData: typeof link.profileData === "string" ? JSON.parse(link.profileData) : link.profileData,
     }));
 
     res.json(parsed);
@@ -102,9 +102,7 @@ export const createLink = async (req, res) => {
       message: "Link created",
       link: {
         ...newLink[0],
-        profileData: newLink[0].profileData
-          ? JSON.parse(newLink[0].profileData)
-          : null,
+        profileData: typeof newLink[0].profileData === "string" ? JSON.parse(newLink[0].profileData) : newLink[0].profileData,
       },
     });
   } catch (err) {
@@ -179,9 +177,7 @@ export const updateLink = async (req, res) => {
       message: "Link updated",
       link: {
         ...updatedLink[0],
-        profileData: updatedLink[0].profileData
-          ? JSON.parse(updatedLink[0].profileData)
-          : null,
+        profileData: typeof updatedLink[0].profileData === "string" ? JSON.parse(updatedLink[0].profileData) : updatedLink[0].profileData,
       },
     });
   } catch (err) {
