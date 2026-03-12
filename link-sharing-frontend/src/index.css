@@ -1,6 +1,4 @@
-﻿@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap");
-
-@tailwind base;
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap");@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -31,7 +29,7 @@
   --link-btn-border: rgba(255, 255, 255, 0.1);
   --link-btn-hover: rgba(255, 255, 255, 0.12);
   --logo-gradient: linear-gradient(135deg, #9333ea, #ec4899);
-  --font-body: "Manrope", "Segoe UI", sans-serif;
+  --font-body: "Inter", "Manrope", "Segoe UI", sans-serif;
   --font-display: "Sora", "Segoe UI", sans-serif;
 }
 
@@ -114,42 +112,34 @@
   --logo-gradient: linear-gradient(135deg, #fb923c, #f97316);
 }
 
-[data-landing-mode="dark"] {
-  --landing-page-bg: #000000;
-  --landing-text: #ffffff;
-  --landing-muted: rgba(255, 255, 255, 0.7);
-  --landing-soft: rgba(255, 255, 255, 0.45);
-  --landing-border: rgba(255, 255, 255, 0.08);
-  --landing-glass-bg: rgba(10, 10, 10, 0.4);
-  --landing-glass-text: #ffffff;
-  --landing-card-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
-  --landing-header-bg: rgba(0, 0, 0, 0.6);
-  --landing-backdrop:
-    radial-gradient(circle at 15% 50%, rgba(139, 92, 246, 0.12), transparent 40%),
-    radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.12), transparent 40%),
-    linear-gradient(180deg, #000000 0%, #050505 100%);
-  --landing-orb-primary: rgba(139, 92, 246, 0.15);
-  --landing-orb-secondary: rgba(59, 130, 246, 0.15);
-  --landing-grid-line: rgba(255, 255, 255, 0.03);
+[data-theme="dark"] {
+  --saas-bg-main: #0B0C10;
+  --saas-bg-surface: #111218;
+  --saas-bg-elevated: #161822;
+  --saas-border: rgba(255, 255, 255, 0.08);
+  --saas-border-hover: rgba(255, 255, 255, 0.15);
+  --saas-card: rgba(255, 255, 255, 0.04);
+  --saas-card-hover: rgba(255, 255, 255, 0.08);
+  --saas-text-primary: #ffffff;
+  --saas-text-secondary: rgba(255, 255, 255, 0.6);
+  --saas-accent-primary: #a855f7;
+  --saas-accent-gradient: linear-gradient(135deg, #a855f7 0%, #ec4899 50%, #3b82f6 100%);
+  --saas-accent-glow: rgba(168, 85, 247, 0.3);
 }
 
-[data-landing-mode="light"] {
-  --landing-page-bg: #ffffff;
-  --landing-text: #0f172a;
-  --landing-muted: rgba(15, 23, 42, 0.68);
-  --landing-soft: rgba(15, 23, 42, 0.45);
-  --landing-border: rgba(148, 163, 184, 0.28);
-  --landing-glass-bg: rgba(255, 255, 255, 0.82);
-  --landing-glass-text: rgba(15, 23, 42, 0.72);
-  --landing-card-shadow: 0 22px 60px rgba(148, 163, 184, 0.16);
-  --landing-header-bg: rgba(255, 255, 255, 0.84);
-  --landing-backdrop:
-    radial-gradient(circle at top, rgba(99, 102, 241, 0.14), transparent 38%),
-    radial-gradient(circle at 18% 20%, rgba(34, 197, 94, 0.1), transparent 22%),
-    linear-gradient(180deg, #ffffff 0%, #f8fafc 56%, #eef2ff 100%);
-  --landing-orb-primary: rgba(99, 102, 241, 0.12);
-  --landing-orb-secondary: rgba(56, 189, 248, 0.14);
-  --landing-grid-line: rgba(148, 163, 184, 0.12);
+[data-theme="light"] {
+  --saas-bg-main: #F7F6F3;
+  --saas-bg-surface: #ffffff;
+  --saas-bg-elevated: #f1f0ec;
+  --saas-border: rgba(0, 0, 0, 0.08);
+  --saas-border-hover: rgba(0, 0, 0, 0.15);
+  --saas-card: rgba(0, 0, 0, 0.02);
+  --saas-card-hover: rgba(0, 0, 0, 0.05);
+  --saas-text-primary: #111111;
+  --saas-text-secondary: rgba(0, 0, 0, 0.6);
+  --saas-accent-primary: #9333ea;
+  --saas-accent-gradient: linear-gradient(135deg, #9333ea 0%, #db2777 50%, #2563eb 100%);
+  --saas-accent-glow: rgba(147, 51, 234, 0.2);
 }
 
 @layer base {
