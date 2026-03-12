@@ -26,7 +26,7 @@ const Register = () => {
 
     try {
       await axios.post(`${API_BASE_URL}/register`, form);
-      toast.success("Account created! Please sign in.");
+      toast.success("Identity registered. Welcome to the ecosystem.");
       navigate("/login");
     } catch (err) {
       toast.error(err.response?.data?.error || "Registration failed");
@@ -40,90 +40,105 @@ const Register = () => {
   };
 
   return (
-    <div className="app-auth-shell px-4 py-8">
-      <div className="app-auth-glow app-auth-glow-primary" />
-      <div className="app-auth-glow app-auth-glow-secondary" />
+    <div className="app-auth-shell min-h-screen px-4 py-12 relative overflow-hidden bg-[var(--saas-bg-main)]">
+      {/* Cinematic Background Elements */}
+      <div className="absolute inset-0 z-0">
+         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[var(--saas-accent-primary)] opacity-10 blur-[120px] rounded-full" />
+         <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full" />
+         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_80%)]" />
+      </div>
 
       <MotionDiv
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative w-full max-w-md"
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="relative z-10 w-full max-w-[460px] mx-auto"
       >
-        <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="app-auth-logo-mark font-display text-sm font-bold">
-            L
-          </div>
-          <span className="font-display text-lg font-bold text-white">
-            LinkHub
-          </span>
+        <div className="flex flex-col items-center mb-10">
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="flex h-12 w-12 items-center justify-center rounded-[1.25rem] bg-[var(--saas-accent-gradient)] font-black text-white text-xl shadow-[0_0_30px_var(--saas-accent-glow)] group-hover:scale-105 transition-transform">
+              LH
+            </div>
+          </Link>
+          <h1 className="mt-8 text-3xl font-black tracking-tight text-[var(--saas-text-primary)] font-display">
+            Start your journey.
+          </h1>
+          <p className="mt-2 text-[14px] font-medium text-[var(--saas-text-secondary)]">
+            Create your premium creator identity
+          </p>
         </div>
 
-        <div className="app-auth-panel rounded-[1.75rem] p-8">
-          <h2 className="text-2xl font-bold text-white text-center mb-2">
-            Create your account
-          </h2>
-          <p className="text-sm text-center text-white/40 mb-8">
-            Start building your link page in seconds
-          </p>
+        <div className="app-auth-panel rounded-[2.5rem] p-8 md:p-10 border border-[var(--saas-border)] bg-[var(--saas-bg-surface)] shadow-2xl backdrop-blur-3xl overflow-hidden relative">
+           <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+           
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              <div className="col-span-2 sm:col-span-1">
+                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-[var(--saas-text-secondary)] mb-2 px-1">
+                  Full Name
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--saas-text-secondary)] group-focus-within:text-[var(--saas-accent-primary)] transition-colors">
+                     <User className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(e) => updateField("name", e.target.value)}
+                    placeholder="Signature"
+                    required
+                    className="w-full bg-[var(--saas-bg-elevated)] border border-[var(--saas-border)] focus:border-[var(--saas-accent-primary)] focus:ring-4 focus:ring-[var(--saas-accent-glow)]/10 rounded-2xl py-3.5 pl-11 pr-4 text-sm font-semibold text-[var(--saas-text-primary)] transition-all outline-none placeholder:text-[var(--saas-text-secondary)]/30"
+                  />
+                </div>
+              </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-white/50 text-xs font-medium mb-1.5">
-                Full Name
-              </label>
-              <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => updateField("name", e.target.value)}
-                  placeholder="Your name"
-                  required
-                  className="app-auth-input py-3 pl-10 pr-4 text-sm"
-                />
+              <div className="col-span-2 sm:col-span-1">
+                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-[var(--saas-text-secondary)] mb-2 px-1">
+                  Mobile
+                </label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--saas-text-secondary)] group-focus-within:text-[var(--saas-accent-primary)] transition-colors">
+                     <Phone className="w-4 h-4" />
+                  </div>
+                  <input
+                    type="tel"
+                    value={form.phone}
+                    onChange={(e) => updateField("phone", e.target.value)}
+                    placeholder="Contact"
+                    required
+                    className="w-full bg-[var(--saas-bg-elevated)] border border-[var(--saas-border)] focus:border-[var(--saas-accent-primary)] focus:ring-4 focus:ring-[var(--saas-accent-glow)]/10 rounded-2xl py-3.5 pl-11 pr-4 text-sm font-semibold text-[var(--saas-text-primary)] transition-all outline-none placeholder:text-[var(--saas-text-secondary)]/30"
+                  />
+                </div>
               </div>
             </div>
 
             <div>
-              <label className="block text-white/50 text-xs font-medium mb-1.5">
-                Email
+              <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-[var(--saas-text-secondary)] mb-2 px-1">
+                Identity Profile
               </label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--saas-text-secondary)] group-focus-within:text-[var(--saas-accent-primary)] transition-colors">
+                   <Mail className="w-4.5 h-4.5" />
+                </div>
                 <input
                   type="email"
                   value={form.email}
                   onChange={(e) => updateField("email", e.target.value)}
-                  placeholder="you@example.com"
+                  placeholder="name@ecosystem.com"
                   required
-                  className="app-auth-input py-3 pl-10 pr-4 text-sm"
+                  className="w-full bg-[var(--saas-bg-elevated)] border border-[var(--saas-border)] focus:border-[var(--saas-accent-primary)] focus:ring-4 focus:ring-[var(--saas-accent-glow)]/10 rounded-2xl py-3.5 pl-11 pr-4 text-sm font-semibold text-[var(--saas-text-primary)] transition-all outline-none placeholder:text-[var(--saas-text-secondary)]/30"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-white/50 text-xs font-medium mb-1.5">
-                Phone
+              <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-[var(--saas-text-secondary)] mb-2 px-1">
+                Security Key
               </label>
-              <div className="relative">
-                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                <input
-                  type="tel"
-                  value={form.phone}
-                  onChange={(e) => updateField("phone", e.target.value)}
-                  placeholder="+1 234 567 890"
-                  required
-                  className="app-auth-input py-3 pl-10 pr-4 text-sm"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-white/50 text-xs font-medium mb-1.5">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--saas-text-secondary)] group-focus-within:text-[var(--saas-accent-primary)] transition-colors">
+                   <Lock className="w-4.5 h-4.5" />
+                </div>
                 <input
                   type={showPassword ? "text" : "password"}
                   value={form.password}
@@ -131,17 +146,17 @@ const Register = () => {
                   placeholder="••••••••"
                   required
                   minLength={6}
-                  className="app-auth-input py-3 pl-10 pr-10 text-sm"
+                  className="w-full bg-[var(--saas-bg-elevated)] border border-[var(--saas-border)] focus:border-[var(--saas-accent-primary)] focus:ring-4 focus:ring-[var(--saas-accent-glow)]/10 rounded-2xl py-3.5 pl-11 pr-11 text-sm font-semibold text-[var(--saas-text-primary)] transition-all outline-none placeholder:text-[var(--saas-text-secondary)]/30"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/20 hover:text-white/40"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--saas-text-secondary)]/40 hover:text-[var(--saas-text-primary)] transition-colors"
                 >
                   {showPassword ? (
-                    <EyeOff className="w-4 h-4" />
+                    <EyeOff className="w-4.5 h-4.5" />
                   ) : (
-                    <Eye className="w-4 h-4" />
+                    <Eye className="w-4.5 h-4.5" />
                   )}
                 </button>
               </div>
@@ -152,25 +167,27 @@ const Register = () => {
               disabled={loading}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
-              className="app-auth-button mt-2 py-3 text-sm font-medium disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 rounded-2xl py-4 text-sm font-black uppercase tracking-widest text-black bg-[var(--saas-accent-gradient)] shadow-lg shadow-[var(--saas-accent-glow)] hover:brightness-110 transition-all disabled:opacity-50"
             >
               {loading ? (
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
               ) : (
                 <>
-                  Create Account
-                  <ArrowRight className="w-4 h-4" />
+                  Register Identity
+                  <ArrowRight className="w-4 h-4 ml-1" />
                 </>
               )}
             </MotionButton>
           </form>
 
-          <p className="text-center text-white/30 text-sm mt-6">
-            Already have an account?{" "}
-            <Link to="/login" className="app-auth-link font-medium">
-              Sign in
-            </Link>
-          </p>
+          <div className="mt-8 pt-8 border-t border-[var(--saas-border)]">
+              <p className="text-center text-[var(--saas-text-secondary)] text-sm font-medium">
+                Already part of the ecosystem?{" "}
+                <Link to="/login" className="text-[var(--saas-accent-primary)] font-black hover:underline ml-1">
+                  Established Access
+                </Link>
+              </p>
+          </div>
         </div>
       </MotionDiv>
     </div>

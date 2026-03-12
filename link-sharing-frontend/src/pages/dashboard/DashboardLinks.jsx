@@ -22,105 +22,105 @@ function LinkModal({ form, editingLink, isOpen, onClose, onChange, onSubmit }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/70 px-4 backdrop-blur-sm"
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-[var(--saas-bg-main)]/60 px-4 backdrop-blur-md"
           onClick={onClose}
         >
           <MotionDiv
-            initial={{ y: 16, opacity: 0, scale: 0.98 }}
+            initial={{ y: 20, opacity: 0, scale: 0.95 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: 10, opacity: 0, scale: 0.98 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-            className="w-full max-w-lg rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-black p-6 shadow-sm"
+            exit={{ y: 20, opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full max-w-lg rounded-[32px] border border-[var(--saas-border)] bg-[var(--saas-card)] p-8 shadow-2xl shadow-black/40 ring-1 ring-white/10"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center justify-between gap-3 mb-8">
               <div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Link editor
-                </p>
-                <h3 className="mt-1 text-xl font-semibold text-gray-900 dark:text-white">
-                  {editingLink ? "Update link" : "Add a new link"}
+                 <div className="inline-flex items-center gap-2 rounded-full border border-[var(--saas-border)] bg-[var(--saas-bg-surface)] px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest text-[var(--saas-accent-primary)] mb-4">
+                    Link Forge
+                 </div>
+                <h3 className="text-2xl font-black text-[var(--saas-text-primary)] tracking-tight">
+                  {editingLink ? "Refine destination" : "New entry"}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={onClose}
-                className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 dark:border-gray-800 bg-gray-50 hover:bg-gray-100 dark:bg-neutral-900 dark:hover:bg-neutral-800 text-gray-600 dark:text-gray-400 transition-colors"
+                className="flex h-10 w-10 items-center justify-center rounded-2xl border border-[var(--saas-border)] bg-[var(--saas-bg-surface)] text-[var(--saas-text-secondary)] hover:text-[var(--saas-text-primary)] transition-all"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <form onSubmit={onSubmit} className="mt-6 space-y-4">
-              <div>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
                 <label
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  className="text-[11px] font-black uppercase tracking-[0.2em] text-[var(--saas-text-secondary)] ml-1"
                   htmlFor="title"
                 >
-                  Title
+                  Label Title
                 </label>
-                <div className="mt-2 rounded-md border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 focus-within:ring-1 focus-within:ring-black dark:focus-within:ring-white transition-shadow">
+                <div className="group relative">
+                  <div className="absolute inset-x-0 bottom-0 h-0.5 bg-[var(--saas-accent-primary)] scale-x-0 group-focus-within:scale-x-100 transition-transform duration-500 rounded-full" />
                   <input
                     id="title"
                     required
                     value={form.title}
                     onChange={(event) => onChange("title", event.target.value)}
-                    placeholder="My latest video"
-                    className="w-full bg-transparent text-sm text-gray-900 dark:text-white outline-none placeholder:text-gray-400 dark:placeholder:text-gray-600"
+                    placeholder="e.g. Portfolio v2"
+                    className="w-full bg-[var(--saas-bg-elevated)]/50 rounded-2xl border border-[var(--saas-border)] px-5 py-4 text-sm font-bold text-[var(--saas-text-primary)] outline-none placeholder:text-[var(--saas-text-secondary)]/40 hover:border-[var(--saas-border-hover)] focus:border-[var(--saas-accent-primary)]/50 transition-all"
                   />
                 </div>
               </div>
-              <div>
+              <div className="space-y-2">
                 <label
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  className="text-[11px] font-black uppercase tracking-[0.2em] text-[var(--saas-text-secondary)] ml-1"
                   htmlFor="url"
                 >
-                  Destination URL
+                  URL Destination
                 </label>
-                <div className="mt-2 rounded-md border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 focus-within:ring-1 focus-within:ring-black dark:focus-within:ring-white transition-shadow">
+                <div className="group relative">
+                  <div className="absolute inset-x-0 bottom-0 h-0.5 bg-[var(--saas-accent-primary)] scale-x-0 group-focus-within:scale-x-100 transition-transform duration-500 rounded-full" />
                   <input
                     id="url"
                     required
                     type="url"
                     value={form.url}
                     onChange={(event) => onChange("url", event.target.value)}
-                    placeholder="https://youtube.com/@username"
-                    className="w-full bg-transparent text-sm text-gray-900 dark:text-white outline-none placeholder:text-gray-400 dark:placeholder:text-gray-600"
+                    placeholder="https://..."
+                    className="w-full bg-[var(--saas-bg-elevated)]/50 rounded-2xl border border-[var(--saas-border)] px-5 py-4 text-sm font-bold text-[var(--saas-text-primary)] outline-none placeholder:text-[var(--saas-text-secondary)]/40 hover:border-[var(--saas-border-hover)] focus:border-[var(--saas-accent-primary)]/50 transition-all"
                   />
                 </div>
               </div>
-              <div>
+              <div className="space-y-2">
                 <label
-                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                  className="text-[11px] font-black uppercase tracking-[0.2em] text-[var(--saas-text-secondary)] ml-1"
                   htmlFor="schedule"
                 >
-                  Schedule (optional)
+                  Activation Schedule <span className="text-[var(--saas-accent-primary)] opacity-50">(Optional)</span>
                 </label>
-                <div className="mt-2 rounded-md border border-gray-200 dark:border-gray-800 bg-transparent px-3 py-2 focus-within:ring-1 focus-within:ring-black dark:focus-within:ring-white transition-shadow">
-                  <input
-                    id="schedule"
-                    type="datetime-local"
-                    value={form.scheduled_at}
-                    onChange={(event) =>
-                      onChange("scheduled_at", event.target.value)
-                    }
-                    className="w-full bg-transparent text-sm text-gray-900 dark:text-white outline-none"
-                  />
-                </div>
+                <input
+                  id="schedule"
+                  type="datetime-local"
+                  value={form.scheduled_at}
+                  onChange={(event) =>
+                    onChange("scheduled_at", event.target.value)
+                  }
+                  className="w-full bg-[var(--saas-bg-elevated)]/50 rounded-2xl border border-[var(--saas-border)] px-5 py-4 text-sm font-bold text-[var(--saas-text-primary)] outline-none hover:border-[var(--saas-border-hover)] focus:border-[var(--saas-accent-primary)]/50 transition-all [color-scheme:dark]"
+                />
               </div>
-              <div className="flex flex-wrap items-center gap-3 pt-4">
+              <div className="flex items-center gap-3 pt-6">
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-md bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100 text-sm font-medium transition-colors"
+                  className="flex-1 h-14 rounded-2xl bg-[var(--saas-accent-gradient)] text-sm font-black text-white shadow-lg shadow-[var(--saas-accent-glow)]/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
                 >
-                  {editingLink ? "Save changes" : "Add link"}
+                  {editingLink ? "Commit Refinement" : "Launch Link"}
                 </button>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="px-4 py-2 rounded-md border border-gray-200 dark:border-gray-800 bg-white dark:bg-black text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-900 text-sm font-medium transition-colors"
+                  className="px-6 h-14 rounded-2xl border border-[var(--saas-border)] bg-[var(--saas-bg-surface)] text-sm font-bold text-[var(--saas-text-primary)] hover:bg-[var(--saas-bg-elevated)] transition-all"
                 >
-                  Cancel
+                  Abort
                 </button>
               </div>
             </form>
@@ -183,7 +183,7 @@ export default function DashboardLinks({
           link.id === editingLink.id ? response.data.link : link,
         );
         syncLinks(nextLinks);
-        toast.success("Link updated");
+        toast.success("Design parameters committed");
       } else {
         const response = await axios.post(
           `${API_BASE_URL}/api/mylinks`,
@@ -195,7 +195,7 @@ export default function DashboardLinks({
           (left, right) => (left.position ?? 0) - (right.position ?? 0),
         );
         syncLinks(nextLinks);
-        toast.success("Link added");
+        toast.success("New destination forged");
       }
 
       setShowModal(false);
@@ -203,12 +203,12 @@ export default function DashboardLinks({
       setEditingLink(null);
       onRefresh?.();
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to save link");
+      toast.error(error.response?.data?.message || "Forge operation failed");
     }
   }
 
   async function handleDelete(linkId) {
-    if (!confirm("Delete this link?")) {
+    if (!confirm("Are you sure you want to dismantle this link?")) {
       return;
     }
 
@@ -220,9 +220,9 @@ export default function DashboardLinks({
       const nextLinks = links.filter((link) => link.id !== linkId);
       syncLinks(nextLinks);
       onRefresh?.();
-      toast.success("Link deleted");
+      toast.success("Link dismantled");
     } catch {
-      toast.error("Failed to delete link");
+      toast.error("Process interruption: Delete failed");
     }
   }
 
@@ -242,7 +242,7 @@ export default function DashboardLinks({
       syncLinks(nextLinks);
       onRefresh?.();
     } catch {
-      toast.error("Failed to update visibility");
+      toast.error("Visibility toggle failed");
     }
   }
 
@@ -263,38 +263,38 @@ export default function DashboardLinks({
       );
       onRefresh?.();
     } catch {
-      toast.error("Failed to save link order");
+      toast.error("Sync error: Reordering failed");
       syncLinks(previousLinks);
     }
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-8">
-        <div>
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-            Links
-          </p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">
-            Keep your page clean, current, and easy to scan
+    <div className="space-y-6 pb-12">
+      <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between mb-10">
+        <div className="max-w-xl">
+           <div className="flex items-center gap-2 mb-3">
+              <Link2 className="h-4 w-4 text-[var(--saas-accent-primary)]" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--saas-accent-primary)]">Link Orchestration</span>
+          </div>
+          <h1 className="text-3xl font-extrabold tracking-tight text-[var(--saas-text-primary)] sm:text-4xl">
+            Keep your digital estate clean and high-converting
           </h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600 dark:text-gray-400">
-            Reorder links, hide outdated campaigns, and schedule launches
-            without cluttering the creator experience.
+          <p className="mt-4 text-[15px] font-medium leading-relaxed text-[var(--saas-text-secondary)]">
+            Organize destination URLs, hide outdated campaigns, and schedule future launches for seamless digital delivery.
           </p>
         </div>
         <button
           type="button"
           onClick={openAddModal}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-black text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-100 text-sm font-medium transition-colors"
+          className="group inline-flex h-14 items-center justify-center gap-3 rounded-2xl bg-[var(--saas-accent-gradient)] px-8 text-[15px] font-black text-white transition-all hover:scale-105 shadow-lg shadow-[var(--saas-accent-glow)]/20 active:scale-95"
         >
-          <Plus className="h-4 w-4" />
-          Add New Link
+          <Plus className="h-5 w-5 group-hover:rotate-90 transition-transform duration-300" />
+          Add High-Impact Link
         </button>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div>
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="order-2 xl:order-1">
           <LinkList
             links={links}
             onReorder={handleReorder}
@@ -303,24 +303,47 @@ export default function DashboardLinks({
             onDelete={handleDelete}
           />
         </div>
-        <div className="h-fit rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-black p-6 shadow-sm">
-          <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-            Why this matters
-          </p>
-          <h3 className="mt-2 text-lg font-semibold text-gray-900 dark:text-white">
-            Less clutter, more clicks
-          </h3>
-          <div className="mt-4 space-y-3 text-sm text-gray-600 dark:text-gray-400">
-            <div className="rounded-md border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-neutral-900 p-3">
-              Highlight the links you want visitors to act on today.
+        
+        <div className="order-1 xl:order-2 space-y-6">
+          <DashboardCard className="p-8">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--saas-accent-primary)]/10 text-[var(--saas-accent-primary)] mb-6">
+                <Sparkles className="h-5 w-5" />
             </div>
-            <div className="rounded-md border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-neutral-900 p-3">
-              Hide seasonal campaigns instead of deleting historical
-              performance.
+            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[var(--saas-text-secondary)] mb-2">
+                Strategic Logic
+            </p>
+            <h3 className="text-xl font-extrabold text-[var(--saas-text-primary)] tracking-tight">
+                Less clutter, more clicks
+            </h3>
+            <div className="mt-8 space-y-4">
+              {[
+                  "Highlight active campaigns for today's visitors.",
+                  "Archive seasonal links instead of dismantling stats.",
+                  "Prep launches in advance with scheduled logic."
+              ].map((text, i) => (
+                  <div key={i} className="flex gap-4 group">
+                      <div className="mt-1 h-5 w-5 shrink-0 rounded-full border border-[var(--saas-border)] bg-[var(--saas-bg-elevated)] flex items-center justify-center text-[10px] font-black text-[var(--saas-text-secondary)] group-hover:border-[var(--saas-accent-primary)] group-hover:text-[var(--saas-accent-primary)] transition-colors">
+                          {i+1}
+                      </div>
+                      <p className="text-sm font-semibold text-[var(--saas-text-secondary)] leading-relaxed group-hover:text-[var(--saas-text-primary)] transition-colors">
+                          {text}
+                      </p>
+                  </div>
+              ))}
             </div>
-            <div className="rounded-md border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-neutral-900 p-3">
-              Use scheduling to prep launches before they go live.
-            </div>
+            
+            <button className="mt-10 w-full py-4 rounded-2xl border border-[var(--saas-border)] bg-[var(--saas-bg-elevated)] text-[12px] font-black text-[var(--saas-text-primary)] hover:bg-[var(--saas-bg-surface)] transition-all">
+                Learn Strategy →
+            </button>
+          </DashboardCard>
+          
+          <div className="rounded-[32px] overflow-hidden bg-[var(--saas-accent-gradient)] p-8 text-white relative group">
+              <div className="relative z-10 flex flex-col h-full">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 mb-4">Pro Tip</p>
+                  <h4 className="text-xl font-black leading-tight italic">"Clean profiles convert 42% higher."</h4>
+                  <p className="mt-4 text-xs font-bold leading-relaxed opacity-90">Keep your live link count under 7 for maximum engagement.</p>
+              </div>
+              <TrendingUp className="absolute -bottom-4 -right-4 h-24 w-24 opacity-10 -rotate-12 group-hover:scale-125 transition-transform duration-700" />
           </div>
         </div>
       </div>

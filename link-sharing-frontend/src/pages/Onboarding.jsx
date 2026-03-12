@@ -70,7 +70,7 @@ const Onboarding = () => {
 
   const handleComplete = async () => {
     if (!username || usernameStatus !== "available") {
-      toast.error("Please select a valid unique username.");
+      toast.error("Resource unavailable: unique username required.");
       return;
     }
 
@@ -105,59 +105,71 @@ const Onboarding = () => {
       const updatedUser = { ...user, username };
       login(token, updatedUser);
 
-      toast.success("Profile created successfully!");
+      toast.success("Operational matrix configured.");
 
       // 5. Redirect to owner view
       setTimeout(() => navigate(`/${username}`), 1000);
     } catch (err) {
       console.error(err);
-      toast.error("An error occurred during setup.");
+      toast.error("Synchronization failed. Check system logs.");
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
-      {/* Ambient glow */}
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none" />
+    <div className="min-h-screen bg-[#020202] flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Cinematic atmospheric background */}
+      <div className="fixed inset-0 pointer-events-none select-none">
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(112,0,255,0.08),transparent_70%)]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-[140px]" />
+        {/* Subtle moving grid */}
+        <div className="absolute inset-0 opacity-[0.03] invert transition-opacity duration-1000" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 0)', backgroundSize: '40px 40px' }} />
+      </div>
 
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-xl bg-white/[0.02] border border-white/5 rounded-3xl p-8 md:p-12 backdrop-blur-xl relative z-10 shadow-2xl"
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1, ease: "circOut" }}
+        className="w-full max-w-2xl bg-black/40 border border-white/10 rounded-[48px] p-10 md:p-16 backdrop-blur-3xl relative z-10 shadow-[0_50px_100px_-20px_rgba(0,0,0,1)] flex flex-col items-center"
       >
-        <div className="mb-10 text-center">
-          <div className="w-12 h-12 mx-auto rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-white font-bold text-xl mb-6 shadow-lg shadow-purple-500/20">
-            L
+        <div className="mb-14 text-center">
+          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-purple-600 p-[1.5px] mb-8 shadow-[0_0_30px_rgba(34,211,238,0.2)]">
+             <div className="w-full h-full rounded-[14px] bg-black flex items-center justify-center font-black text-white text-2xl italic tracking-tighter">
+                LH
+             </div>
           </div>
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Claim your identity
+          <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tighter italic">
+            CLAIM YOUR FREQUENCY
           </h1>
-          <p className="text-white/40">
-            Set up your premium LinkHub profile in seconds.
+          <p className="text-white/30 text-xs font-black uppercase tracking-[0.4em]">
+            Initializing identity matrix v2.0
           </p>
         </div>
 
-        <div className="space-y-8">
+        <div className="w-full space-y-12">
           {/* Avatar Upload */}
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center group">
             <div
-              className="relative group cursor-pointer"
+              className="relative cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
             >
-              <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white/10 group-hover:border-purple-500 transition-colors bg-white/5 flex items-center justify-center">
-                {avatarPreview ? (
-                  <img
-                    src={avatarPreview}
-                    alt="Avatar Preview"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <Camera className="w-8 h-8 text-white/20" />
-                )}
+              <div className="w-28 h-28 rounded-[40px] overflow-hidden border border-white/10 group-hover:border-cyan-500 group-hover:rotate-6 transition-all duration-700 bg-white/5 flex items-center justify-center p-1">
+                 <div className="w-full h-full rounded-[34px] overflow-hidden bg-black/50 flex items-center justify-center">
+                    {avatarPreview ? (
+                      <img
+                        src={avatarPreview}
+                        alt="Avatar Preview"
+                        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center">
+                        <Camera className="w-8 h-8 text-white/10 group-hover:text-cyan-500/50 transition-colors" />
+                      </div>
+                    )}
+                 </div>
               </div>
-              <div className="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                <span className="text-xs text-white font-medium">Upload</span>
+              <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.5)] flex items-center justify-center text-black hover:scale-110 transition-transform">
+                 <Camera className="w-4 h-4" strokeWidth={3} />
               </div>
             </div>
             <input
@@ -167,85 +179,96 @@ const Onboarding = () => {
               onChange={handleAvatarSelect}
               className="hidden"
             />
-            <p className="text-white/30 text-xs mt-3">
-              Profile Photo (Optional)
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20 mt-6 group-hover:text-cyan-500/50 transition-colors">
+              Nodal Visualization
             </p>
           </div>
 
-          {/* Username Input */}
-          <div>
-            <label className="block text-white/60 text-sm font-medium mb-2">
-              Choose your username *
-            </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 font-medium">
-                linkhub.com/
-              </span>
+          <div className="space-y-8">
+            {/* Username Input */}
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-white/30 mb-4 ml-1">
+                Establish primary path
+              </label>
+              <div className="relative group">
+                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-white/20 text-sm font-black italic tracking-tighter transition-colors group-focus-within:text-cyan-500/30">
+                  linkhub.to/
+                </span>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => checkUsername(e.target.value)}
+                  placeholder="alias"
+                  className="w-full pl-32 pr-12 h-16 bg-white/5 border border-white/5 rounded-3xl text-white font-black italic tracking-tight focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all placeholder:text-white/5"
+                />
+                <div className="absolute right-6 top-1/2 -translate-y-1/2">
+                  {usernameStatus === "checking" && (
+                    <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
+                  )}
+                  {usernameStatus === "available" && (
+                    <Check className="w-5 h-5 text-cyan-400" />
+                  )}
+                  {usernameStatus === "taken" && (
+                    <AlertCircle className="w-5 h-5 text-red-500/50" />
+                  )}
+                </div>
+              </div>
+              {usernameStatus === "taken" && (
+                <p className="text-[10px] font-black uppercase tracking-widest text-red-500/60 mt-4 ml-6 italic">
+                  Critical Error: Path occupied
+                </p>
+              )}
+            </div>
+
+            {/* Bio Input */}
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-white/30 mb-4 ml-1">
+                Archetype Signature
+              </label>
               <input
                 type="text"
-                value={username}
-                onChange={(e) => checkUsername(e.target.value)}
-                placeholder="yourname"
-                className="w-full pl-[110px] pr-12 py-4 bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-all placeholder:text-white/20"
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Brief existence summary..."
+                maxLength={60}
+                className="w-full px-8 h-16 bg-white/5 border border-white/5 rounded-3xl text-white font-bold italic tracking-tight focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all placeholder:text-white/5"
               />
-              <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                {usernameStatus === "checking" && (
-                  <Loader2 className="w-5 h-5 text-white/40 animate-spin" />
-                )}
-                {usernameStatus === "available" && (
-                  <Check className="w-5 h-5 text-green-400" />
-                )}
-                {usernameStatus === "taken" && (
-                  <AlertCircle className="w-5 h-5 text-red-500" />
-                )}
-              </div>
             </div>
-            {usernameStatus === "taken" && (
-              <p className="text-red-400 text-xs mt-2 ml-1">
-                This username is already taken
-              </p>
-            )}
-          </div>
 
-          {/* Bio Input */}
-          <div>
-            <label className="block text-white/60 text-sm font-medium mb-2">
-              Short Bio (Optional)
-            </label>
-            <input
-              type="text"
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              placeholder="Digital Creator & Entrepreneur"
-              maxLength={60}
-              className="w-full px-4 py-4 bg-black/40 border border-white/10 rounded-xl text-white focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20 transition-all placeholder:text-white/20"
-            />
-          </div>
-
-          {/* Theme Selector */}
-          <div>
-            <label className="block text-white/60 text-sm font-medium mb-3">
-              Starting Theme
-            </label>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {THEMES.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => setTheme(t.id)}
-                  className={`relative h-20 rounded-xl overflow-hidden transition-all duration-300 ${
-                    theme === t.id
-                      ? "ring-2 ring-purple-500 ring-offset-2 ring-offset-[#0a0a0a] scale-95"
-                      : "hover:border-white/20 border border-white/10"
-                  }`}
-                  style={{
-                    background: t.color,
-                  }}
-                >
-                  <span className="absolute bottom-2 left-2 text-xs font-semibold mix-blend-difference text-white">
-                    {t.name}
-                  </span>
-                </button>
-              ))}
+            {/* Theme Selector */}
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-white/30 mb-5 ml-1">
+                Visual Matrix Configuration
+              </label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {THEMES.map((t) => {
+                  const isSelected = theme === t.id;
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => setTheme(t.id)}
+                      className={`relative h-20 rounded-2xl overflow-hidden transition-all duration-500 group/item ${
+                        isSelected
+                          ? "ring-2 ring-cyan-400 scale-[0.98] shadow-[0_0_20px_rgba(34,211,238,0.2)]"
+                          : "border border-white/5 hover:border-white/20"
+                      }`}
+                      style={{
+                        background: t.color,
+                      }}
+                    >
+                      <div className="absolute inset-0 bg-black/20 group-hover/item:bg-black/0 transition-colors" />
+                      <span className="absolute bottom-3 left-3 text-[9px] font-black uppercase tracking-widest mix-blend-difference text-white">
+                        {t.name}
+                      </span>
+                      {isSelected && (
+                         <div className="absolute top-2 right-2 h-4 w-4 rounded-full bg-cyan-500 flex items-center justify-center">
+                            <Check className="w-2.5 h-2.5 text-black" strokeWidth={4} />
+                         </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
@@ -253,18 +276,24 @@ const Onboarding = () => {
           <motion.button
             onClick={handleComplete}
             disabled={loading || usernameStatus !== "available" || !username}
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
-            className="w-full py-4 mt-6 flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-purple-500/20 hover:shadow-purple-500/40 transition-all"
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full h-16 mt-8 flex items-center justify-center gap-4 bg-white text-black rounded-3xl font-black text-sm uppercase tracking-[0.3em] disabled:opacity-20 disabled:grayscale transition-all shadow-[0_20px_40px_-10px_rgba(255,255,255,0.2)]"
           >
             {loading ? (
               <Loader2 className="w-6 h-6 animate-spin" />
             ) : (
               <>
-                Create Profile <ArrowRight className="w-5 h-5" />
+                Initialize Matrix <ArrowRight className="w-5 h-5" />
               </>
             )}
           </motion.button>
+        </div>
+
+        <div className="mt-14 flex items-center gap-3">
+           <div className="w-8 h-px bg-white/5" />
+           <span className="text-[10px] font-black text-white/10 uppercase tracking-[0.5em]">Phase 1 Complete</span>
+           <div className="w-8 h-px bg-white/5" />
         </div>
       </motion.div>
     </div>

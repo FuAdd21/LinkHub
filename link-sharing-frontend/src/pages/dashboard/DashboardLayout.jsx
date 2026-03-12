@@ -1,4 +1,4 @@
-﻿import {
+import {
   lazy,
   Suspense,
   useContext,
@@ -7,13 +7,14 @@
   useState,
 } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
-import { BarChart3, Globe2, Sparkles } from "lucide-react";
+import { BarChart3, Globe2, Sparkles, Zap } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
 import DashboardCard from "../../Components/dashboard/DashboardCard";
 import MobilePreview from "../../Components/dashboard/MobilePreview";
 import Sidebar from "../../Components/dashboard/Sidebar";
 import TopNavbar from "../../Components/dashboard/TopNavbar";
 import {
+  cx,
   getConnectedPlatforms,
   getPageCompletion,
   getVisibleLinks,
@@ -52,67 +53,70 @@ function PreviewRail({ userData, links, analytics, socialPreviewData }) {
   const topLink = analytics?.topLinks?.[0];
 
   return (
-    <div className="space-y-5">
-      <DashboardCard className="p-4 sm:p-5">
-        <p className="text-xs uppercase tracking-[0.24em] text-[var(--text-muted)]">
-          Live preview
-        </p>
-        <div className="mt-4">
+    <div className="space-y-6">
+      <DashboardCard className="p-6">
+        <div className="flex items-center justify-between mb-6">
+           <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-[var(--saas-accent-primary)]" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--saas-text-primary)]">Public Rendering</span>
+           </div>
+           <div className="h-1.5 w-1.5 rounded-full bg-[var(--saas-accent-primary)] animate-pulse shadow-[0_0_8px_var(--saas-accent-glow)]" />
+        </div>
+        <div className="relative">
           <MobilePreview
             user={userData}
             links={links}
             socialStats={socialPreviewData}
           />
+          {/* Subtle reflection overlay */}
+          <div className="absolute inset-0 pointer-events-none rounded-[40px] bg-gradient-to-tr from-white/5 to-transparent opacity-50" />
         </div>
       </DashboardCard>
 
-      <DashboardCard>
-        <div className="flex items-center gap-3">
-          <div className="dashboard-accent-icon h-11 w-11">
-            <Sparkles className="h-5 w-5" />
+      <DashboardCard className="p-6">
+        <div className="flex items-center gap-4 mb-8">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--saas-bg-elevated)] border border-[var(--saas-border)] shadow-inner">
+            <Zap className="h-5 w-5 text-[var(--saas-accent-primary)]" />
           </div>
           <div>
-            <p className="text-sm font-medium text-[var(--text-secondary)]">
-              Utility panel
+            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--saas-text-secondary)]">
+              System Signals
             </p>
-            <h3 className="mt-1 text-lg font-semibold text-[var(--text-primary)]">
-              Key creator signals
+            <h3 className="text-lg font-extrabold text-[var(--saas-text-primary)] tracking-tight">
+              Aura Metrics
             </h3>
           </div>
         </div>
-        <div className="mt-5 grid gap-3">
-          <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">
-              Page completion
-            </p>
-            <p className="mt-3 text-2xl font-semibold text-[var(--text-primary)]">
-              {completion}%
-            </p>
-          </div>
-          <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">
-              Links live
-            </p>
-            <p className="mt-3 text-2xl font-semibold text-[var(--text-primary)]">
-              {visibleLinks.length}
-            </p>
-          </div>
-          <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">
-              Platforms connected
-            </p>
-            <p className="mt-3 text-2xl font-semibold text-[var(--text-primary)]">
-              {connectedPlatforms.length}
-            </p>
-          </div>
-          <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
-            <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">
-              Top performer
-            </p>
-            <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">
-              {topLink?.title || "No click data yet"}
-            </p>
-          </div>
+        
+        <div className="grid gap-3">
+          {[
+            { label: "Matrix Completion", value: `${completion}%`, sub: "Nodal integrity" },
+            { label: "Active Nodes", value: visibleLinks.length, sub: "Live connections" },
+            { label: "Connected Protos", value: connectedPlatforms.length, sub: "Social fabric" },
+            { label: "Top Frequency", value: topLink?.title || "Quiet...", sub: "High resonance", truncate: true },
+          ].map((metric) => (
+            <div 
+              key={metric.label}
+              className="group relative flex items-center justify-between rounded-2xl border border-[var(--saas-border)] bg-[var(--saas-bg-elevated)]/30 p-4 transition-all hover:bg-[var(--saas-bg-elevated)]/60"
+            >
+              <div className="min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-wider text-[var(--saas-text-secondary)] opacity-50 group-hover:opacity-100 transition-opacity">
+                  {metric.label}
+                </p>
+                <p className={cx(
+                    "mt-1 font-black text-[var(--saas-text-primary)] tracking-tight truncate",
+                    metric.truncate ? "text-sm" : "text-xl"
+                )}>
+                  {metric.value}
+                </p>
+              </div>
+              <div className="text-right hidden sm:block">
+                 <p className="text-[9px] font-bold italic text-[var(--saas-accent-primary)] opacity-40 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                    {metric.sub}
+                 </p>
+              </div>
+            </div>
+          ))}
         </div>
       </DashboardCard>
     </div>

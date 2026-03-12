@@ -1,4 +1,4 @@
-﻿import { ArrowUpRight, LogOut, Mail, Settings2, Sparkles } from "lucide-react";
+import { ArrowUpRight, LogOut, Mail, Settings2, Sparkles, User, Shield, Terminal } from "lucide-react";
 import DashboardCard from "../../Components/dashboard/DashboardCard";
 import {
   getPageCompletion,
@@ -9,127 +9,179 @@ export default function DashboardSettings({ userData, links, onLogout }) {
   const pageCompletion = getPageCompletion(userData, links);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <p className="text-sm font-medium text-[var(--text-secondary)]">
-          Settings
-        </p>
-        <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-[var(--text-primary)]">
-          Workspace shortcuts and account details that matter most
+    <div className="space-y-10 pb-12">
+      <div className="max-w-2xl">
+         <div className="flex items-center gap-2 mb-3">
+              <Settings2 className="h-4 w-4 text-[var(--saas-accent-primary)]" />
+              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--saas-accent-primary)]">Control Plane</span>
+          </div>
+        <h1 className="text-3xl font-extrabold tracking-tight text-[var(--saas-text-primary)] sm:text-4xl">
+          Workspace shortcuts and nodal parameters
         </h1>
-        <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--text-muted)]">
-          Keep the essentials close: your profile route, account email, current
-          theme, and the quickest path back to editing.
+        <p className="mt-4 text-[15px] font-medium leading-relaxed text-[var(--saas-text-secondary)]">
+          Manage your identity and operational status. Fine-tune your account snapshot and session parameters.
         </p>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="space-y-6">
-          <DashboardCard>
-            <div className="flex items-center gap-3">
-              <div className="dashboard-accent-icon h-12 w-12">
-                <Settings2 className="h-5 w-5" />
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="space-y-8">
+          <DashboardCard className="p-8">
+            <div className="flex items-center gap-4 mb-10">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--saas-bg-elevated)] border border-[var(--saas-border)] shadow-inner">
+                <Shield className="h-6 w-6 text-[var(--saas-accent-primary)]" />
               </div>
               <div>
-                <p className="text-sm font-medium text-[var(--text-secondary)]">
-                  Account snapshot
+                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--saas-text-secondary)]">
+                  Account Snap
                 </p>
-                <h3 className="mt-1 text-xl font-semibold text-[var(--text-primary)]">
-                  Current workspace status
+                <h3 className="text-xl font-extrabold text-[var(--saas-text-primary)] tracking-tight">
+                  Status Parameters
                 </h3>
               </div>
             </div>
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              <div className="rounded-[24px] border border-[var(--card-border)] bg-white/5 p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                  Email
+            
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="group relative rounded-3xl border border-[var(--saas-border)] bg-[var(--saas-bg-elevated)]/30 p-5 transition-all hover:border-[var(--saas-accent-primary)]/30">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--saas-text-secondary)] mb-3">
+                  Primary Node
                 </p>
-                <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">
+                <p className="text-[15px] font-bold text-[var(--saas-text-primary)] truncate">
                   {userData?.email || "Not available"}
                 </p>
+                <Mail className="absolute right-5 top-5 h-4 w-4 text-[var(--saas-text-secondary)] opacity-20" />
               </div>
-              <div className="rounded-[24px] border border-[var(--card-border)] bg-white/5 p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                  Current theme
+              
+              <div className="group relative rounded-3xl border border-[var(--saas-border)] bg-[var(--saas-bg-elevated)]/30 p-5 transition-all hover:border-[var(--saas-accent-primary)]/30">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--saas-text-secondary)] mb-3">
+                  Active Aura
                 </p>
-                <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">
-                  {userData?.theme || "dark-pro"}
+                <p className="text-[15px] font-bold text-[var(--saas-text-primary)]">
+                  {userData?.theme || "Atmospheric Dark"}
                 </p>
+                <Sparkles className="absolute right-5 top-5 h-4 w-4 text-[var(--saas-text-secondary)] opacity-20" />
               </div>
-              <div className="rounded-[24px] border border-[var(--card-border)] bg-white/5 p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                  Public path
+              
+              <div className="group relative rounded-3xl border border-[var(--saas-border)] bg-[var(--saas-bg-elevated)]/30 p-5 transition-all hover:border-[var(--saas-accent-primary)]/30">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--saas-text-secondary)] mb-3">
+                  Nodal Path
                 </p>
-                <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">
+                <p className="text-[15px] font-bold text-[var(--saas-accent-primary)]">
                   /{userData?.username || "username"}
                 </p>
+                <Terminal className="absolute right-5 top-5 h-4 w-4 text-[var(--saas-text-secondary)] opacity-20" />
               </div>
-              <div className="rounded-[24px] border border-[var(--card-border)] bg-white/5 p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-[var(--text-muted)]">
-                  Page completion
+              
+              <div className="group relative rounded-3xl border border-[var(--saas-border)] bg-[var(--saas-bg-elevated)]/30 p-5 transition-all hover:border-[var(--saas-accent-primary)]/30">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--saas-text-secondary)] mb-3">
+                  Manifestation %
                 </p>
-                <p className="mt-3 text-sm font-semibold text-[var(--text-primary)]">
-                  {pageCompletion}%
-                </p>
+                <div className="flex items-center gap-3">
+                    <p className="text-[15px] font-bold text-[var(--saas-text-primary)]">
+                    {pageCompletion}%
+                    </p>
+                    <div className="h-1.5 flex-1 bg-[var(--saas-border)] rounded-full overflow-hidden">
+                        <div 
+                            className="h-full bg-[var(--saas-accent-primary)] shadow-[0_0_8px_var(--saas-accent-glow)]" 
+                            style={{ width: `${pageCompletion}%` }}
+                        />
+                    </div>
+                </div>
               </div>
             </div>
           </DashboardCard>
 
-          <DashboardCard>
-            <div className="flex items-center gap-3">
-              <div className="dashboard-accent-icon-secondary h-12 w-12">
-                <Sparkles className="h-5 w-5" />
+          <DashboardCard className="p-8">
+            <div className="flex items-center gap-4 mb-10">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--saas-bg-elevated)] border border-[var(--saas-border)] shadow-inner">
+                <Sparkles className="h-6 w-6 text-[var(--saas-accent-primary)]" />
               </div>
               <div>
-                <p className="text-sm font-medium text-[var(--text-secondary)]">
-                  Helpful shortcuts
+                <p className="text-[10px] font-black uppercase tracking-widest text-[var(--saas-text-secondary)]">
+                  Operational Flow
                 </p>
-                <h3 className="mt-1 text-xl font-semibold text-[var(--text-primary)]">
-                  Jump straight into the things creators do most
+                <h3 className="text-xl font-extrabold text-[var(--saas-text-primary)] tracking-tight">
+                  Accelerated Shortcuts
                 </h3>
               </div>
             </div>
-            <div className="mt-6 grid gap-3">
+            
+            <div className="grid gap-4">
               <a
                 href={getPublicProfileUrl(userData?.username)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between rounded-[24px] border border-[var(--card-border)] bg-white/5 px-4 py-4 text-sm font-medium text-[var(--text-primary)] transition hover:border-white/20 hover:bg-white/8"
+                className="group flex items-center justify-between rounded-[32px] border border-[var(--saas-border)] bg-[var(--saas-bg-elevated)]/30 px-6 py-5 transition-all hover:border-[var(--saas-accent-primary)]/40 hover:bg-[var(--saas-bg-elevated)]/60"
               >
-                View public page
-                <ArrowUpRight className="h-4 w-4" />
+                <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-2xl bg-[var(--saas-bg-surface)] flex items-center justify-center text-[var(--saas-text-secondary)] group-hover:text-[var(--saas-accent-primary)] transition-colors border border-[var(--saas-border)]">
+                        <ArrowUpRight className="h-5 w-5" />
+                    </div>
+                    <div>
+                        <p className="text-sm font-black text-[var(--saas-text-primary)]">Materialize Page</p>
+                        <p className="text-[11px] font-bold text-[var(--saas-text-secondary)] opacity-50 italic">View your public-facing hub.</p>
+                    </div>
+                </div>
+                <div className="h-6 w-6 rounded-full bg-[var(--saas-bg-surface)] flex items-center justify-center text-[var(--saas-text-secondary)]/30 group-hover:text-[var(--saas-accent-primary)] transition-all">
+                    <ArrowRight className="h-3 w-3" />
+                </div>
               </a>
+              
               <a
                 href={`mailto:${userData?.email || "hello@linkhub.app"}`}
-                className="flex items-center justify-between rounded-[24px] border border-[var(--card-border)] bg-white/5 px-4 py-4 text-sm font-medium text-[var(--text-primary)] transition hover:border-white/20 hover:bg-white/8"
+                className="group flex items-center justify-between rounded-[32px] border border-[var(--saas-border)] bg-[var(--saas-bg-elevated)]/30 px-6 py-5 transition-all hover:border-[var(--saas-accent-primary)]/40 hover:bg-[var(--saas-bg-elevated)]/60"
               >
-                Contact via email
-                <Mail className="h-4 w-4" />
+                <div className="flex items-center gap-4">
+                    <div className="h-10 w-10 rounded-2xl bg-[var(--saas-bg-surface)] flex items-center justify-center text-[var(--saas-text-secondary)] group-hover:text-[var(--saas-accent-primary)] transition-colors border border-[var(--saas-border)]">
+                        <Mail className="h-5 w-5" />
+                    </div>
+                    <div>
+                        <p className="text-sm font-black text-[var(--saas-text-primary)]">Support Terminal</p>
+                        <p className="text-[11px] font-bold text-[var(--saas-text-secondary)] opacity-50 italic">Direct link to technical oversight.</p>
+                    </div>
+                </div>
+                <div className="h-6 w-6 rounded-full bg-[var(--saas-bg-surface)] flex items-center justify-center text-[var(--saas-text-secondary)]/30 group-hover:text-[var(--saas-accent-primary)] transition-all">
+                    <ArrowRight className="h-3 w-3" />
+                </div>
               </a>
             </div>
           </DashboardCard>
         </div>
 
-        <DashboardCard className="h-fit">
-          <p className="text-sm font-medium text-[var(--text-secondary)]">
-            Session
-          </p>
-          <h3 className="mt-3 text-xl font-semibold text-[var(--text-primary)]">
-            Securely sign out when you are done
-          </h3>
-          <p className="mt-3 text-sm leading-7 text-[var(--text-muted)]">
-            Logging out clears the active dashboard session on this device and
-            returns you to the login flow.
-          </p>
-          <button
-            type="button"
-            onClick={onLogout}
-            className="mt-6 dashboard-secondary-button text-rose-200 hover:border-rose-400/35 hover:bg-rose-500/10 hover:text-rose-100"
-          >
-            <LogOut className="h-4 w-4" />
-            Logout
-          </button>
-        </DashboardCard>
+        <div className="space-y-6">
+            <DashboardCard className="h-fit p-8 relative overflow-hidden group">
+              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[var(--saas-text-secondary)] mb-2">
+                Session Control
+              </p>
+              <h3 className="text-xl font-extrabold text-[var(--saas-text-primary)] tracking-tight">
+                Sever Connection
+              </h3>
+              <p className="mt-6 text-xs font-bold leading-relaxed text-[var(--saas-text-secondary)] opacity-60">
+                Logging out will dissolve the active session and return you to the authentication matrix.
+              </p>
+              <button
+                type="button"
+                onClick={onLogout}
+                className="mt-8 w-full h-14 inline-flex items-center justify-center gap-3 rounded-[24px] border border-rose-500/20 bg-rose-500/5 text-sm font-black text-rose-500 hover:bg-rose-500 hover:text-white transition-all duration-500 shadow-lg shadow-rose-500/0 hover:shadow-rose-500/20"
+              >
+                <LogOut className="h-5 w-5" />
+                Dissolve Session
+              </button>
+              
+              <div className="absolute -bottom-4 -right-4 h-24 w-24 bg-rose-500/10 blur-[40px] rounded-full group-hover:scale-150 transition-transform duration-700" />
+            </DashboardCard>
+            
+            <div className="rounded-[40px] bg-[var(--saas-bg-elevated)]/30 border border-[var(--saas-border)] p-8 text-center relative overflow-hidden group">
+                <div className="relative z-10">
+                    <div className="h-14 w-14 rounded-2xl bg-[var(--saas-accent-primary)]/10 flex items-center justify-center text-[var(--saas-accent-primary)] mx-auto mb-6 group-hover:scale-110 transition-transform duration-500">
+                        <Zap className="h-6 w-6 fill-current" />
+                    </div>
+                    <h4 className="text-sm font-black text-[var(--saas-text-primary)] tracking-tight">System Optimal</h4>
+                    <p className="mt-2 text-xs font-bold text-[var(--saas-text-secondary)] opacity-40">All nodal endpoints are synchronized.</p>
+                </div>
+                {/* Visual noise background effect */}
+                <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{backgroundImage: 'url("https://www.transparenttextures.com/patterns/stardust.png")'}} />
+            </div>
+        </div>
       </div>
     </div>
   );
