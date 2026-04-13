@@ -43,9 +43,9 @@ const Register = () => {
     <div className="app-auth-shell min-h-screen px-4 py-12 relative overflow-hidden bg-[var(--saas-bg-main)]">
       {/* Cinematic Background Elements */}
       <div className="absolute inset-0 z-0">
-         <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[var(--saas-accent-primary)] opacity-10 blur-[120px] rounded-full" />
-         <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full" />
-         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_80%)]" />
+        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[var(--saas-accent-primary)] opacity-10 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_80%)]" />
       </div>
 
       <MotionDiv
@@ -56,7 +56,7 @@ const Register = () => {
       >
         <div className="flex flex-col items-center mb-10">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="flex h-12 w-12 items-center justify-center rounded-[1.25rem] bg-[var(--saas-accent-gradient)] font-black text-white text-xl shadow-[0_0_30px_var(--saas-accent-glow)] group-hover:scale-105 transition-transform">
+            <div className="flex h-12 w-12 items-center justify-center rounded-[1.25rem] bg-[image:var(--saas-accent-gradient)] font-black text-[var(--saas-bg-main)] text-xl shadow-[0_0_30px_var(--saas-accent-glow)] group-hover:scale-105 transition-transform">
               LH
             </div>
           </Link>
@@ -69,8 +69,8 @@ const Register = () => {
         </div>
 
         <div className="app-auth-panel rounded-[2.5rem] p-8 md:p-10 border border-[var(--saas-border)] bg-[var(--saas-bg-surface)] shadow-2xl backdrop-blur-3xl overflow-hidden relative">
-           <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-           
+          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <div className="col-span-2 sm:col-span-1">
@@ -79,7 +79,7 @@ const Register = () => {
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--saas-text-secondary)] group-focus-within:text-[var(--saas-accent-primary)] transition-colors">
-                     <User className="w-4 h-4" />
+                    <User className="w-4 h-4" />
                   </div>
                   <input
                     type="text"
@@ -98,14 +98,13 @@ const Register = () => {
                 </label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--saas-text-secondary)] group-focus-within:text-[var(--saas-accent-primary)] transition-colors">
-                     <Phone className="w-4 h-4" />
+                    <Phone className="w-4 h-4" />
                   </div>
                   <input
                     type="tel"
                     value={form.phone}
                     onChange={(e) => updateField("phone", e.target.value)}
-                    placeholder="Contact"
-                    required
+                    placeholder="Contact (Optional)"
                     className="w-full bg-[var(--saas-bg-elevated)] border border-[var(--saas-border)] focus:border-[var(--saas-accent-primary)] focus:ring-4 focus:ring-[var(--saas-accent-glow)]/10 rounded-2xl py-3.5 pl-11 pr-4 text-sm font-semibold text-[var(--saas-text-primary)] transition-all outline-none placeholder:text-[var(--saas-text-secondary)]/30"
                   />
                 </div>
@@ -118,7 +117,7 @@ const Register = () => {
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--saas-text-secondary)] group-focus-within:text-[var(--saas-accent-primary)] transition-colors">
-                   <Mail className="w-4.5 h-4.5" />
+                  <Mail className="w-4.5 h-4.5" />
                 </div>
                 <input
                   type="email"
@@ -137,7 +136,7 @@ const Register = () => {
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--saas-text-secondary)] group-focus-within:text-[var(--saas-accent-primary)] transition-colors">
-                   <Lock className="w-4.5 h-4.5" />
+                  <Lock className="w-4.5 h-4.5" />
                 </div>
                 <input
                   type={showPassword ? "text" : "password"}
@@ -167,10 +166,10 @@ const Register = () => {
               disabled={loading}
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl py-4 text-sm font-black uppercase tracking-widest text-black bg-[var(--saas-accent-gradient)] shadow-lg shadow-[var(--saas-accent-glow)] hover:brightness-110 transition-all disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 rounded-2xl py-4 text-sm font-black uppercase tracking-widest text-[var(--saas-bg-main)] bg-[image:var(--saas-accent-gradient)] shadow-lg shadow-[var(--saas-accent-glow)] hover:brightness-110 transition-all disabled:opacity-50"
             >
               {loading ? (
-                <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                <div className="w-5 h-5 border-2 border-[var(--saas-bg-main)]/30 border-t-[var(--saas-bg-main)] rounded-full animate-spin" />
               ) : (
                 <>
                   Register Identity
@@ -181,12 +180,15 @@ const Register = () => {
           </form>
 
           <div className="mt-8 pt-8 border-t border-[var(--saas-border)]">
-              <p className="text-center text-[var(--saas-text-secondary)] text-sm font-medium">
-                Already part of the ecosystem?{" "}
-                <Link to="/login" className="text-[var(--saas-accent-primary)] font-black hover:underline ml-1">
-                  Established Access
-                </Link>
-              </p>
+            <p className="text-center text-[var(--saas-text-secondary)] text-sm font-medium">
+              Already part of the ecosystem?{" "}
+              <Link
+                to="/login"
+                className="text-[var(--saas-accent-primary)] font-black hover:underline ml-1"
+              >
+                Established Access
+              </Link>
+            </p>
           </div>
         </div>
       </MotionDiv>

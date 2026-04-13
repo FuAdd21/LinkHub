@@ -7,8 +7,10 @@ export const register = async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
 
-    if (!name || !email || !password || !phone) {
-      return res.status(400).json({ error: "All fields are required" });
+    if (!name || !email || !password) {
+      return res
+        .status(400)
+        .json({ error: "Name, email and password are required" });
     }
 
     const normalizedEmail = email.trim().toLowerCase();
@@ -27,7 +29,7 @@ export const register = async (req, res) => {
 
     const [result] = await db.query(
       "INSERT INTO clients (name, email, password, phone) VALUES (?, ?, ?, ?)",
-      [name.trim(), normalizedEmail, hashedPassword, phone.trim()],
+      [name.trim(), normalizedEmail, hashedPassword, phone ? phone.trim() : ""],
     );
 
     res.json({ message: "Client added securely!", clientId: result.insertId });
@@ -80,15 +82,10 @@ export const login = async (req, res) => {
 export const getAllClients = async (req, res) => {
   try {
     const [results] = await db.query(
-      `SELECT id, name, email, phone, username, bio, avatar, theme,
-              background_type, background_value,
-              youtubeId, githubUser, telegramUser, instagram, twitter, linkedin, tiktok
-       FROM clients`,
+      "SELECT id, name, email, phone, username, bio, avatar, theme, background_type, background_value, youtubeId, githubUser, telegramUser, instagram, twitter, linkedin, tiktok FROM clients",
     );
     res.json(results);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
-
-// exports = { register, login, getAllClients };
