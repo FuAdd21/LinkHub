@@ -1,118 +1,101 @@
-import React from "react";
-import { Globe2, Link2 } from "lucide-react";
-import { getAvatarUrl, getConnectedPlatforms, getVisibleLinks, formatCompactNumber } from "./dashboardUtils";
+import { useMemo } from "react";
+import { getAvatarUrl, getBannerUrl } from "./dashboardUtils";
 
-const MobilePreview = React.memo(function MobilePreview({
+export default function MobilePreview({
   user,
   links,
   socialStats,
+  analytics
 }) {
   const avatarUrl = getAvatarUrl(user);
-  const visibleLinks = getVisibleLinks(links).slice(0, 5);
-  const connectedPlatforms = getConnectedPlatforms(user);
+  const bannerUrl = getBannerUrl(user);
 
   return (
-    <div className="mx-auto w-full max-w-[320px] rounded-[48px] border border-[var(--saas-border)] bg-[#050505] p-2.5 shadow-[0_40px_100px_rgba(0,0,0,0.6)] ring-1 ring-white/10 ring-inset">
-      <div className="mx-auto mb-3 h-6 w-28 rounded-full bg-black/80 flex items-center justify-center">
-         <div className="w-10 h-1 rounded-full bg-white/10" />
-      </div>
-      
-      <div className="overflow-hidden rounded-[38px] border border-[var(--saas-border)] bg-gradient-to-b from-[#0e0e11] to-[#050505] p-6 relative">
-        {/* Ambient background glow */}
-        <div className="absolute -top-20 -left-20 w-40 h-40 bg-[var(--saas-accent-primary)] opacity-10 blur-[60px] rounded-full pointer-events-none" />
+    <div className="flex flex-col items-center">
+      {/* Mock Phone Frame */}
+      <div className="relative w-[340px] aspect-[9/18.5] bg-[#0b0e14] rounded-[3.5rem] phone-frame overflow-hidden flex flex-col font-['Inter'] ring-1 ring-white/5 shadow-2xl">
         
-        <div className="flex flex-col items-center text-center relative z-10">
-          <div className="h-22 w-22 p-1 overflow-hidden rounded-[32px] border border-[var(--saas-border)] bg-white/5 shadow-2xl relative group">
-             <div className="absolute inset-0 bg-[var(--saas-accent-gradient)] opacity-20 blur-xl group-hover:opacity-40 transition-opacity" />
-            {avatarUrl ? (
-              <img
-                src={avatarUrl}
-                alt={user?.name || user?.username || "Creator avatar"}
-                className="h-full w-full object-cover rounded-[28px] relative z-10 shadow-lg"
-              />
+        {/* Phone Notch Shadow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-surface-container-highest rounded-b-2xl z-20"></div>
+        
+        {/* Screen Content Wrapper */}
+        <div className="h-full w-full overflow-y-auto no-scrollbar relative flex flex-col">
+          
+          {/* Cover / Banner Section */}
+          <div className="h-44 w-full relative shrink-0">
+            {bannerUrl ? (
+                <img src={bannerUrl} className="w-full h-full object-cover" alt="Banner" />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-2xl font-black text-white bg-[var(--saas-accent-gradient)] relative z-10 rounded-[28px]">
-                {(user?.username || user?.name || "L").charAt(0).toUpperCase()}
+                <div className="w-full h-full bg-surface-container-highest/50" />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0b0e14] via-[#0b0e14]/40 to-transparent" />
+          </div>
+
+          {/* Profile Identity Details */}
+          <div className="px-6 -mt-16 relative z-10 flex flex-col items-center text-center">
+            <div className="w-24 h-24 rounded-full p-0.5 bg-gradient-to-tr from-primary via-primary-container to-tertiary shadow-2xl shadow-primary/20">
+              <div className="w-full h-full rounded-full border-4 border-[#0b0e14] overflow-hidden bg-surface-dim">
+                {avatarUrl ? (
+                    <img src={avatarUrl} className="w-full h-full object-cover" alt="Avatar" />
+                ) : (
+                    <div className="w-full h-full bg-surface-container-high flex items-center justify-center text-primary/40">
+                        <span className="material-symbols-outlined text-4xl">person</span>
+                    </div>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-1">
+              <h3 className="text-xl font-black text-white tracking-tight uppercase">
+                {user?.full_name || "Julian Marcus"}
+              </h3>
+              <p className="text-sm font-bold text-primary tracking-widest uppercase opacity-80">
+                @{user?.username || "creator_hub"}
+              </p>
+            </div>
+
+            <p className="mt-4 text-[11px] leading-relaxed text-on-surface-variant font-medium px-4">
+              {user?.bio || "Digital nomad & minimalist designer. Sharing my journey through pixels and code."}
+            </p>
+          </div>
+
+          {/* Dynamic Link Matrices */}
+          <div className="mt-10 px-6 space-y-4 pb-20 w-full">
+            {links && links.length > 0 ? (
+              links.map((link) => (
+                <div 
+                  key={link.id}
+                  className="w-full py-4.5 px-6 glass-panel border border-white/5 rounded-2xl flex items-center justify-between group cursor-pointer transition-all hover:bg-white/5 active:scale-[0.98]"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-surface-container-highest flex items-center justify-center text-primary shadow-inner">
+                      <span className="material-symbols-outlined text-xl">
+                        {link.platform === "General" ? "rocket_launch" : "alternate_email"}
+                      </span>
+                    </div>
+                    <span className="text-sm font-bold text-white tracking-wide uppercase">{link.title}</span>
+                  </div>
+                  <span className="material-symbols-outlined text-on-surface-variant text-[16px] opacity-40">chevron_right</span>
+                </div>
+              ))
+            ) : (
+              <div className="space-y-4">
+                {[1, 2, 3].map(i => (
+                    <div key={i} className="w-full h-16 bg-white/5 rounded-2xl border border-white/5 opacity-40 animate-pulse" />
+                ))}
               </div>
             )}
           </div>
-          
-          <div className="mt-5">
-            <h4 className="text-xl font-black text-white tracking-tight leading-none">
-              @{user?.username || "creator"}
-            </h4>
-            <div className="mt-2.5 mx-auto h-0.5 w-6 rounded-full bg-[var(--saas-accent-primary)]" />
-            <p className="mt-4 text-[13px] leading-relaxed font-medium text-white/50 px-2 line-clamp-3">
-              {user?.bio || "Crafting something extraordinary for the digital world."}
-            </p>
+
+          {/* Social Logo Watermark */}
+          <div className="mt-auto py-8 flex justify-center opacity-10">
+            <span className="text-[10px] font-black tracking-[0.5em] text-white">LINKHUB</span>
           </div>
         </div>
 
-        <div className="mt-8 flex flex-wrap justify-center gap-2 relative z-10">
-          {connectedPlatforms.length ? (
-            connectedPlatforms.slice(0, 4).map((platform) => {
-              const Icon = platform.icon;
-              const stat = socialStats?.[platform.socialKey];
-              const count =
-                stat?.followers ??
-                stat?.subscriberCount ??
-                stat?.subscribers ??
-                stat?.memberCount ??
-                stat?.members;
-
-              return (
-                <div
-                  key={platform.key}
-                  className="flex items-center gap-2 rounded-2xl border border-white/5 bg-white/5 px-4 py-2 text-white/90 backdrop-blur-sm transition-all hover:bg-white/10"
-                >
-                  <Icon className="h-3.5 w-3.5" style={{ color: platform.color }} />
-                  <span className="text-[10px] font-black uppercase tracking-wider">
-                    {count ? formatCompactNumber(count) : "Live"}
-                  </span>
-                </div>
-              );
-            })
-          ) : (
-             <div className="h-8 w-24 rounded-full bg-white/5 animate-pulse" />
-          )}
-        </div>
-
-        <div className="mt-8 space-y-3 relative z-10">
-          {visibleLinks.length ? (
-            visibleLinks.map((link) => (
-              <div
-                key={link.id}
-                className="group flex items-center justify-between rounded-2xl border border-white/5 bg-white/5 px-4 py-4 transition-all hover:bg-white/10 hover:border-white/10 hover:-translate-y-0.5 shadow-sm"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-bold text-white tracking-tight">
-                    {link.title}
-                  </p>
-                  <p className="mt-1 truncate text-[10px] font-bold text-white/30 uppercase tracking-widest font-mono">
-                    {link.url.replace(/^https?:\/\/(www\.)?/, '')}
-                  </p>
-                </div>
-                <div className="h-9 w-9 shrink-0 flex items-center justify-center rounded-xl bg-white/5 text-white/40 group-hover:bg-[var(--saas-accent-primary)] group-hover:text-black transition-all">
-                  <Link2 className="h-4 w-4" />
-                </div>
-              </div>
-            ))
-          ) : (
-            [1, 2, 3].map(i => (
-              <div key={i} className="h-16 w-full rounded-2xl bg-white/5 animate-pulse" />
-            ))
-          )}
-        </div>
-
-        <div className="mt-8 flex items-center justify-center gap-2.5 py-4 border-t border-white/5">
-          <Globe2 className="h-3.5 w-3.5 text-white/20" />
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">
-            linkhub.to/{user?.username || "identity"}
-          </span>
-        </div>
+        {/* Home Interaction Bar */}
+        <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/20 rounded-full z-20"></div>
       </div>
     </div>
   );
-});
-
-export default MobilePreview;
+}

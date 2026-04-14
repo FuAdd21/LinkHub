@@ -7,377 +7,202 @@ import {
   useState,
 } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
-import { BarChart3, Globe2, Sparkles, Zap } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
-import DashboardCard from "../../Components/dashboard/DashboardCard";
-import MobilePreview from "../../Components/dashboard/MobilePreview";
 import Sidebar from "../../Components/dashboard/Sidebar";
 import TopNavbar from "../../Components/dashboard/TopNavbar";
-import {
-  cx,
-  getConnectedPlatforms,
-  getPageCompletion,
-  getVisibleLinks,
-} from "../../Components/dashboard/dashboardUtils";
+import MobilePreview from "../../Components/dashboard/MobilePreview";
 import useDashboardData from "../../hooks/useDashboardData";
 import { useSocialProfiles } from "../../hooks/useSocialProfiles";
 
-const DashboardOverview = lazy(() => import("./DashboardOverview"));
 const DashboardProfile = lazy(() => import("./DashboardProfile"));
 const DashboardLinks = lazy(() => import("./DashboardLinks"));
 const DashboardThemes = lazy(() => import("./DashboardThemes"));
-const DashboardAnalytics = lazy(() => import("./DashboardAnalytics"));
 const DashboardSettings = lazy(() => import("./DashboardSettings"));
 
 function DashboardPageSkeleton() {
   return (
-    <div className="space-y-6">
-      <div className="h-10 w-64 animate-pulse rounded-2xl bg-white/5" />
-      <div className="grid gap-4 md:grid-cols-3">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <div
-            key={index}
-            className="h-40 animate-pulse rounded-[28px] bg-white/5"
-          />
-        ))}
+    <div className="space-y-10 animate-pulse">
+      <div className="h-8 w-1/3 bg-surface-container-highest rounded-xl" />
+      <div className="h-48 w-full bg-surface-container-highest rounded-xl" />
+      <div className="space-y-4">
+        <div className="h-20 w-full bg-surface-container-highest rounded-xl" />
+        <div className="h-20 w-full bg-surface-container-highest rounded-xl" />
       </div>
-      <div className="h-[320px] animate-pulse rounded-[28px] bg-white/5" />
-    </div>
-  );
-}
-
-function PreviewRail({ userData, links, analytics, socialPreviewData }) {
-  const completion = getPageCompletion(userData, links);
-  const visibleLinks = getVisibleLinks(links);
-  const connectedPlatforms = getConnectedPlatforms(userData);
-  const topLink = analytics?.topLinks?.[0];
-
-  return (
-    <div className="space-y-6">
-      <DashboardCard className="p-6">
-        <div className="flex items-center justify-between mb-6">
-           <div className="flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-[var(--saas-accent-primary)]" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[var(--saas-text-primary)]">Public Rendering</span>
-           </div>
-           <div className="h-1.5 w-1.5 rounded-full bg-[var(--saas-accent-primary)] animate-pulse shadow-[0_0_8px_var(--saas-accent-glow)]" />
-        </div>
-        <div className="relative">
-          <MobilePreview
-            user={userData}
-            links={links}
-            socialStats={socialPreviewData}
-          />
-          {/* Subtle reflection overlay */}
-          <div className="absolute inset-0 pointer-events-none rounded-[40px] bg-gradient-to-tr from-white/5 to-transparent opacity-50" />
-        </div>
-      </DashboardCard>
-
-      <DashboardCard className="p-6">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[var(--saas-bg-elevated)] border border-[var(--saas-border)] shadow-inner">
-            <Zap className="h-5 w-5 text-[var(--saas-accent-primary)]" />
-          </div>
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--saas-text-secondary)]">
-              System Signals
-            </p>
-            <h3 className="text-lg font-extrabold text-[var(--saas-text-primary)] tracking-tight">
-              Aura Metrics
-            </h3>
-          </div>
-        </div>
-        
-        <div className="grid gap-3">
-          {[
-            { label: "Matrix Completion", value: `${completion}%`, sub: "Nodal integrity" },
-            { label: "Active Nodes", value: visibleLinks.length, sub: "Live connections" },
-            { label: "Connected Protos", value: connectedPlatforms.length, sub: "Social fabric" },
-            { label: "Top Frequency", value: topLink?.title || "Quiet...", sub: "High resonance", truncate: true },
-          ].map((metric) => (
-            <div 
-              key={metric.label}
-              className="group relative flex items-center justify-between rounded-2xl border border-[var(--saas-border)] bg-[var(--saas-bg-elevated)]/30 p-4 transition-all hover:bg-[var(--saas-bg-elevated)]/60"
-            >
-              <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-wider text-[var(--saas-text-secondary)] opacity-50 group-hover:opacity-100 transition-opacity">
-                  {metric.label}
-                </p>
-                <p className={cx(
-                    "mt-1 font-black text-[var(--saas-text-primary)] tracking-tight truncate",
-                    metric.truncate ? "text-sm" : "text-xl"
-                )}>
-                  {metric.value}
-                </p>
-              </div>
-              <div className="text-right hidden sm:block">
-                 <p className="text-[9px] font-bold italic text-[var(--saas-accent-primary)] opacity-40 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                    {metric.sub}
-                 </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </DashboardCard>
     </div>
   );
 }
 
 export default function DashboardLayout() {
-  const { logout } = useContext(AuthContext);
+  const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [socialPreviewData, setSocialPreviewData] = useState(null);
-  const { snapshot, loading, error, refresh, updateUser, updateLinks } =
-    useDashboardData();
 
-  const userData = snapshot?.user ?? null;
-  const links = snapshot?.links ?? [];
-  const analytics = snapshot?.analytics ?? null;
+  const {
+    snapshot,
+    loading,
+    error,
+    refresh,
+    updateUser,
+    updateLinks,
+  } = useDashboardData();
 
-  const socialHandles = useMemo(
-    () => ({
-      youtubeId: userData?.youtubeId,
-      githubUser: userData?.githubUser,
-      telegramUser: userData?.telegramUser,
-      instagram: userData?.instagram,
-      twitter: userData?.twitter,
-      linkedin: userData?.linkedin,
-      tiktok: userData?.tiktok,
-    }),
-    [
-      userData?.githubUser,
-      userData?.instagram,
-      userData?.linkedin,
-      userData?.telegramUser,
-      userData?.tiktok,
-      userData?.twitter,
-      userData?.youtubeId,
-    ],
-  );
+  const userData = snapshot?.user;
+  const links = snapshot?.links || [];
+  const analytics = snapshot?.analytics;
 
-  const { data: socialData } = useSocialProfiles(socialHandles);
+  // socialProfiles hook expects an object of handles/IDs
+  const { data: socialProfilesData } = useSocialProfiles({
+    youtubeId: userData?.youtubeId,
+    githubUser: userData?.githubUser,
+    instagram: userData?.instagram,
+    twitter: userData?.twitter,
+  });
 
   useEffect(() => {
-    if (socialData) {
-      setSocialPreviewData(socialData);
+    if (!user && !loading) {
+      navigate("/login");
     }
-  }, [socialData]);
+  }, [user, loading, navigate]);
 
-  useEffect(() => {
-    if (!loading && userData && !userData.username) {
-      navigate("/create-profile");
-    }
-  }, [loading, navigate, userData]);
-
-  useEffect(() => {
-    if (userData?.theme) {
-      document.documentElement.setAttribute("data-theme", userData.theme);
-    }
-
-    if (userData) {
-      localStorage.setItem("user", JSON.stringify(userData));
-    }
-  }, [userData]);
-
-  function handleLogout() {
-    logout();
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    document.documentElement.removeAttribute("data-theme");
+  const handleLogout = async () => {
+    await logout();
     navigate("/login");
-  }
+  };
 
-  if (loading && !snapshot) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--bg-primary)] px-4 py-8 sm:px-6">
-        <div className="grid gap-6 lg:grid-cols-[284px_minmax(0,1fr)]">
-          <div className="hidden h-[calc(100vh-4rem)] rounded-[32px] bg-white/5 lg:block" />
-          <DashboardPageSkeleton />
-        </div>
-      </div>
-    );
-  }
-
-  if (error && !snapshot) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--bg-primary)] px-4 text-center">
-        <div>
-          <p className="text-lg font-semibold text-[var(--text-primary)]">
-            Unable to load your dashboard
-          </p>
-          <p className="mt-2 text-sm text-[var(--text-muted)]">
-            Please refresh and try again.
-          </p>
+      <div className="min-h-screen bg-[#0b0e14] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+           <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+           <p className="text-primary font-black uppercase tracking-[0.3em] text-[10px] animate-pulse">Synchronizing Hub</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="dashboard-shell min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,rgba(147,51,234,0.18),transparent_32%),radial-gradient(circle_at_85%_18%,rgba(236,72,153,0.12),transparent_22%),linear-gradient(180deg,rgba(10,10,10,0.98),rgba(10,10,10,1))]" />
-      <div className="grid min-h-screen lg:grid-cols-[284px_minmax(0,1fr)]">
+    <div className="min-h-screen bg-[#0b0e14] text-on-surface selection:bg-primary/30">
+      <TopNavbar
+        user={userData}
+        onMenuClick={() => setSidebarOpen(true)}
+      />
+
+      <div className="flex h-screen pt-20">
         <Sidebar
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
           user={userData}
-          links={links}
+          onLogout={handleLogout}
         />
 
-        <div className="min-w-0">
-          <TopNavbar
-            user={userData}
-            links={links}
-            analytics={analytics}
-            onMenuClick={() => setSidebarOpen(true)}
-            onLogout={handleLogout}
-          />
-
-          <div className="px-4 py-6 sm:px-6 lg:px-8">
-            <div className="grid gap-6 2xl:grid-cols-[minmax(0,1fr)_360px]">
-              <main className="min-w-0">
-                <Suspense fallback={<DashboardPageSkeleton />}>
-                  <Routes>
-                    <Route
-                      index
-                      element={
-                        <DashboardOverview
-                          userData={userData}
-                          links={links}
-                          analytics={analytics}
-                          socialPreviewData={socialPreviewData}
-                        />
-                      }
-                    />
-                    <Route
-                      path="my-page"
-                      element={
-                        <DashboardProfile
-                          userData={userData}
-                          onRefresh={refresh}
-                          onUserChange={updateUser}
-                        />
-                      }
-                    />
-                    <Route
-                      path="links"
-                      element={
-                        <DashboardLinks
-                          links={links}
-                          onRefresh={refresh}
-                          onLinksChange={updateLinks}
-                        />
-                      }
-                    />
-                    <Route
-                      path="themes"
-                      element={
-                        <DashboardThemes
-                          userData={userData}
-                          onRefresh={refresh}
-                          onUserChange={updateUser}
-                        />
-                      }
-                    />
-                    <Route
-                      path="analytics"
-                      element={<DashboardAnalytics analytics={analytics} />}
-                    />
-                    <Route
-                      path="settings"
-                      element={
-                        <DashboardSettings
-                          userData={userData}
-                          links={links}
-                          onLogout={handleLogout}
-                        />
-                      }
-                    />
-                    <Route
-                      path="*"
-                      element={<Navigate to="/dashboard" replace />}
-                    />
-                  </Routes>
-                </Suspense>
-              </main>
-
-              <aside className="hidden 2xl:block">
-                <div className="sticky top-28">
-                  <PreviewRail
-                    userData={userData}
-                    links={links}
-                    analytics={analytics}
-                    socialPreviewData={socialPreviewData}
+        <main className="ml-0 lg:ml-80 flex flex-1 overflow-hidden">
+          {/* Left Side: Control Panel (40%) */}
+          <section className="w-full lg:w-[40%] h-full overflow-y-auto px-8 py-10 border-r border-outline-variant/10 no-scrollbar">
+            <div className="max-w-xl mx-auto">
+              <Suspense fallback={<DashboardPageSkeleton />}>
+                <Routes>
+                  <Route
+                    index
+                    element={
+                      <DashboardLinks
+                        userData={userData}
+                        links={links}
+                        onRefresh={refresh}
+                        onUserChange={updateUser}
+                        onLinksChange={updateLinks}
+                      />
+                    }
                   />
-                </div>
-              </aside>
+                  <Route path="links" element={<Navigate to="/dashboard" replace />} />
+                  <Route
+                    path="profile"
+                    element={
+                      <DashboardProfile
+                        userData={userData}
+                        onRefresh={refresh}
+                        onUserChange={updateUser}
+                      />
+                    }
+                  />
+                  <Route
+                    path="themes"
+                    element={
+                      <DashboardThemes
+                        userData={userData}
+                        onRefresh={refresh}
+                        onUserChange={updateUser}
+                      />
+                    }
+                  />
+                  <Route
+                    path="settings"
+                    element={
+                      <DashboardSettings
+                        userData={userData}
+                        onLogout={handleLogout}
+                      />
+                    }
+                  />
+                </Routes>
+              </Suspense>
             </div>
+          </section>
 
-            <div className="mt-6 2xl:hidden">
-              <div className="dashboard-mobile-rail">
-                <div className="dashboard-mobile-rail-item">
-                  <PreviewRail
-                    userData={userData}
-                    links={links}
-                    analytics={analytics}
-                    socialPreviewData={socialPreviewData}
-                  />
-                </div>
-                <div className="dashboard-mobile-rail-item">
-                  <DashboardCard className="h-full">
-                    <div className="flex items-center gap-3">
-                      <div className="dashboard-accent-icon-secondary h-11 w-11">
-                        <Globe2 className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-[var(--text-secondary)]">
-                          Creator focus
-                        </p>
-                        <h3 className="mt-1 text-lg font-semibold text-[var(--text-primary)]">
-                          Keep this week simple
-                        </h3>
-                      </div>
+          {/* Right Side: Live Canvas (60%) */}
+          <section className="hidden lg:flex flex-1 items-center justify-center bg-[#07090d] relative overflow-hidden">
+            {/* High-fidelity background atmosphere */}
+            <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] animate-pulse duration-[10s]" />
+            <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-tertiary/10 rounded-full blur-[100px] animate-pulse duration-[8s] delay-700" />
+
+            <div className="relative z-10 flex flex-col items-center">
+              {/* Live Preview Label */}
+              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-12 backdrop-blur-md">
+                <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Live Preview</span>
+              </div>
+
+              <div className="relative">
+                <MobilePreview
+                  user={userData}
+                  links={links}
+                />
+
+                {/* Real-time Insight Toast (Match Image 1) */}
+                <div className="absolute -right-24 bottom-32 w-72 p-5 bg-surface-container-high/60 backdrop-blur-2xl border border-outline-variant/20 rounded-[1.5rem] shadow-2xl animate-in slide-in-from-right-10 duration-1000">
+                    <div className="flex items-start gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary shadow-inner">
+                            <span className="material-symbols-outlined text-xl">show_chart</span>
+                        </div>
+                        <div className="space-y-1">
+                            <p className="text-[9px] font-black uppercase tracking-[0.15em] text-primary">Real-time Insight</p>
+                            <p className="text-[11px] font-bold text-on-surface leading-normal opacity-90">
+                                Your profile traffic is up 12% today. Most users are clicking your "Latest Collection" link.
+                            </p>
+                        </div>
                     </div>
-                    <div className="mt-5 space-y-3 text-sm text-[var(--text-muted)]">
-                      <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
-                        Promote the top link already earning the most clicks.
-                      </div>
-                      <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
-                        Refresh your theme after launching a new campaign.
-                      </div>
-                      <div className="rounded-[22px] border border-[var(--card-border)] bg-white/5 p-4">
-                        Add social proof so new visitors trust the page faster.
-                      </div>
-                    </div>
-                  </DashboardCard>
-                </div>
-                <div className="dashboard-mobile-rail-item">
-                  <DashboardCard className="h-full">
-                    <div className="flex items-center gap-3">
-                      <div className="dashboard-accent-icon h-11 w-11">
-                        <BarChart3 className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-[var(--text-secondary)]">
-                          Traffic snapshot
-                        </p>
-                        <h3 className="mt-1 text-lg font-semibold text-[var(--text-primary)]">
-                          {analytics?.todayClicks || 0} visits today
-                        </h3>
-                      </div>
-                    </div>
-                    <p className="mt-5 text-sm leading-7 text-[var(--text-muted)]">
-                      Your audience is currently engaging with{" "}
-                      {analytics?.topLinks?.[0]?.title || "your page"}. Use the
-                      full analytics view for the longer trend.
-                    </p>
-                  </DashboardCard>
                 </div>
               </div>
+
+              {/* Stats Bar (Match Image 1) */}
+              <div className="mt-12 overflow-hidden rounded-3xl bg-surface-container-low/40 backdrop-blur-xl border border-outline-variant/10 p-1">
+                  <div className="flex items-center">
+                      <div className="px-8 py-4 text-center border-r border-outline-variant/10">
+                          <p className="text-2xl font-black text-white leading-none">{links.length}</p>
+                          <p className="text-[9px] font-black uppercase tracking-widest text-outline mt-1.5 opacity-60">Links</p>
+                      </div>
+                      <div className="px-8 py-4 text-center border-r border-outline-variant/10">
+                          <p className="text-2xl font-black text-white leading-none">4</p>
+                          <p className="text-[9px] font-black uppercase tracking-widest text-outline mt-1.5 opacity-60">Socials</p>
+                      </div>
+                      <div className="px-8 py-4 text-center">
+                          <p className="text-2xl font-black text-white leading-none">8.4k</p>
+                          <p className="text-[9px] font-black uppercase tracking-widest text-outline mt-1.5 opacity-60">Views</p>
+                      </div>
+                  </div>
+              </div>
             </div>
-          </div>
-        </div>
+          </section>
+        </main>
       </div>
     </div>
   );

@@ -1,10 +1,15 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap");@tailwind base;
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700&family=Manrope:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap");
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* =============================================
+   GLOBAL BASE — Stitch "Luminous Curator" System
+   ============================================= */
 :root,
 [data-theme="dark-pro"],
 [data-theme="glass-dark"] {
+  /* Public profile theme tokens */
   --bg-primary: #0a0a0a;
   --bg-secondary: #10111a;
   --bg-tertiary: #181225;
@@ -31,6 +36,23 @@
   --logo-gradient: linear-gradient(135deg, #9333ea, #ec4899);
   --font-body: "Inter", "Manrope", "Segoe UI", sans-serif;
   --font-display: "Sora", "Segoe UI", sans-serif;
+
+  /* ── Dashboard SaaS tokens (Stitch Luminous Curator dark defaults) ── */
+  --saas-bg-main: #0b0e14;
+  --saas-bg-surface: #10131b;
+  --saas-bg-elevated: #151a22;
+  --saas-border: rgba(255, 255, 255, 0.06);
+  --saas-border-hover: rgba(129, 140, 248, 0.35);
+  --saas-card: rgba(21, 26, 34, 0.8);
+  --saas-card-hover: rgba(129, 140, 248, 0.06);
+  --saas-text-primary: #e0e5f5;
+  --saas-text-secondary: rgba(165, 171, 186, 0.9);
+  --saas-accent-primary: #818cf8;
+  --saas-accent-secondary: #c084fc;
+  --saas-accent-tertiary: #2dd4bf;
+  --saas-accent-gradient: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+  --saas-accent-glow: rgba(129, 140, 248, 0.3);
+  --saas-sidebar-bg: #0b0e14;
 }
 
 [data-theme="neon-glow"] {
@@ -57,6 +79,20 @@
   --link-btn-border: rgba(0, 255, 170, 0.12);
   --link-btn-hover: rgba(0, 255, 170, 0.14);
   --logo-gradient: linear-gradient(135deg, #00f5b0, #38bdf8);
+  /* Dashboard SaaS overrides for neon theme */
+  --saas-bg-main: #050816;
+  --saas-bg-surface: #080d1e;
+  --saas-bg-elevated: #0c1228;
+  --saas-border: rgba(0, 245, 176, 0.08);
+  --saas-border-hover: rgba(0, 245, 176, 0.3);
+  --saas-text-primary: #f0fdfa;
+  --saas-text-secondary: rgba(204, 251, 241, 0.7);
+  --saas-accent-primary: #00f5b0;
+  --saas-accent-secondary: #38bdf8;
+  --saas-accent-tertiary: #818cf8;
+  --saas-accent-gradient: linear-gradient(135deg, #00f5b0, #38bdf8);
+  --saas-accent-glow: rgba(0, 245, 176, 0.25);
+  --saas-sidebar-bg: #050816;
 }
 
 [data-theme="minimal"] {
@@ -84,6 +120,22 @@
   --link-btn-border: rgba(15, 23, 42, 0.08);
   --link-btn-hover: rgba(15, 23, 42, 0.08);
   --logo-gradient: linear-gradient(135deg, #9333ea, #ec4899);
+  /* Dashboard SaaS overrides for light/minimal theme */
+  --saas-bg-main: #f8fafc;
+  --saas-bg-surface: #ffffff;
+  --saas-bg-elevated: #f1f5f9;
+  --saas-border: rgba(0, 0, 0, 0.07);
+  --saas-border-hover: rgba(99, 102, 241, 0.4);
+  --saas-card: rgba(241, 245, 249, 0.9);
+  --saas-card-hover: rgba(99, 102, 241, 0.06);
+  --saas-text-primary: #0f172a;
+  --saas-text-secondary: rgba(15, 23, 42, 0.6);
+  --saas-accent-primary: #6366f1;
+  --saas-accent-secondary: #a855f7;
+  --saas-accent-tertiary: #14b8a6;
+  --saas-accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  --saas-accent-glow: rgba(99, 102, 241, 0.2);
+  --saas-sidebar-bg: #ffffff;
 }
 
 [data-theme="creator-mode"] {
@@ -110,37 +162,57 @@
   --link-btn-border: rgba(255, 255, 255, 0.1);
   --link-btn-hover: rgba(255, 255, 255, 0.14);
   --logo-gradient: linear-gradient(135deg, #fb923c, #f97316);
+  /* Dashboard SaaS overrides for creator theme */
+  --saas-bg-main: #120811;
+  --saas-bg-surface: #1a0c17;
+  --saas-bg-elevated: #22101e;
+  --saas-border: rgba(255, 255, 255, 0.06);
+  --saas-border-hover: rgba(251, 146, 60, 0.35);
+  --saas-text-primary: #fff7ed;
+  --saas-text-secondary: rgba(254, 215, 170, 0.7);
+  --saas-accent-primary: #fb923c;
+  --saas-accent-secondary: #f97316;
+  --saas-accent-tertiary: #34d399;
+  --saas-accent-gradient: linear-gradient(135deg, #fb923c, #f97316);
+  --saas-accent-glow: rgba(249, 115, 22, 0.25);
+  --saas-sidebar-bg: #120811;
 }
 
+/* ── Explicit "dark" SaaS theme (Stitch Luminous Curator) ── */
 [data-theme="dark"] {
-  --saas-bg-main: #09090b;
-  --saas-bg-surface: #121214;
-  --saas-bg-elevated: #18181b;
-  --saas-border: rgba(255, 255, 255, 0.08);
-  --saas-border-hover: rgba(255, 255, 255, 0.15);
-  --saas-card: rgba(255, 255, 255, 0.04);
-  --saas-card-hover: rgba(255, 255, 255, 0.08);
-  --saas-text-primary: #ffffff;
-  --saas-text-secondary: rgba(255, 255, 255, 0.6);
-  --saas-accent-primary: #bef264;
-  --saas-accent-gradient: linear-gradient(135deg, #bef264 0%, #84cc16 100%);
-  --saas-accent-glow: rgba(190, 242, 100, 0.25);
-  --saas-sidebar-bg: #09090b;
+  --saas-bg-main: #0b0e14;
+  --saas-bg-surface: #10131b;
+  --saas-bg-elevated: #151a22;
+  --saas-border: rgba(255, 255, 255, 0.06);
+  --saas-border-hover: rgba(129, 140, 248, 0.35);
+  --saas-card: rgba(21, 26, 34, 0.8);
+  --saas-card-hover: rgba(129, 140, 248, 0.06);
+  --saas-text-primary: #e0e5f5;
+  --saas-text-secondary: rgba(165, 171, 186, 0.9);
+  --saas-accent-primary: #818cf8;
+  --saas-accent-secondary: #c084fc;
+  --saas-accent-tertiary: #2dd4bf;
+  --saas-accent-gradient: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+  --saas-accent-glow: rgba(129, 140, 248, 0.3);
+  --saas-sidebar-bg: #0b0e14;
 }
 
+/* ── Light SaaS theme ── */
 [data-theme="light"] {
   --saas-bg-main: #f8fafc;
   --saas-bg-surface: #ffffff;
   --saas-bg-elevated: #f1f5f9;
-  --saas-border: rgba(0, 0, 0, 0.08);
-  --saas-border-hover: rgba(0, 0, 0, 0.15);
-  --saas-card: rgba(0, 0, 0, 0.02);
-  --saas-card-hover: rgba(0, 0, 0, 0.05);
+  --saas-border: rgba(0, 0, 0, 0.07);
+  --saas-border-hover: rgba(99, 102, 241, 0.4);
+  --saas-card: rgba(241, 245, 249, 0.9);
+  --saas-card-hover: rgba(99, 102, 241, 0.06);
   --saas-text-primary: #0f172a;
   --saas-text-secondary: rgba(15, 23, 42, 0.6);
-  --saas-accent-primary: #65a30d;
-  --saas-accent-gradient: linear-gradient(135deg, #65a30d 0%, #4d7c0f 100%);
-  --saas-accent-glow: rgba(101, 163, 13, 0.2);
+  --saas-accent-primary: #6366f1;
+  --saas-accent-secondary: #a855f7;
+  --saas-accent-tertiary: #14b8a6;
+  --saas-accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  --saas-accent-glow: rgba(99, 102, 241, 0.2);
   --saas-sidebar-bg: #ffffff;
 }
 
@@ -174,21 +246,21 @@
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+    scrollbar-color: #424855 transparent;
   }
 
-  *::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
   }
 
-  *::-webkit-scrollbar-track {
-    background: transparent;
+  ::-webkit-scrollbar-track {
+    background: #0b0e14;
   }
 
-  *::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.12);
-    border-radius: 999px;
+  ::-webkit-scrollbar-thumb {
+    background: #424855;
+    border-radius: 10px;
   }
 }
 
@@ -629,5 +701,33 @@
 
   .dashboard-mobile-rail-item {
     scroll-snap-align: start;
+  }
+
+  /* ── Stitch Prototype Utilities ── */
+  .glass-panel {
+    background: rgba(21, 26, 34, 0.6);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+
+  .phone-frame {
+    box-shadow:
+      0 0 0 12px #1b202a,
+      0 0 0 14px #262c39;
+  }
+
+  .material-symbols-outlined {
+    font-variation-settings:
+      "FILL" 0,
+      "wght" 400,
+      "GRAD" 0,
+      "opsz" 24;
+    display: inline-block;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
   }
 }

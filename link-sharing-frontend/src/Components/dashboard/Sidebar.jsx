@@ -1,130 +1,87 @@
-import { motion } from "framer-motion";
-import { ArrowUpRight, Sparkles, X, Layout, Link2, Palette, BarChart3, Settings } from "lucide-react";
 import { NavLink } from "react-router-dom";
-import { DASHBOARD_NAV_ITEMS } from "./dashboardConfig";
-import { cx, getPageCompletion, getPublicProfileUrl } from "./dashboardUtils";
+import { cx } from "./dashboardUtils";
 
-const MotionDiv = motion.div;
+const SIDEBAR_ITEMS = [
+  { id: "profile", label: "Profile", icon: "person", to: "/dashboard" },
+  { id: "links", label: "Links", icon: "link", to: "/dashboard/links" },
+  { id: "themes", label: "Design", icon: "palette", to: "/dashboard/themes" },
+  { id: "settings", label: "Settings", icon: "settings", to: "/dashboard/settings" },
+];
 
-export default function Sidebar({ isOpen, onClose, user, links }) {
-  const completion = getPageCompletion(user, links);
-
+export default function Sidebar({ isOpen, onClose, user, onLogout }) {
   return (
     <>
-      <div
-        className={cx(
-          "fixed inset-0 z-40 bg-[var(--saas-bg-main)]/60 backdrop-blur-md transition lg:hidden",
-          isOpen
-            ? "pointer-events-auto opacity-100"
-            : "pointer-events-none opacity-0",
-        )}
-        onClick={onClose}
-      />
+      {/* Mobile Backdrop */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+          onClick={onClose}
+        />
+      )}
+
       <aside
         className={cx(
-          "fixed inset-y-0 left-0 z-50 flex w-[280px] flex-col border-r border-[var(--saas-border)] bg-[var(--saas-sidebar-bg)] px-5 py-8 transition-transform duration-300 lg:sticky lg:translate-x-0 lg:h-screen",
-          isOpen ? "translate-x-0" : "-translate-x-full",
+          "h-screen w-80 fixed left-0 z-50 bg-[#0b0e14]/40 backdrop-blur-lg flex flex-col py-8 px-6 pt-12 gap-4 transition-transform duration-300 lg:translate-x-0 border-r border-outline-variant/10",
+          isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex items-center justify-between px-2">
-          <div className="flex items-center gap-3.5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[var(--saas-accent-gradient)] shadow-lg shadow-[var(--saas-accent-glow)] text-lg font-bold text-white">
-              LH
-            </div>
-            <div>
-              <p className="text-base font-bold tracking-tight text-[var(--saas-text-primary)]">
-                LinkHub
-              </p>
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <div className="h-1.5 w-1.5 rounded-full bg-[var(--saas-accent-primary)] animate-pulse" />
-                <p className="text-[10px] text-[var(--saas-text-secondary)] font-bold tracking-[0.1em] uppercase">
-                  Pro Creator
-                </p>
-              </div>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-[var(--saas-border)] text-[var(--saas-text-secondary)] transition hover:bg-[var(--saas-bg-elevated)] lg:hidden"
-          >
-            <X className="h-4 w-4" />
-          </button>
+        <div className="mb-8 px-2">
+          <h2 className="text-xl font-bold text-white tracking-tight">Creator Hub</h2>
+          <p className="text-slate-500 text-sm font-medium">Manage your digital presence</p>
         </div>
 
-        {/* Page Health - Premium Integrated Look */}
-        <div className="mt-10 group cursor-default">
-           <div className="flex items-center justify-between mb-2 px-1">
-              <span className="text-[11px] font-bold text-[var(--saas-text-secondary)] uppercase tracking-wider">Page Completion</span>
-              <span className="text-sm font-bold text-[var(--saas-text-primary)]">{completion}%</span>
-           </div>
-           <div className="h-1.5 w-full rounded-full bg-[var(--saas-bg-elevated)] overflow-hidden">
-              <MotionDiv
-                initial={{ width: 0 }}
-                animate={{ width: `${completion}%` }}
-                className="h-full rounded-full bg-[var(--saas-accent-gradient)]"
-              />
-           </div>
-           <p className="mt-2.5 text-[11px] text-[var(--saas-text-secondary)] leading-relaxed px-1">
-             Complete your profile to unlock <span className="text-[var(--saas-text-primary)] font-semibold italic">Growth Insights</span>
-           </p>
-        </div>
-
-        <nav className="mt-10 flex-1 space-y-1.5">
-          {DASHBOARD_NAV_ITEMS.map((item) => {
-            const IconComponent = item.icon;
-
-            return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                onClick={onClose}
-              >
-                {({ isActive }) => (
-                  <div
-                    className={cx(
-                      "group flex items-center gap-3.5 rounded-2xl px-4 py-3 transition-all duration-300",
-                      isActive
-                        ? "bg-[var(--saas-bg-elevated)] text-[var(--saas-accent-primary)] shadow-sm shadow-[var(--saas-accent-glow)]/10 ring-1 ring-[var(--saas-border)]"
-                        : "text-[var(--saas-text-secondary)] hover:bg-[var(--saas-bg-surface)] hover:text-[var(--saas-text-primary)]",
-                    )}
-                  >
-                    <IconComponent
-                      className={cx(
-                        "h-[18px] w-[18px] shrink-0 transition-colors",
-                        isActive
-                          ? "text-[var(--saas-accent-primary)]"
-                          : "text-[var(--saas-text-secondary)] group-hover:text-[var(--saas-text-primary)]",
-                      )}
-                    />
-                    <span className="text-[14px] font-semibold tracking-tight">{item.label}</span>
-                    {isActive && (
-                      <div className="ml-auto h-1.5 w-1.5 rounded-full bg-[var(--saas-accent-primary)] shadow-[0_0_8px_var(--saas-accent-glow)]" />
-                    )}
-                  </div>
-                )}
-              </NavLink>
-            );
-          })}
+        <nav className="flex flex-col gap-1.5">
+          {SIDEBAR_ITEMS.map((item) => (
+            <NavLink
+              key={item.id}
+              to={item.to}
+              onClick={onClose}
+              end={item.to === "/dashboard"}
+              className={({ isActive }) =>
+                cx(
+                  "flex items-center gap-3 py-3 px-4 rounded-xl transition-all font-medium text-sm",
+                  isActive
+                    ? "bg-gradient-to-r from-indigo-500/20 to-purple-500/10 text-indigo-400 border-r-2 border-indigo-400"
+                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                )
+              }
+            >
+              <span className="material-symbols-outlined">{item.icon}</span>
+              <span>{item.label}</span>
+            </NavLink>
+          ))}
         </nav>
 
-        {/* Live Preview - Premium Action Block */}
-        <div className="mt-auto">
-          <a
-            href={getPublicProfileUrl(user?.username)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex flex-col gap-1 rounded-2xl border border-[var(--saas-border)] bg-[var(--saas-bg-elevated)] p-4 transition-all hover:bg-[var(--saas-bg-surface)] hover:border(--saas-accent-primary)/30 shadow-sm"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[var(--saas-text-primary)]">Public Profile</span>
-              <ArrowUpRight className="h-3.5 w-3.5 text-[var(--saas-text-secondary)] group-hover:text-[var(--saas-accent-primary)] transition-colors" />
-            </div>
-            <p className="text-[11px] text-[var(--saas-text-secondary)] font-medium truncate">
-                {user?.username ? `linkhub.to/${user.username}` : "Get your URL"}
-            </p>
-          </a>
+        <div className="mt-auto flex flex-col gap-2">
+          {/* Pro Features Card */}
+          <div className="mx-2 mb-6 p-5 rounded-2xl bg-gradient-to-br from-secondary-container/40 to-primary-container/10 border border-outline-variant/20 shadow-xl overflow-hidden relative group">
+             <div className="relative z-10">
+                <p className="text-[10px] font-black tracking-widest text-primary-fixed uppercase mb-2">Pro Package</p>
+                <p className="text-xs text-on-surface-variant font-medium leading-relaxed mb-4">Unlock cinematic themes & deep link analytics.</p>
+                <button className="w-full py-2.5 bg-primary text-on-primary font-black rounded-xl text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform active:scale-95">
+                    Upgrade to Pro
+                </button>
+             </div>
+             <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-primary/20 blur-2xl rounded-full group-hover:bg-primary/30 transition-colors" />
+          </div>
+
+          <button className="mx-2 mb-4 w-full py-4 bg-[#919bff] text-black font-black rounded-2xl shadow-xl shadow-primary/30 hover:brightness-110 transition-all active:scale-95 text-xs uppercase tracking-widest">
+            Share Link
+          </button>
+          
+          <div className="px-2 space-y-1">
+              <a href="#" className="flex items-center gap-3 py-3 px-4 text-slate-400 hover:text-white transition-colors text-sm font-medium">
+                <span className="material-symbols-outlined">help_outline</span>
+                <span>Help and Support</span>
+              </a>
+              <button
+                onClick={onLogout}
+                className="w-full flex items-center gap-3 py-3 px-4 text-error-dim hover:text-error transition-all text-sm font-medium rounded-xl hover:bg-error/5"
+              >
+                <span className="material-symbols-outlined">logout</span>
+                <span>Terminate Session</span>
+              </button>
+          </div>
         </div>
       </aside>
     </>

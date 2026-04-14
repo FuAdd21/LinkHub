@@ -1,4 +1,4 @@
-﻿import { API_BASE_URL } from "../../api/dashboardApi";
+import { API_BASE_URL } from "../../api/dashboardApi";
 import { SOCIAL_PLATFORM_FIELDS } from "./dashboardConfig";
 
 export function cx(...classNames) {
@@ -21,6 +21,16 @@ export function getAvatarUrl(user) {
   return user.avatar.startsWith("http")
     ? user.avatar
     : `${API_BASE_URL}${user.avatar}`;
+}
+
+export function getBannerUrl(user) {
+  if (!user?.banner) {
+    return null;
+  }
+
+  return user.banner.startsWith("http")
+    ? user.banner
+    : `${API_BASE_URL}${user.banner}`;
 }
 
 export function getPublicProfileUrl(username) {
