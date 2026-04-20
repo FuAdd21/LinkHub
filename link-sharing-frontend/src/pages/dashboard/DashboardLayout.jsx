@@ -101,8 +101,9 @@ export default function DashboardLayout() {
             <div className="max-w-xl mx-auto">
               <Suspense fallback={<DashboardPageSkeleton />}>
                 <Routes>
+                  <Route index element={<Navigate to="/dashboard/links" replace />} />
                   <Route
-                    index
+                    path="links"
                     element={
                       <DashboardLinks
                         userData={userData}
@@ -113,7 +114,6 @@ export default function DashboardLayout() {
                       />
                     }
                   />
-                  <Route path="links" element={<Navigate to="/dashboard" replace />} />
                   <Route
                     path="profile"
                     element={
