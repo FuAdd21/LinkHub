@@ -57,60 +57,60 @@ export default function DashboardLinks({ userData, links, onRefresh, onUserChang
           </span>
         </div>
 
-        <div className="relative group">
-          {/* Identity Card */}
-          <div className="bg-surface-container-low/30 backdrop-blur-xl border border-outline-variant/10 rounded-[2rem] p-8 space-y-8 overflow-hidden relative">
-             {/* Decorative Banner Background */}
-             <div className="absolute top-0 left-0 w-full h-32 opacity-40 blur-sm group-hover:opacity-60 transition-opacity overflow-hidden">
-                {bannerUrl ? (
-                    <img src={bannerUrl} className="w-full h-full object-cover" alt="Banner" />
-                ) : (
-                    <div className="w-full h-full bg-gradient-to-tr from-primary/20 via-tertiary/10 to-transparent" />
-                )}
-             </div>
-
-             <div className="relative pt-12 flex flex-col items-start gap-8">
-                <div className="w-24 h-24 rounded-full p-1 bg-gradient-to-tr from-primary to-tertiary shadow-2xl relative z-10">
-                    <div className="w-full h-full rounded-full border-4 border-[#0b0e14] overflow-hidden bg-surface-dim">
-                        {avatarUrl ? (
-                            <img src={avatarUrl} className="w-full h-full object-cover" alt="Avatar" />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-primary/40 bg-surface-container-high">
-                                <span className="material-symbols-outlined text-4xl">person</span>
-                            </div>
-                        )}
+        <div className="bg-surface-container-low/30 backdrop-blur-xl border border-outline-variant/10 rounded-[2rem] overflow-hidden">
+          {/* Banner */}
+          <div className="relative w-full h-36">
+            {bannerUrl ? (
+              <img src={bannerUrl} className="w-full h-full object-cover" alt="Banner" />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-tr from-primary/20 via-tertiary/10 to-transparent" />
+            )}
+            {/* Avatar overlapping banner bottom-left */}
+            <div className="absolute -bottom-10 left-6">
+              <div className="w-20 h-20 rounded-full p-0.5 bg-gradient-to-tr from-primary to-tertiary shadow-2xl ring-4 ring-[#0b0e14]">
+                <div className="w-full h-full rounded-full border-4 border-[#0b0e14] overflow-hidden bg-surface-dim">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} className="w-full h-full object-cover" alt="Avatar" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-primary/40 bg-surface-container-high">
+                      <span className="material-symbols-outlined text-3xl">person</span>
                     </div>
+                  )}
                 </div>
+              </div>
+            </div>
+          </div>
 
-                <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-outline px-1">Full Name</label>
-                        <input
-                            readOnly
-                            value={userData?.full_name || "Julian Marcus"}
-                            className="w-full bg-surface-container-high/50 border border-outline-variant/5 rounded-xl px-5 py-3.5 text-white font-bold text-sm focus:ring-2 focus:ring-primary/40 outline-none transition-all"
-                        />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-outline px-1">Username</label>
-                        <input
-                            readOnly
-                            value={`@${userData?.username || "julianmarcus"}`}
-                            className="w-full bg-surface-container-high/50 border border-outline-variant/5 rounded-xl px-5 py-3.5 text-white font-bold text-sm focus:ring-2 focus:ring-primary/40 outline-none transition-all"
-                        />
-                    </div>
-                </div>
+          {/* Fields */}
+          <div className="pt-14 px-8 pb-8 space-y-6">
+            <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-outline px-1">Full Name</label>
+                <input
+                  readOnly
+                  value={userData?.full_name || "Julian Marcus"}
+                  className="w-full bg-surface-container-high/50 border border-outline-variant/5 rounded-xl px-5 py-3.5 text-white font-bold text-sm outline-none"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-outline px-1">Username</label>
+                <input
+                  readOnly
+                  value={`@${userData?.username || "julianmarcus"}`}
+                  className="w-full bg-surface-container-high/50 border border-outline-variant/5 rounded-xl px-5 py-3.5 text-white font-bold text-sm outline-none"
+                />
+              </div>
+            </div>
 
-                <div className="w-full space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-outline px-1">Bio</label>
-                    <textarea
-                        readOnly
-                        value={userData?.bio || "Digital curator exploring the intersection of modern hardware and atmospheric software design."}
-                        rows={3}
-                        className="w-full bg-surface-container-high/50 border border-outline-variant/5 rounded-2xl px-5 py-4 text-slate-300 font-medium text-sm focus:ring-2 focus:ring-primary/40 outline-none transition-all resize-none leading-relaxed"
-                    />
-                </div>
-             </div>
+            <div className="w-full space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-outline px-1">Bio</label>
+              <textarea
+                readOnly
+                value={userData?.bio || "Digital curator exploring the intersection of modern hardware and atmospheric software design."}
+                rows={3}
+                className="w-full bg-surface-container-high/50 border border-outline-variant/5 rounded-2xl px-5 py-4 text-slate-300 font-medium text-sm outline-none resize-none leading-relaxed"
+              />
+            </div>
           </div>
         </div>
       </section>
