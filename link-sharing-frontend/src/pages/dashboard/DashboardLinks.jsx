@@ -89,7 +89,7 @@ export default function DashboardLinks({ userData, links, onRefresh, onUserChang
                 <input
                   readOnly
                   value={userData?.full_name || "Julian Marcus"}
-                  className="w-full bg-surface-container-high/50 border border-outline-variant/5 rounded-xl px-5 py-3.5 text-white font-bold text-sm outline-none"
+                  className="w-full bg-surface-container-high/50 border border-outline-variant/5 rounded-xl px-5 py-3.5 text-white font-bold text-sm focus:ring-2 focus:ring-primary/40 outline-none transition-all"
                 />
               </div>
               <div className="space-y-2">
@@ -97,7 +97,7 @@ export default function DashboardLinks({ userData, links, onRefresh, onUserChang
                 <input
                   readOnly
                   value={`@${userData?.username || "julianmarcus"}`}
-                  className="w-full bg-surface-container-high/50 border border-outline-variant/5 rounded-xl px-5 py-3.5 text-white font-bold text-sm outline-none"
+                  className="w-full bg-surface-container-high/50 border border-outline-variant/5 rounded-xl px-5 py-3.5 text-white font-bold text-sm focus:ring-2 focus:ring-primary/40 outline-none transition-all"
                 />
               </div>
             </div>
@@ -108,7 +108,7 @@ export default function DashboardLinks({ userData, links, onRefresh, onUserChang
                 readOnly
                 value={userData?.bio || "Digital curator exploring the intersection of modern hardware and atmospheric software design."}
                 rows={3}
-                className="w-full bg-surface-container-high/50 border border-outline-variant/5 rounded-2xl px-5 py-4 text-slate-300 font-medium text-sm outline-none resize-none leading-relaxed"
+                className="w-full bg-surface-container-high/50 border border-outline-variant/5 rounded-2xl px-5 py-4 text-slate-300 font-medium text-sm focus:ring-2 focus:ring-primary/40 outline-none transition-all resize-none leading-relaxed"
               />
             </div>
           </div>
