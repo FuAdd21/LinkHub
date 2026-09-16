@@ -36,7 +36,7 @@ const Login = () => {
       toast.success("Identity verified. Welcome back.");
 
       if (res.data.username) {
-        navigate(`/${res.data.username}`);
+        navigate("/dashboard");
       } else {
         navigate("/create-profile");
       }

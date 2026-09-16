@@ -37,7 +37,7 @@ function App() {
         <Route
           path="/dashboard/*"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requireUsername>
               <Suspense
                 fallback={
                   <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">

@@ -4,8 +4,8 @@ import { Navigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { isTokenExpired } from '../api/config.js';
 
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, logout } = useContext(AuthContext);
+const ProtectedRoute = ({ children, requireUsername = false }) => {
+  const { isAuthenticated, user, logout } = useContext(AuthContext);
 
   const token = localStorage.getItem("token");
   if (!isAuthenticated || !token || isTokenExpired(token)) {
@@ -14,6 +14,10 @@ const ProtectedRoute = ({ children }) => {
       logout();
     }
     return <Navigate to="/login" replace />;
+  }
+
+  if (requireUsername && !user?.username) {
+    return <Navigate to="/create-profile" replace />;
   }
 
   return children;

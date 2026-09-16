@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext } from "react";
+import React, { useState, useRef, useContext, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -39,8 +39,20 @@ const Onboarding = () => {
   const fileInputRef = useRef(null);
   const token = localStorage.getItem("token");
 
-  // Validate Username
-  const checkUsername = async (value) => {
+  // Debounced username check — waits 300ms after last keystroke
+  const debounceRef = useRef(null);
+
+  const checkUsernameApi = useCallback(async (clean) => {
+    setUsernameStatus("checking");
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/profile/check/${clean}`);
+      setUsernameStatus(res.data.available ? "available" : "taken");
+    } catch {
+      setUsernameStatus(null);
+    }
+  }, []);
+
+  const checkUsername = (value) => {
     const clean = value.toLowerCase().replace(/[^a-z0-9_-]/g, "");
     setUsername(clean);
 
@@ -49,14 +61,17 @@ const Onboarding = () => {
       return;
     }
 
-    setUsernameStatus("checking");
-    try {
-      const res = await axios.get(`${API_BASE_URL}/api/profile/check/${clean}`);
-      setUsernameStatus(res.data.available ? "available" : "taken");
-    } catch {
-      setUsernameStatus(null);
-    }
+    // Debounce: clear previous timer, set new one
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => checkUsernameApi(clean), 300);
   };
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, []);
 
   const handleAvatarSelect = (e) => {
     const file = e.target.files?.[0];
@@ -108,7 +123,7 @@ const Onboarding = () => {
       toast.success("Operational matrix configured.");
 
       // 5. Redirect to owner view
-      setTimeout(() => navigate(`/${username}`), 1000);
+      setTimeout(() => navigate("/dashboard"), 1000);
     } catch (err) {
       console.error(err);
       toast.error("Synchronization failed. Check system logs.");
