@@ -143,7 +143,15 @@ export default function DashboardLayout() {
                   />
                   <Route
                     path="links"
-                    element={<Navigate to="/dashboard" replace />}
+                    element={
+                      <DashboardLinks
+                        userData={userData}
+                        links={links}
+                        onRefresh={refresh}
+                        onUserChange={updateUser}
+                        onLinksChange={updateLinks}
+                      />
+                    }
                   />
                   <Route
                     path="overview"
