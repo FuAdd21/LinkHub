@@ -1,15 +1,22 @@
 import mysql from "mysql2/promise";
 import "dotenv/config";
 
+const required = (name) => {
+  const value = process.env[name];
+  if (!value) throw new Error(`Missing required env var: ${name}`);
+  return value;
+};
+
 const DATABASE_CONFIG = {
   host: process.env.DB_HOST || "localhost",
-  user: process.env.DB_USER || "appusers",
-  password: process.env.DB_PASSWORD || "123mine",
-  database: process.env.DB_NAME || "clientinfo",
+  user: required("DB_USER"),
+  password: required("DB_PASSWORD"),
+  database: required("DB_NAME"),
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
 };
+
 
 export const db = mysql.createPool(DATABASE_CONFIG);
 
