@@ -2,6 +2,9 @@ import { Mail, ArrowLeft, Send } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import axios from "axios";
+import toast from "react-hot-toast";
+import { API_BASE_URL } from "../api/config.js";
 
 const MotionDiv = motion.div;
 const MotionButton = motion.button;
@@ -14,14 +17,20 @@ const ForgotPassword = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!email) {
+      toast.error("Please enter your email address");
+      return;
+    }
     setLoading(true);
 
     try {
-      // Logic for sending reset link
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      await axios.post(`${API_BASE_URL}/forgot-password`, {
+        email: email.trim(),
+      });
       setSent(true);
+      toast.success("Recovery link dispatched");
     } catch (err) {
-      // Error handling
+      toast.error(err.response?.data?.message || "Recovery request failed");
     } finally {
       setLoading(false);
     }

@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import "dotenv/config";
@@ -109,5 +110,81 @@ export const login = async (req, res) => {
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ message: "Login failed. Please try again." });
+  }
+};
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email || !EMAIL_REGEX.test(email.trim())) {
+      return res.status(400).json({ message: "A valid email address is required" });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const [users] = await db.query("SELECT id FROM clients WHERE email = ?", [
+      cleanEmail,
+    ]);
+
+    if (users.length > 0) {
+      const resetToken = crypto.randomBytes(32).toString("hex");
+      // Expire in 1 hour
+      const expires = new Date(Date.now() + 3600000);
+
+      await db.query(
+        "UPDATE clients SET reset_token = ?, reset_token_expires = ? WHERE id = ?",
+        [resetToken, expires, users[0].id]
+      );
+
+      console.log(`[PASSWORD_RESET] Token for ${cleanEmail}: ${resetToken}`);
+    }
+
+    // Always respond with success to prevent email enumeration
+    res.json({
+      message:
+        "If that email exists in our system, recovery instructions have been dispatched.",
+    });
+  } catch (err) {
+    console.error("forgotPassword error:", err);
+    res.status(500).json({ message: "Recovery request failed. Please try again." });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res
+        .status(400)
+        .json({ message: "Reset token and new password are required" });
+    }
+
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) {
+      return res.status(400).json({ message: passwordError });
+    }
+
+    const [users] = await db.query(
+      "SELECT id FROM clients WHERE reset_token = ? AND reset_token_expires > NOW()",
+      [token]
+    );
+
+    if (users.length === 0) {
+      return res
+        .status(400)
+        .json({ message: "Reset token is invalid or has expired" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await db.query(
+      "UPDATE clients SET password = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?",
+      [hashedPassword, users[0].id]
+    );
+
+    res.json({ message: "Password reset successful. You may now log in with your new password." });
+  } catch (err) {
+    console.error("resetPassword error:", err);
+    res.status(500).json({ message: "Password reset failed. Please try again." });
   }
 };

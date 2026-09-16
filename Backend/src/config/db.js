@@ -119,6 +119,8 @@ export const initDatabase = async () => {
       ["twitter", "VARCHAR(100) DEFAULT NULL"],
       ["linkedin", "VARCHAR(100) DEFAULT NULL"],
       ["tiktok", "VARCHAR(100) DEFAULT NULL"],
+      ["reset_token", "VARCHAR(255) DEFAULT NULL"],
+      ["reset_token_expires", "DATETIME DEFAULT NULL"],
     ];
 
     await addMissingColumns(connection, "clients", clientColumns);
