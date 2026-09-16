@@ -19,7 +19,7 @@ export default function DashboardLinks({ userData, links, onRefresh, onUserChang
     setLoading(true);
     try {
       await axios.post(
-        `${API_BASE_URL}/api/links`,
+        `${API_BASE_URL}/api/mylinks`,
         newLink,
         getDashboardAuthConfig()
       );
@@ -36,7 +36,7 @@ export default function DashboardLinks({ userData, links, onRefresh, onUserChang
   async function handleDelete(id) {
     try {
       await axios.delete(
-        `${API_BASE_URL}/api/links/${id}`,
+        `${API_BASE_URL}/api/mylinks/${id}`,
         getDashboardAuthConfig()
       );
       onRefresh();
