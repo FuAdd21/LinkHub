@@ -13,6 +13,7 @@ import TopNavbar from "../../Components/dashboard/TopNavbar";
 import MobilePreview from "../../Components/dashboard/MobilePreview";
 import useDashboardData from "../../hooks/useDashboardData";
 import { useSocialProfiles } from "../../hooks/useSocialProfiles";
+import ErrorBoundary from "../../Components/ErrorBoundary";
 
 import { formatCompactNumber } from "../../Components/dashboard/dashboardUtils";
 
@@ -85,6 +86,27 @@ export default function DashboardLayout() {
     );
   }
 
+  if (error && !snapshot) {
+    return (
+      <div className="min-h-screen bg-[#0b0e14] flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-error/10 border border-error/20 flex items-center justify-center text-error mb-6">
+          <span className="material-symbols-outlined text-3xl">error_outline</span>
+        </div>
+        <h2 className="text-xl font-bold text-white mb-2">Failed to load dashboard data</h2>
+        <p className="text-slate-400 text-sm max-w-md mb-6 leading-relaxed">
+          {error.response?.data?.message || error.message || "We could not synchronize your hub profile with the servers."}
+        </p>
+        <button
+          onClick={() => refresh()}
+          className="px-6 py-3 rounded-xl bg-primary text-black font-bold text-sm hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
+        >
+          <span className="material-symbols-outlined text-lg">refresh</span>
+          Retry Connection
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#0b0e14] text-on-surface selection:bg-primary/30">
       <TopNavbar
@@ -104,7 +126,8 @@ export default function DashboardLayout() {
           {/* Left Side: Control Panel (40%) */}
           <section className="w-full lg:w-[40%] h-full overflow-y-auto px-8 py-10 border-r border-outline-variant/10 no-scrollbar">
             <div className="max-w-xl mx-auto">
-              <Suspense fallback={<DashboardPageSkeleton />}>
+              <ErrorBoundary>
+                <Suspense fallback={<DashboardPageSkeleton />}>
                 <Routes>
                   <Route
                     index
@@ -179,6 +202,7 @@ export default function DashboardLayout() {
                   />
                 </Routes>
               </Suspense>
+              </ErrorBoundary>
             </div>
           </section>
 

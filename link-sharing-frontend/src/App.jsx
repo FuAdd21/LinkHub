@@ -10,6 +10,8 @@ import PublicProfile from "./pages/PublicProfile";
 import Onboarding from "./pages/Onboarding";
 import { Toaster } from "react-hot-toast";
 
+import ErrorBoundary from "./Components/ErrorBoundary";
+
 // Lazy-loaded dashboard pages
 const DashboardLayout = lazy(() =>
   import("./pages/dashboard/DashboardLayout")
@@ -21,7 +23,8 @@ function App() {
       <>
         <Toaster position="top-center" reverseOrder={false} />
       </>
-      <Routes>
+      <ErrorBoundary>
+        <Routes>
         <Route path="/" element={<WelcomePage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
@@ -60,6 +63,7 @@ function App() {
           }
         />
       </Routes>
+      </ErrorBoundary>
     </Router>
   );
 }
