@@ -1,0 +1,82 @@
+/* CommandHeader.css */
+.command-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  background-color: var(--background, #0d0f0d);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.command-subtitle {
+  font-size: 0.625rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--primary, #c6f035);
+}
+
+.command-link-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 0.5rem;
+  background-color: #141714;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  color: var(--muted-foreground, #8a918a);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.command-link-pill:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.command-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  background-color: #141714;
+  color: #c5cbc5;
+  transition: all 160ms ease;
+  position: relative;
+}
+
+.command-icon-btn:hover {
+  background-color: #1b1f1b;
+  color: #ffffff;
+}
+
+.command-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 1rem;
+  border-radius: 0.5rem;
+  background-color: var(--primary, #c6f035);
+  color: var(--primary-foreground, #0e1208);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  transition: all 160ms ease;
+  box-shadow: 0 2px 8px rgba(198, 240, 53, 0.15);
+}
+
+.command-share-btn:hover {
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+.command-share-btn:active {
+  transform: translateY(0);
+}
