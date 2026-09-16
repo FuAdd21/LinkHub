@@ -68,11 +68,24 @@ export const initDatabase = async () => {
         id INT AUTO_INCREMENT PRIMARY KEY,
         link_id INT NOT NULL,
         user_id INT NOT NULL,
-        ip VARCHAR(45) DEFAULT NULL,
+        ip VARCHAR(64) DEFAULT NULL,
         device VARCHAR(20) DEFAULT 'desktop',
         referrer VARCHAR(512) DEFAULT NULL,
         timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (link_id) REFERENCES links(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Create profile_views table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS profile_views (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        ip VARCHAR(64) DEFAULT NULL,
+        device VARCHAR(20) DEFAULT 'desktop',
+        referrer VARCHAR(512) DEFAULT NULL,
+        timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES clients(id) ON DELETE CASCADE
       )
     `);
 

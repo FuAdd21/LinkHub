@@ -69,6 +69,62 @@ const PublicProfile = () => {
     };
   }, [userData?.theme]);
 
+  // Track profile view for analytics (if visitor is not the owner)
+  useEffect(() => {
+    if (userData && username && !isOwner) {
+      axios
+        .post(`${API_BASE_URL}/api/analytics/view/${username}`)
+        .catch(() => {});
+    }
+  }, [userData, username, isOwner]);
+
+  // SEO metadata update
+  useEffect(() => {
+    if (userData) {
+      const displayName = userData.full_name || userData.name || `@${username}`;
+      const bioText =
+        userData.bio || `Check out ${displayName}'s curated links on LinkHub.`;
+      const titleText = `${displayName} (@${username}) | LinkHub`;
+
+      document.title = titleText;
+
+      let metaDesc = document.querySelector('meta[name="description"]');
+      if (!metaDesc) {
+        metaDesc = document.createElement("meta");
+        metaDesc.name = "description";
+        document.head.appendChild(metaDesc);
+      }
+      metaDesc.content = bioText;
+
+      let ogTitle = document.querySelector('meta[property="og:title"]');
+      if (!ogTitle) {
+        ogTitle = document.createElement("meta");
+        ogTitle.setAttribute("property", "og:title");
+        document.head.appendChild(ogTitle);
+      }
+      ogTitle.content = titleText;
+
+      let ogDesc = document.querySelector('meta[property="og:description"]');
+      if (!ogDesc) {
+        ogDesc = document.createElement("meta");
+        ogDesc.setAttribute("property", "og:description");
+        document.head.appendChild(ogDesc);
+      }
+      ogDesc.content = bioText;
+
+      if (userData.avatar) {
+        const fullAvatar = assetUrl(userData.avatar);
+        let ogImage = document.querySelector('meta[property="og:image"]');
+        if (!ogImage) {
+          ogImage = document.createElement("meta");
+          ogImage.setAttribute("property", "og:image");
+          document.head.appendChild(ogImage);
+        }
+        ogImage.content = fullAvatar;
+      }
+    }
+  }, [userData, username]);
+
   // ──── Loading State ────
   if (loading) {
     return (
