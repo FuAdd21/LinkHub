@@ -2,7 +2,7 @@
 .destinations-card {
   border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
   border-radius: 0.625rem;
-  background-color: var(--card, #141714);
+  background-color: var(--card, #13120D);
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
@@ -82,7 +82,7 @@
   width: 2.25rem;
   height: 2.25rem;
   border-radius: 0.5rem;
-  background-color: #1a1d1a;
+  background-color: #181711;
   border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
   color: #ffffff;
   flex-shrink: 0;

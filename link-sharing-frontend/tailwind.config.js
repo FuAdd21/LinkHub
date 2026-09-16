@@ -8,27 +8,27 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: "#0d0f0d",
-        card: "#141714",
+        background: "#0B0A07",
+        card: "#13120D",
         "card-foreground": "#f3f4f3",
         border: "rgba(255, 255, 255, 0.08)",
         "border-subtle": "rgba(255, 255, 255, 0.04)",
         primary: {
           DEFAULT: "#c6f035",
-          foreground: "#0e1208",
+          foreground: "#0B0A07",
           hover: "#b5de28",
           dim: "rgba(198, 240, 53, 0.15)",
         },
         secondary: {
-          DEFAULT: "#1a1d1a",
+          DEFAULT: "#181711",
           foreground: "#e4e7e4",
         },
         muted: {
-          DEFAULT: "#181b18",
+          DEFAULT: "#181711",
           foreground: "#8a918a",
         },
         accent: {
-          DEFAULT: "#202420",
+          DEFAULT: "#1d1c15",
           foreground: "#ffffff",
         },
         destructive: "#ef4444",
@@ -38,11 +38,11 @@ export default {
         "chart-4": "#a855f7", // Purple
         "chart-5": "#ec4899", // Pink
         // Existing tokens backward compatibility
-        "surface": "#141714",
-        "surface-container": "#181c18",
-        "surface-container-high": "#1f231f",
-        "surface-container-low": "#111411",
-        "surface-container-highest": "#262b26",
+        "surface": "#13120D",
+        "surface-container": "#181711",
+        "surface-container-high": "#1e1d16",
+        "surface-container-low": "#0B0A07",
+        "surface-container-highest": "#24231b",
         "on-surface": "#f3f4f3",
         "outline": "#454b45",
         "outline-variant": "rgba(255, 255, 255, 0.08)",
@@ -52,10 +52,10 @@ export default {
         "2xl": "1.75rem",
       },
       fontFamily: {
-        sans: ["Manrope", "Inter", "sans-serif"],
-        headline: ["Manrope", "Inter", "sans-serif"],
-        body: ["Manrope", "Inter", "sans-serif"],
-        label: ["Manrope", "Inter", "sans-serif"]
+        sans: ["Plus Jakarta Sans", "Inter", "sans-serif"],
+        headline: ["Plus Jakarta Sans", "Inter", "sans-serif"],
+        body: ["Plus Jakarta Sans", "Inter", "sans-serif"],
+        label: ["Plus Jakarta Sans", "Inter", "sans-serif"]
       }
     },
   },

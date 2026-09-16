@@ -44,14 +44,14 @@ export default function DashboardOverview({
           <button
             type="button"
             onClick={() => setShowPeriodDropdown(!showPeriodDropdown)}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-[#141714] border border-white/10 text-xs font-semibold text-white hover:border-white/20 transition-all"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-lg bg-[#13120D] border border-white/10 text-xs font-semibold text-white hover:border-white/20 transition-all"
           >
             <span>{period}</span>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
           </button>
 
           {showPeriodDropdown && (
-            <div className="absolute right-0 mt-1.5 w-36 rounded-xl bg-[#181c18] border border-white/10 p-1 shadow-2xl z-20">
+            <div className="absolute right-0 mt-1.5 w-36 rounded-xl bg-[#181711] border border-white/10 p-1 shadow-2xl z-20">
               {periods.map((p) => (
                 <button
                   key={p}

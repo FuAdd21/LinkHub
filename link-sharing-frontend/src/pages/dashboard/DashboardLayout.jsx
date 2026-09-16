@@ -119,7 +119,7 @@ export default function DashboardLayout() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0d0f0d] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0B0A07] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-3 border-[#c6f035]/20 border-t-[#c6f035] rounded-full animate-spin" />
           <p className="text-[#c6f035] font-black uppercase tracking-[0.25em] text-[10px] animate-pulse">
@@ -132,7 +132,7 @@ export default function DashboardLayout() {
 
   if (error && !snapshot) {
     return (
-      <div className="min-h-screen bg-[#0d0f0d] flex flex-col items-center justify-center p-6 text-center">
+      <div className="min-h-screen bg-[#0B0A07] flex flex-col items-center justify-center p-6 text-center">
         <div className="w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 mb-4">
           <AlertCircle className="w-7 h-7" />
         </div>
@@ -142,7 +142,7 @@ export default function DashboardLayout() {
         </p>
         <button
           onClick={() => refresh()}
-          className="px-5 py-2.5 rounded-lg bg-[#c6f035] text-[#0e1208] font-bold text-xs hover:brightness-110 active:scale-95 transition-all flex items-center gap-2"
+          className="px-5 py-2.5 rounded-lg bg-[#c6f035] text-[#0B0A07] font-bold text-xs hover:brightness-110 active:scale-95 transition-all flex items-center gap-2"
         >
           <RefreshCw className="w-4 h-4" />
           Retry Connection
@@ -152,7 +152,7 @@ export default function DashboardLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0d0f0d] text-[#f3f4f3] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#0B0A07] text-[#f3f4f3] flex flex-col font-sans">
       {/* 3-Column Shell */}
       <div className="flex flex-1 h-screen overflow-hidden">
         {/* Left Column: Sidebar (232px) */}
@@ -183,7 +183,7 @@ export default function DashboardLayout() {
           />
 
           {/* Mobile Horizontal Navigation Rail (Visible on < lg screens) */}
-          <div className="lg:hidden flex items-center gap-2 px-4 py-2.5 bg-[#111311] border-b border-white/5 overflow-x-auto scrollbar-hide">
+          <div className="lg:hidden flex items-center gap-2 px-4 py-2.5 bg-[#13120D] border-b border-white/5 overflow-x-auto scrollbar-hide">
             {mobileNavTabs.map((tab) => {
               const Icon = tab.icon;
               const isActive =
@@ -196,7 +196,7 @@ export default function DashboardLayout() {
                   to={tab.path}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
                     isActive
-                      ? "bg-[#202520] text-white border border-white/10"
+                      ? "bg-[#1f1d16] text-white border border-white/10"
                       : "text-slate-400 hover:text-white"
                   }`}
                 >
@@ -295,7 +295,7 @@ export default function DashboardLayout() {
         </div>
 
         {/* Right Column: Live Canvas Rail (Visible on >= 1280px / xl screens) */}
-        <aside className="hidden xl:flex flex-col w-[360px] h-screen bg-[#0d0f0d] border-l border-white/5 p-6 overflow-y-auto shrink-0 space-y-6">
+        <aside className="hidden xl:flex flex-col w-[360px] h-screen bg-[#0B0A07] border-l border-white/5 p-6 overflow-y-auto shrink-0 space-y-6">
           <LiveCanvasPreview user={userData} links={links} />
           <div className="pt-2 border-t border-white/5">
             <QuickLinksToggle

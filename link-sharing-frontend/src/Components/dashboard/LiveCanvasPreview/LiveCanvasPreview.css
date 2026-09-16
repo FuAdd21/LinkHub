@@ -38,7 +38,7 @@
 .canvas-phone-frame {
   border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
   border-radius: 1.75rem;
-  background-color: #111311;
+  background-color: #0B0A07;
   padding: 1.75rem 1.25rem;
   display: flex;
   flex-direction: column;
@@ -56,7 +56,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #0e1208;
+  color: #0B0A07;
   font-size: 1.35rem;
   font-weight: 900;
   box-shadow: 0 8px 24px rgba(198, 240, 53, 0.2);
@@ -103,7 +103,7 @@
   width: 2rem;
   height: 2rem;
   border-radius: 0.5rem;
-  background-color: #1a1d1a;
+  background-color: #181711;
   border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
   color: #c5cbc5;
   transition: all 160ms ease;
@@ -128,7 +128,7 @@
   justify-content: space-between;
   padding: 0.75rem 0.85rem;
   border-radius: 0.75rem;
-  background-color: rgba(26, 30, 26, 0.6);
+  background-color: rgba(19, 18, 13, 0.75);
   border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
   backdrop-filter: blur(12px);
   color: #ffffff;

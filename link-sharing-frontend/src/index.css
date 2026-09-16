@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700&family=Manrope:wght@400;500;600;700;800&family=Sora:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,700&family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -8,24 +8,24 @@
    ============================================= */
 :root {
   --radius: 0.5rem;
-  --background: #0d0f0d;
+  --background: #0B0A07;
   --foreground: #f3f4f3;
-  --card: #141714;
+  --card: #13120D;
   --card-foreground: #f3f4f3;
-  --popover: #181b18;
+  --popover: #181711;
   --popover-foreground: #f3f4f3;
   --border: rgba(255, 255, 255, 0.08);
   --border-subtle: rgba(255, 255, 255, 0.04);
   --input: rgba(255, 255, 255, 0.08);
   --ring: #c6f035;
   --primary: #c6f035;
-  --primary-foreground: #0e1208;
+  --primary-foreground: #0B0A07;
   --primary-hover: #b5de28;
-  --secondary: #1a1d1a;
+  --secondary: #181711;
   --secondary-foreground: #e4e7e4;
-  --muted: #181b18;
+  --muted: #181711;
   --muted-foreground: #8a918a;
-  --accent: #202420;
+  --accent: #1d1c15;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
@@ -36,16 +36,16 @@
   --chart-5: #ec4899;
 
   /* Public profile theme defaults */
-  --bg-primary: #0d0f0d;
-  --bg-secondary: #141714;
-  --bg-tertiary: #1a1d1a;
-  --card-bg: #141714;
+  --bg-primary: #0B0A07;
+  --bg-secondary: #13120D;
+  --bg-tertiary: #181711;
+  --card-bg: #13120D;
   --card-border: rgba(255, 255, 255, 0.08);
   --card-hover: rgba(198, 240, 53, 0.06);
   --text-primary: #f3f4f3;
   --text-secondary: #8a918a;
   --text-muted: #5e655e;
-  --nav-bg: rgba(13, 15, 13, 0.95);
+  --nav-bg: rgba(11, 10, 7, 0.95);
   --nav-text: rgba(243, 244, 243, 0.6);
   --nav-active: #f3f4f3;
   --nav-active-bg: rgba(198, 240, 53, 0.12);
@@ -55,16 +55,16 @@
   --link-btn-border: rgba(255, 255, 255, 0.08);
   --link-btn-hover: rgba(198, 240, 53, 0.1);
   --logo-gradient: linear-gradient(135deg, #c6f035, #22d3ee);
-  --font-body: "Manrope", "Inter", sans-serif;
-  --font-display: "Manrope", sans-serif;
+  --font-body: "Plus Jakarta Sans", "Inter", sans-serif;
+  --font-display: "Plus Jakarta Sans", sans-serif;
 
   /* Dashboard SaaS tokens */
-  --saas-bg-main: #0d0f0d;
-  --saas-bg-surface: #141714;
-  --saas-bg-elevated: #1a1d1a;
+  --saas-bg-main: #0B0A07;
+  --saas-bg-surface: #13120D;
+  --saas-bg-elevated: #181711;
   --saas-border: rgba(255, 255, 255, 0.08);
   --saas-border-hover: rgba(198, 240, 53, 0.35);
-  --saas-card: #141714;
+  --saas-card: #13120D;
   --saas-card-hover: rgba(198, 240, 53, 0.04);
   --saas-text-primary: #f3f4f3;
   --saas-text-secondary: #8a918a;
@@ -73,7 +73,7 @@
   --saas-accent-tertiary: #f97316;
   --saas-accent-gradient: linear-gradient(135deg, #c6f035 0%, #22d3ee 100%);
   --saas-accent-glow: rgba(198, 240, 53, 0.3);
-  --saas-sidebar-bg: #0d0f0d;
+  --saas-sidebar-bg: #0B0A07;
 }
 
 [data-theme="neon-glow"] {
