@@ -14,10 +14,15 @@ import MobilePreview from "../../Components/dashboard/MobilePreview";
 import useDashboardData from "../../hooks/useDashboardData";
 import { useSocialProfiles } from "../../hooks/useSocialProfiles";
 
+import { formatCompactNumber } from "../../Components/dashboard/dashboardUtils";
+
 const DashboardProfile = lazy(() => import("./DashboardProfile"));
 const DashboardLinks = lazy(() => import("./DashboardLinks"));
 const DashboardThemes = lazy(() => import("./DashboardThemes"));
 const DashboardSettings = lazy(() => import("./DashboardSettings"));
+const DashboardOverview = lazy(() => import("./DashboardOverview"));
+const DashboardAnalytics = lazy(() => import("./DashboardAnalytics"));
+const DashboardSocials = lazy(() => import("./DashboardSocials"));
 
 function DashboardPageSkeleton() {
   return (
@@ -113,7 +118,21 @@ export default function DashboardLayout() {
                       />
                     }
                   />
-                  <Route path="links" element={<Navigate to="/dashboard" replace />} />
+                  <Route
+                    path="links"
+                    element={<Navigate to="/dashboard" replace />}
+                  />
+                  <Route
+                    path="overview"
+                    element={
+                      <DashboardOverview
+                        userData={userData}
+                        links={links}
+                        analytics={analytics}
+                        socialPreviewData={socialProfilesData}
+                      />
+                    }
+                  />
                   <Route
                     path="profile"
                     element={
@@ -123,6 +142,21 @@ export default function DashboardLayout() {
                         onUserChange={updateUser}
                       />
                     }
+                  />
+                  <Route
+                    path="socials"
+                    element={
+                      <DashboardSocials
+                        userData={userData}
+                        onRefresh={refresh}
+                        onUserChange={updateUser}
+                        socialPreviewData={socialProfilesData}
+                      />
+                    }
+                  />
+                  <Route
+                    path="analytics"
+                    element={<DashboardAnalytics analytics={analytics} />}
                   />
                   <Route
                     path="themes"
@@ -167,23 +201,27 @@ export default function DashboardLayout() {
                   links={links}
                 />
 
-                {/* Real-time Insight Toast (Match Image 1) */}
+                {/* Real-time Insight Toast */}
                 <div className="absolute -right-24 bottom-32 w-72 p-5 bg-surface-container-high/60 backdrop-blur-2xl border border-outline-variant/20 rounded-[1.5rem] shadow-2xl animate-in slide-in-from-right-10 duration-1000">
                     <div className="flex items-start gap-4">
                         <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary shadow-inner">
                             <span className="material-symbols-outlined text-xl">show_chart</span>
                         </div>
                         <div className="space-y-1">
-                            <p className="text-[9px] font-black uppercase tracking-[0.15em] text-primary">Real-time Insight</p>
+                            <p className="text-[9px] font-black uppercase tracking-[0.15em] text-primary">Live Signal</p>
                             <p className="text-[11px] font-bold text-on-surface leading-normal opacity-90">
-                                Your profile traffic is up 12% today. Most users are clicking your "Latest Collection" link.
+                              {analytics?.topLinks?.[0]
+                                ? `Top performing: "${analytics.topLinks[0].title}" (${analytics.topLinks[0].clicks} clicks recorded).`
+                                : analytics?.todayClicks > 0
+                                ? `${analytics.todayClicks} ${analytics.todayClicks === 1 ? "click" : "clicks"} recorded today across your links.`
+                                : "Share your link to start gathering real-time audience signals."}
                             </p>
                         </div>
                     </div>
                 </div>
               </div>
 
-              {/* Stats Bar (Match Image 1) */}
+              {/* Stats Bar */}
               <div className="mt-12 overflow-hidden rounded-3xl bg-surface-container-low/40 backdrop-blur-xl border border-outline-variant/10 p-1">
                   <div className="flex items-center">
                       <div className="px-8 py-4 text-center border-r border-outline-variant/10">
@@ -191,12 +229,24 @@ export default function DashboardLayout() {
                           <p className="text-[9px] font-black uppercase tracking-widest text-outline mt-1.5 opacity-60">Links</p>
                       </div>
                       <div className="px-8 py-4 text-center border-r border-outline-variant/10">
-                          <p className="text-2xl font-black text-white leading-none">4</p>
+                          <p className="text-2xl font-black text-white leading-none">
+                            {[
+                              userData?.youtubeId,
+                              userData?.githubUser,
+                              userData?.instagram,
+                              userData?.twitter,
+                              userData?.telegramUser,
+                              userData?.linkedin,
+                              userData?.tiktok,
+                            ].filter(Boolean).length}
+                          </p>
                           <p className="text-[9px] font-black uppercase tracking-widest text-outline mt-1.5 opacity-60">Socials</p>
                       </div>
                       <div className="px-8 py-4 text-center">
-                          <p className="text-2xl font-black text-white leading-none">8.4k</p>
-                          <p className="text-[9px] font-black uppercase tracking-widest text-outline mt-1.5 opacity-60">Views</p>
+                          <p className="text-2xl font-black text-white leading-none">
+                            {formatCompactNumber(analytics?.totalClicks ?? 0)}
+                          </p>
+                          <p className="text-[9px] font-black uppercase tracking-widest text-outline mt-1.5 opacity-60">Clicks</p>
                       </div>
                   </div>
               </div>

@@ -2,8 +2,11 @@ import { NavLink } from "react-router-dom";
 import { cx } from "./dashboardUtils";
 
 const SIDEBAR_ITEMS = [
-  { id: "profile", label: "Profile", icon: "person", to: "/dashboard" },
-  { id: "links", label: "Links", icon: "link", to: "/dashboard/links" },
+  { id: "links", label: "Links", icon: "link", to: "/dashboard" },
+  { id: "profile", label: "Profile", icon: "person", to: "/dashboard/profile" },
+  { id: "socials", label: "Socials", icon: "alternate_email", to: "/dashboard/socials" },
+  { id: "analytics", label: "Analytics", icon: "query_stats", to: "/dashboard/analytics" },
+  { id: "overview", label: "Overview", icon: "dashboard", to: "/dashboard/overview" },
   { id: "themes", label: "Design", icon: "palette", to: "/dashboard/themes" },
   { id: "settings", label: "Settings", icon: "settings", to: "/dashboard/settings" },
 ];
