@@ -1,5 +1,4 @@
-import axios from "axios";
-import { API_BASE_URL } from "./config.js";
+import { api, API_BASE_URL } from "./config.js";
 
 const DASHBOARD_CACHE_TTL = 30000;
 
@@ -49,9 +48,9 @@ export async function fetchDashboardSnapshot({ force = false } = {}) {
   }
 
   const request = Promise.all([
-    axios.get(`${API_BASE_URL}/api/users/me`, getDashboardAuthConfig()),
-    axios.get(`${API_BASE_URL}/api/mylinks`, getDashboardAuthConfig()),
-    axios.get(`${API_BASE_URL}/api/analytics`, getDashboardAuthConfig()),
+    api.get("/api/users/me"),
+    api.get("/api/mylinks"),
+    api.get("/api/analytics"),
   ])
     .then(([userResponse, linksResponse, analyticsResponse]) =>
       writeDashboardSnapshot({
