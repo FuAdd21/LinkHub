@@ -79,13 +79,3 @@ export const login = async (req, res) => {
   }
 };
 
-export const getAllClients = async (req, res) => {
-  try {
-    const [results] = await db.query(
-      "SELECT id, name, email, phone, username, bio, avatar, theme, background_type, background_value, youtubeId, githubUser, telegramUser, instagram, twitter, linkedin, tiktok FROM clients",
-    );
-    res.json(results);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
