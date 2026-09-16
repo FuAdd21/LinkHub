@@ -1,0 +1,95 @@
+/* QuickLinksToggle.css */
+.quick-links-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  width: 100%;
+}
+
+.quick-link-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0.85rem;
+  border-radius: 0.625rem;
+  background-color: var(--card, #141714);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  transition: all 160ms ease;
+}
+
+.quick-link-row:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+.quick-link-left {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.quick-link-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Custom Lime Toggle Switch */
+.quick-toggle-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 2.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background-color 200ms ease;
+  flex-shrink: 0;
+}
+
+.quick-toggle-switch.active {
+  background-color: var(--primary, #c6f035);
+}
+
+.quick-toggle-switch.inactive {
+  background-color: #262c26;
+}
+
+.quick-toggle-thumb {
+  width: 0.95rem;
+  height: 0.95rem;
+  border-radius: 9999px;
+  background-color: #0e1208;
+  transform: translateX(2px);
+  transition: transform 200ms ease;
+}
+
+.quick-toggle-switch.active .quick-toggle-thumb {
+  transform: translateX(18px);
+}
+
+.quick-add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.7rem;
+  border-radius: 0.625rem;
+  background-color: transparent;
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+  color: #c5cbc5;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  transition: all 160ms ease;
+  cursor: pointer;
+}
+
+.quick-add-btn:hover {
+  border-color: var(--primary, #c6f035);
+  color: var(--primary, #c6f035);
+  background-color: rgba(198, 240, 53, 0.04);
+}
