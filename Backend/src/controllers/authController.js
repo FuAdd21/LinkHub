@@ -3,6 +3,22 @@ import jwt from "jsonwebtoken";
 import "dotenv/config";
 import { db } from "../config/db.js";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PASSWORD_MIN_LENGTH = 8;
+
+function validatePassword(password) {
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    return "Password must be at least 8 characters";
+  }
+  if (!/[A-Z]/.test(password)) {
+    return "Password must contain at least one uppercase letter";
+  }
+  if (!/[0-9]/.test(password)) {
+    return "Password must contain at least one number";
+  }
+  return null;
+}
+
 export const register = async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
@@ -14,6 +30,16 @@ export const register = async (req, res) => {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
+
+    if (!EMAIL_REGEX.test(normalizedEmail)) {
+      return res.status(400).json({ error: "Please enter a valid email address" });
+    }
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      return res.status(400).json({ error: passwordError });
+    }
+
     const [existingUsers] = await db.query(
       "SELECT id FROM clients WHERE email = ? LIMIT 1",
       [normalizedEmail],
@@ -32,9 +58,10 @@ export const register = async (req, res) => {
       [name.trim(), normalizedEmail, hashedPassword, phone ? phone.trim() : ""],
     );
 
-    res.json({ message: "Client added securely!", clientId: result.insertId });
+    res.json({ message: "Account created successfully!", clientId: result.insertId });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Register error:", err);
+    res.status(500).json({ error: "Registration failed. Please try again." });
   }
 };
 
@@ -42,8 +69,13 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
+
     if (!process.env.JWT_SECRET) {
-      return res.status(500).json({ message: "JWT configuration is missing" });
+      console.error("CRITICAL: JWT_SECRET is not configured");
+      return res.status(500).json({ message: "Server configuration error" });
     }
 
     const [results] = await db.query("SELECT * FROM clients WHERE email = ?", [
@@ -75,7 +107,7 @@ export const login = async (req, res) => {
       token,
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Login error:", err);
+    res.status(500).json({ message: "Login failed. Please try again." });
   }
 };
-
