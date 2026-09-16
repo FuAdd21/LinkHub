@@ -53,6 +53,7 @@ graph TD
 
 ### Frontend
 - **Framework**: React 19 (Vite)
+- **Typography & Font Family**: Inter (Clean, modern geometric sans-serif loaded via Google Fonts)
 - **Styling**: TailwindCSS & Custom CSS Variables (Design Tokens)
 - **Animations**: Framer Motion
 - **Drag & Drop**: React DnD with HTML5 Backend
@@ -60,6 +61,14 @@ graph TD
 - **Icons**: Lucide React & React Icons
 - **Notifications**: React Hot Toast
 - **Routing**: React Router v7
+
+### 🎨 Brand Identity & Typography Hierarchy
+LinkHub enforces a cohesive visual identity across all digital interfaces, marketing assets, and documentation:
+- **Primary Typeface**: **Inter** (modern geometric sans-serif).
+- **Headlines & Titles**: **Inter (Bold 700 / Semi-Bold 600)** with refined letter-spacing (`-0.02em` to `-0.025em`) for authoritative, high-impact titles.
+- **Body Text & Subtitles**: **Inter (Regular 400 / Light 300)** with balanced line-height for effortless readability.
+- **UI Labels & Tags**: **Inter (Medium 500 / Semi-Bold 600)** with subtle tracking for badges, button labels, and navigation pills.
+
 
 ### Backend
 - **Runtime**: Node.js (ES Modules)

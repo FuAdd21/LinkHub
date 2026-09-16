@@ -52,11 +52,13 @@ export default {
         "2xl": "1.75rem",
       },
       fontFamily: {
-        sans: ["Plus Jakarta Sans", "Inter", "sans-serif"],
-        headline: ["Plus Jakarta Sans", "Inter", "sans-serif"],
-        body: ["Plus Jakarta Sans", "Inter", "sans-serif"],
-        label: ["Plus Jakarta Sans", "Inter", "sans-serif"]
-      }
+        sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
+        headline: ["Inter", "sans-serif"],
+        title: ["Inter", "sans-serif"],
+        body: ["Inter", "sans-serif"],
+        subtitle: ["Inter", "sans-serif"],
+        label: ["Inter", "sans-serif"],
+      },
     },
   },
   plugins: [],
