@@ -3,6 +3,17 @@ import { detectPlatform } from "../utils/detectPlatform.js";
 import { fetchProfileData } from "../services/profileFetcher.js";
 import { fetchSocialProfile } from "../services/socialFetchService.js";
 
+const MAX_LINKS_PER_USER = parseInt(process.env.MAX_LINKS_PER_USER, 10) || 50;
+
+function isValidUrl(string) {
+  try {
+    const parsed = new URL(string);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export const getLinks = async (req, res) => {
   try {
     const userId = req.user?.id;
@@ -17,13 +28,16 @@ export const getLinks = async (req, res) => {
 
     const parsed = results.map((link) => ({
       ...link,
-      profileData: typeof link.profileData === "string" ? JSON.parse(link.profileData) : link.profileData,
+      profileData:
+        typeof link.profileData === "string"
+          ? JSON.parse(link.profileData)
+          : link.profileData,
     }));
 
     res.json(parsed);
   } catch (err) {
     console.error("getLinks error:", err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ message: "Failed to retrieve links" });
   }
 };
 
@@ -34,6 +48,23 @@ export const createLink = async (req, res) => {
 
     if (!title || !url) {
       return res.status(400).json({ message: "Title and URL are required" });
+    }
+
+    if (!isValidUrl(url)) {
+      return res.status(400).json({
+        message: "Invalid URL format. URL must start with http:// or https://",
+      });
+    }
+
+    // Check link limit
+    const [countResult] = await db.query(
+      "SELECT COUNT(*) as total FROM links WHERE user_id = ?",
+      [userId]
+    );
+    if (countResult[0].total >= MAX_LINKS_PER_USER) {
+      return res.status(400).json({
+        message: `Maximum link limit reached (${MAX_LINKS_PER_USER} links). Delete unused links to add more.`,
+      });
     }
 
     // Detect platform and extract username
@@ -102,11 +133,15 @@ export const createLink = async (req, res) => {
       message: "Link created",
       link: {
         ...newLink[0],
-        profileData: typeof newLink[0].profileData === "string" ? JSON.parse(newLink[0].profileData) : newLink[0].profileData,
+        profileData:
+          typeof newLink[0].profileData === "string"
+            ? JSON.parse(newLink[0].profileData)
+            : newLink[0].profileData,
       },
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("createLink error:", err);
+    res.status(500).json({ message: "Failed to create link" });
   }
 };
 
@@ -118,6 +153,12 @@ export const updateLink = async (req, res) => {
 
     if (!title || !url) {
       return res.status(400).json({ message: "Title and URL are required" });
+    }
+
+    if (!isValidUrl(url)) {
+      return res.status(400).json({
+        message: "Invalid URL format. URL must start with http:// or https://",
+      });
     }
 
     // Re-detect platform on update
@@ -177,11 +218,15 @@ export const updateLink = async (req, res) => {
       message: "Link updated",
       link: {
         ...updatedLink[0],
-        profileData: typeof updatedLink[0].profileData === "string" ? JSON.parse(updatedLink[0].profileData) : updatedLink[0].profileData,
+        profileData:
+          typeof updatedLink[0].profileData === "string"
+            ? JSON.parse(updatedLink[0].profileData)
+            : updatedLink[0].profileData,
       },
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("updateLink error:", err);
+    res.status(500).json({ message: "Failed to update link" });
   }
 };
 
@@ -201,11 +246,13 @@ export const deleteLink = async (req, res) => {
 
     res.json({ message: "Link deleted" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("deleteLink error:", err);
+    res.status(500).json({ message: "Failed to delete link" });
   }
 };
 
 export const reorderLinks = async (req, res) => {
+  let connection;
   try {
     const userId = req.user.id;
     const { order } = req.body;
@@ -214,17 +261,25 @@ export const reorderLinks = async (req, res) => {
       return res.status(400).json({ message: "Invalid order array" });
     }
 
-    // Update each link's position properly
+    connection = await db.getConnection();
+    await connection.beginTransaction();
+
+    // Update each link's position inside transaction
     for (let i = 0; i < order.length; i++) {
-      await db.query(
+      await connection.query(
         "UPDATE links SET position = ? WHERE id = ? AND user_id = ?",
         [i, order[i], userId]
       );
     }
 
+    await connection.commit();
     res.json({ message: "Links reordered" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    if (connection) await connection.rollback();
+    console.error("reorderLinks error:", err);
+    res.status(500).json({ message: "Failed to reorder links" });
+  } finally {
+    if (connection) connection.release();
   }
 };
 
@@ -253,6 +308,7 @@ export const toggleVisibility = async (req, res) => {
       link: updated[0],
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("toggleVisibility error:", err);
+    res.status(500).json({ message: "Failed to toggle link visibility" });
   }
 };
