@@ -2,11 +2,17 @@
 import React, { useContext } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { isTokenExpired } from '../api/config.js';
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated } = useContext(AuthContext);
+  const { isAuthenticated, logout } = useContext(AuthContext);
 
-  if (!isAuthenticated) {
+  const token = localStorage.getItem("token");
+  if (!isAuthenticated || !token || isTokenExpired(token)) {
+    if (isAuthenticated) {
+      // Token expired since last check — force logout
+      logout();
+    }
     return <Navigate to="/login" replace />;
   }
 
