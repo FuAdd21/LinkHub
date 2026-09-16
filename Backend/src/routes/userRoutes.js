@@ -7,9 +7,13 @@ import {
   updateBanner,
   getMe,
   updateSocialProfiles,
+  changePassword,
+  changeEmail,
+  deleteAccount,
 } from "../controllers/userController.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 
+router.get("/me", authenticateToken, getMe);
 router.put("/avatar", authenticateToken, upload.single("avatar"), updateAvatar);
 router.put(
   "/banner",
@@ -17,7 +21,9 @@ router.put(
   uploadBanner.single("banner"),
   updateBanner,
 );
-router.get("/me", authenticateToken, getMe);
 router.put("/social-profiles", authenticateToken, updateSocialProfiles);
+router.put("/password", authenticateToken, changePassword);
+router.put("/email", authenticateToken, changeEmail);
+router.delete("/account", authenticateToken, deleteAccount);
 
 export default router;
