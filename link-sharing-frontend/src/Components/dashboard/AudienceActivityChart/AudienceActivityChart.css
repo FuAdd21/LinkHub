@@ -1,0 +1,53 @@
+/* AudienceActivityChart.css */
+.audience-chart-card {
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  border-radius: 0.625rem;
+  background-color: var(--card, #141714);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.audience-chart-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.audience-chart-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.audience-chart-subtitle {
+  font-size: 0.75rem;
+  color: var(--muted-foreground, #8a918a);
+  margin-top: 0.25rem;
+}
+
+.chart-viewport {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  margin-top: auto;
+}
+
+.chart-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.chart-axis-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+  padding: 0 0.5rem;
+  font-size: 0.6875rem;
+  color: #636b63;
+  font-weight: 500;
+}

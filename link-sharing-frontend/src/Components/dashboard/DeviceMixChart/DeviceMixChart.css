@@ -1,0 +1,93 @@
+/* DeviceMixChart.css */
+.device-mix-card {
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  border-radius: 0.625rem;
+  background-color: var(--card, #141714);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.device-mix-header {
+  margin-bottom: 1.25rem;
+}
+
+.device-mix-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.device-mix-subtitle {
+  font-size: 0.75rem;
+  color: var(--muted-foreground, #8a918a);
+  margin-top: 0.25rem;
+}
+
+.donut-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 170px;
+  height: 170px;
+  margin: 0.5rem auto 1.5rem;
+}
+
+.donut-center-content {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+
+.donut-visitors-val {
+  font-size: 1.35rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  line-height: 1.1;
+}
+
+.donut-visitors-label {
+  font-size: 0.6875rem;
+  color: var(--muted-foreground, #8a918a);
+  font-weight: 500;
+}
+
+.device-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: auto;
+}
+
+.device-legend-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #a2aba2;
+}
+
+.device-legend-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.device-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 9999px;
+}
+
+.device-pct {
+  font-weight: 700;
+  color: #ffffff;
+}
