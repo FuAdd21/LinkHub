@@ -3,36 +3,47 @@ import {
   Suspense,
   useContext,
   useEffect,
-  useMemo,
   useState,
 } from "react";
-import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { Link, Navigate, Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import {
+  LayoutGrid,
+  Link2,
+  Palette,
+  BarChart2,
+  Radio,
+  Settings,
+  AlertCircle,
+  RefreshCw,
+} from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
-import Sidebar from "../../Components/dashboard/Sidebar";
-import TopNavbar from "../../Components/dashboard/TopNavbar";
-import MobilePreview from "../../Components/dashboard/MobilePreview";
 import useDashboardData from "../../hooks/useDashboardData";
-import { useSocialProfiles } from "../../hooks/useSocialProfiles";
+import { api } from "../../api/config";
 import ErrorBoundary from "../../Components/ErrorBoundary";
 
-import { formatCompactNumber } from "../../Components/dashboard/dashboardUtils";
+// Modular Navigation & Rail Components
+import SidebarNav from "../../Components/dashboard/SidebarNav/SidebarNav";
+import CommandHeader from "../../Components/dashboard/CommandHeader/CommandHeader";
+import LiveCanvasPreview from "../../Components/dashboard/LiveCanvasPreview/LiveCanvasPreview";
+import QuickLinksToggle from "../../Components/dashboard/QuickLinksToggle/QuickLinksToggle";
 
-const DashboardProfile = lazy(() => import("./DashboardProfile"));
+const DashboardOverview = lazy(() => import("./DashboardOverview"));
 const DashboardLinks = lazy(() => import("./DashboardLinks"));
 const DashboardThemes = lazy(() => import("./DashboardThemes"));
-const DashboardSettings = lazy(() => import("./DashboardSettings"));
-const DashboardOverview = lazy(() => import("./DashboardOverview"));
 const DashboardAnalytics = lazy(() => import("./DashboardAnalytics"));
 const DashboardSocials = lazy(() => import("./DashboardSocials"));
+const DashboardSettings = lazy(() => import("./DashboardSettings"));
+const DashboardProfile = lazy(() => import("./DashboardProfile"));
 
 function DashboardPageSkeleton() {
   return (
-    <div className="space-y-10 animate-pulse">
-      <div className="h-8 w-1/3 bg-surface-container-highest rounded-xl" />
-      <div className="h-48 w-full bg-surface-container-highest rounded-xl" />
-      <div className="space-y-4">
-        <div className="h-20 w-full bg-surface-container-highest rounded-xl" />
-        <div className="h-20 w-full bg-surface-container-highest rounded-xl" />
+    <div className="space-y-6 animate-pulse p-2">
+      <div className="h-8 w-1/4 bg-white/5 rounded-lg" />
+      <div className="h-32 w-full bg-white/5 rounded-xl" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="h-64 bg-white/5 rounded-xl" />
+        <div className="h-64 bg-white/5 rounded-xl" />
       </div>
     </div>
   );
@@ -41,6 +52,7 @@ function DashboardPageSkeleton() {
 export default function DashboardLayout() {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const {
@@ -56,14 +68,6 @@ export default function DashboardLayout() {
   const links = snapshot?.links || [];
   const analytics = snapshot?.analytics;
 
-  // socialProfiles hook expects an object of handles/IDs
-  const { data: socialProfilesData } = useSocialProfiles({
-    youtubeId: userData?.youtubeId,
-    githubUser: userData?.githubUser,
-    instagram: userData?.instagram,
-    twitter: userData?.twitter,
-  });
-
   useEffect(() => {
     if (!user && !loading) {
       navigate("/login");
@@ -75,12 +79,52 @@ export default function DashboardLayout() {
     navigate("/login");
   };
 
+  // Toggle link visibility directly from QuickLinksToggle
+  const handleToggleLink = async (linkId, currentVisibility) => {
+    try {
+      const nextVal = currentVisibility ? 0 : 1;
+      await api.put(`/api/links/${linkId}`, { is_visible: nextVal });
+      updateLinks((prev) =>
+        prev.map((l) => (l.id === linkId ? { ...l, is_visible: nextVal } : l))
+      );
+      toast.success(nextVal ? "Link is now visible" : "Link is now hidden", {
+        icon: nextVal ? "👁️" : "🙈",
+      });
+    } catch {
+      toast.error("Failed to update link visibility");
+    }
+  };
+
+  // Determine current page title for CommandHeader
+  const getPageTitle = () => {
+    const path = location.pathname;
+    if (path.includes("/links")) return "Links";
+    if (path.includes("/themes")) return "Appearance";
+    if (path.includes("/analytics")) return "Analytics";
+    if (path.includes("/socials")) return "Integrations";
+    if (path.includes("/settings")) return "Settings";
+    if (path.includes("/profile")) return "Profile";
+    return "Overview";
+  };
+
+  // Mobile horizontal nav tabs matching mobile.png
+  const mobileNavTabs = [
+    { label: "Overview", path: "/dashboard/overview", icon: LayoutGrid },
+    { label: "Links", path: "/dashboard/links", icon: Link2 },
+    { label: "Appearance", path: "/dashboard/themes", icon: Palette },
+    { label: "Analytics", path: "/dashboard/analytics", icon: BarChart2 },
+    { label: "Integrations", path: "/dashboard/socials", icon: Radio },
+    { label: "Settings", path: "/dashboard/settings", icon: Settings },
+  ];
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0b0e14] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0d0f0d] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-           <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-           <p className="text-primary font-black uppercase tracking-[0.3em] text-[10px] animate-pulse">Synchronizing Hub</p>
+          <div className="w-10 h-10 border-3 border-[#c6f035]/20 border-t-[#c6f035] rounded-full animate-spin" />
+          <p className="text-[#c6f035] font-black uppercase tracking-[0.25em] text-[10px] animate-pulse">
+            Connecting Command Center
+          </p>
         </div>
       </div>
     );
@@ -88,19 +132,19 @@ export default function DashboardLayout() {
 
   if (error && !snapshot) {
     return (
-      <div className="min-h-screen bg-[#0b0e14] flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-error/10 border border-error/20 flex items-center justify-center text-error mb-6">
-          <span className="material-symbols-outlined text-3xl">error_outline</span>
+      <div className="min-h-screen bg-[#0d0f0d] flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 mb-4">
+          <AlertCircle className="w-7 h-7" />
         </div>
-        <h2 className="text-xl font-bold text-white mb-2">Failed to load dashboard data</h2>
-        <p className="text-slate-400 text-sm max-w-md mb-6 leading-relaxed">
-          {error.response?.data?.message || error.message || "We could not synchronize your hub profile with the servers."}
+        <h2 className="text-xl font-bold text-white mb-2">Failed to synchronize dashboard</h2>
+        <p className="text-slate-400 text-xs max-w-md mb-6">
+          {error.response?.data?.message || error.message || "Could not connect to database servers."}
         </p>
         <button
           onClick={() => refresh()}
-          className="px-6 py-3 rounded-xl bg-primary text-black font-bold text-sm hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
+          className="px-5 py-2.5 rounded-lg bg-[#c6f035] text-[#0e1208] font-bold text-xs hover:brightness-110 active:scale-95 transition-all flex items-center gap-2"
         >
-          <span className="material-symbols-outlined text-lg">refresh</span>
+          <RefreshCw className="w-4 h-4" />
           Retry Connection
         </button>
       </div>
@@ -108,36 +152,83 @@ export default function DashboardLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0b0e14] text-on-surface selection:bg-primary/30">
-      <TopNavbar
-        user={userData}
-        onMenuClick={() => setSidebarOpen(true)}
-      />
-
-      <div className="flex h-screen pt-20">
-        <Sidebar
+    <div className="min-h-screen bg-[#0d0f0d] text-[#f3f4f3] flex flex-col font-sans">
+      {/* 3-Column Shell */}
+      <div className="flex flex-1 h-screen overflow-hidden">
+        {/* Left Column: Sidebar (232px) */}
+        <SidebarNav
+          user={userData}
+          links={links}
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
-          user={userData}
           onLogout={handleLogout}
         />
 
-        <main className="ml-0 lg:ml-80 flex flex-1 overflow-hidden">
-          {/* Left Side: Control Panel (40%) */}
-          <section className="w-full lg:w-[40%] h-full overflow-y-auto px-8 py-10 border-r border-outline-variant/10 no-scrollbar">
-            <div className="max-w-xl mx-auto">
-              <ErrorBoundary>
-                <Suspense fallback={<DashboardPageSkeleton />}>
+        {/* Center Column: Main Content & Header */}
+        <div className="flex-1 flex flex-col min-w-0 lg:ml-[232px] overflow-hidden">
+          {/* Command Center Sticky Header */}
+          <CommandHeader
+            title={getPageTitle()}
+            user={userData}
+            onMenuClick={() => setSidebarOpen(true)}
+            onShare={() => {
+              const url = `${window.location.origin}/${userData?.username || "maya"}`;
+              if (navigator.share) {
+                navigator.share({ title: "My LinkHub", url }).catch(() => {});
+              } else {
+                navigator.clipboard.writeText(url);
+                toast.success("Profile URL copied to clipboard!");
+              }
+            }}
+          />
+
+          {/* Mobile Horizontal Navigation Rail (Visible on < lg screens) */}
+          <div className="lg:hidden flex items-center gap-2 px-4 py-2.5 bg-[#111311] border-b border-white/5 overflow-x-auto scrollbar-hide">
+            {mobileNavTabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive =
+                location.pathname === tab.path ||
+                (tab.path === "/dashboard/overview" && location.pathname === "/dashboard");
+
+              return (
+                <Link
+                  key={tab.label}
+                  to={tab.path}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
+                    isActive
+                      ? "bg-[#202520] text-white border border-white/10"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? "text-[#c6f035]" : ""}`} />
+                  <span>{tab.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Scrollable Center Main Body */}
+          <main className="flex-1 overflow-y-auto px-4 sm:px-8 py-6">
+            <ErrorBoundary>
+              <Suspense fallback={<DashboardPageSkeleton />}>
                 <Routes>
                   <Route
                     index
                     element={
-                      <DashboardLinks
+                      <DashboardOverview
                         userData={userData}
                         links={links}
-                        onRefresh={refresh}
-                        onUserChange={updateUser}
-                        onLinksChange={updateLinks}
+                        analytics={analytics}
+                      />
+                    }
+                  />
+                  <Route
+                    path="overview"
+                    element={
+                      <DashboardOverview
+                        userData={userData}
+                        links={links}
+                        analytics={analytics}
                       />
                     }
                   />
@@ -150,17 +241,6 @@ export default function DashboardLayout() {
                         onRefresh={refresh}
                         onUserChange={updateUser}
                         onLinksChange={updateLinks}
-                      />
-                    }
-                  />
-                  <Route
-                    path="overview"
-                    element={
-                      <DashboardOverview
-                        userData={userData}
-                        links={links}
-                        analytics={analytics}
-                        socialPreviewData={socialProfilesData}
                       />
                     }
                   />
@@ -181,7 +261,6 @@ export default function DashboardLayout() {
                         userData={userData}
                         onRefresh={refresh}
                         onUserChange={updateUser}
-                        socialPreviewData={socialProfilesData}
                       />
                     }
                   />
@@ -208,83 +287,24 @@ export default function DashboardLayout() {
                       />
                     }
                   />
+                  <Route path="*" element={<Navigate to="/dashboard/overview" replace />} />
                 </Routes>
               </Suspense>
-              </ErrorBoundary>
-            </div>
-          </section>
+            </ErrorBoundary>
+          </main>
+        </div>
 
-          {/* Right Side: Live Canvas (60%) */}
-          <section className="hidden lg:flex flex-1 items-center justify-center bg-[#07090d] relative overflow-hidden">
-            {/* High-fidelity background atmosphere */}
-            <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] animate-pulse duration-[10s]" />
-            <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-tertiary/10 rounded-full blur-[100px] animate-pulse duration-[8s] delay-700" />
-
-            <div className="relative z-10 flex flex-col items-center">
-              {/* Live Preview Label */}
-              <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-12 backdrop-blur-md">
-                <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white">Live Preview</span>
-              </div>
-
-              <div className="relative">
-                <MobilePreview
-                  user={userData}
-                  links={links}
-                />
-
-                {/* Real-time Insight Toast */}
-                <div className="absolute -right-24 bottom-32 w-72 p-5 bg-surface-container-high/60 backdrop-blur-2xl border border-outline-variant/20 rounded-[1.5rem] shadow-2xl animate-in slide-in-from-right-10 duration-1000">
-                    <div className="flex items-start gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary shadow-inner">
-                            <span className="material-symbols-outlined text-xl">show_chart</span>
-                        </div>
-                        <div className="space-y-1">
-                            <p className="text-[9px] font-black uppercase tracking-[0.15em] text-primary">Live Signal</p>
-                            <p className="text-[11px] font-bold text-on-surface leading-normal opacity-90">
-                              {analytics?.topLinks?.[0]
-                                ? `Top performing: "${analytics.topLinks[0].title}" (${analytics.topLinks[0].clicks} clicks recorded).`
-                                : analytics?.todayClicks > 0
-                                ? `${analytics.todayClicks} ${analytics.todayClicks === 1 ? "click" : "clicks"} recorded today across your links.`
-                                : "Share your link to start gathering real-time audience signals."}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-              </div>
-
-              {/* Stats Bar */}
-              <div className="mt-12 overflow-hidden rounded-3xl bg-surface-container-low/40 backdrop-blur-xl border border-outline-variant/10 p-1">
-                  <div className="flex items-center">
-                      <div className="px-8 py-4 text-center border-r border-outline-variant/10">
-                          <p className="text-2xl font-black text-white leading-none">{links.length}</p>
-                          <p className="text-[9px] font-black uppercase tracking-widest text-outline mt-1.5 opacity-60">Links</p>
-                      </div>
-                      <div className="px-8 py-4 text-center border-r border-outline-variant/10">
-                          <p className="text-2xl font-black text-white leading-none">
-                            {[
-                              userData?.youtubeId,
-                              userData?.githubUser,
-                              userData?.instagram,
-                              userData?.twitter,
-                              userData?.telegramUser,
-                              userData?.linkedin,
-                              userData?.tiktok,
-                            ].filter(Boolean).length}
-                          </p>
-                          <p className="text-[9px] font-black uppercase tracking-widest text-outline mt-1.5 opacity-60">Socials</p>
-                      </div>
-                      <div className="px-8 py-4 text-center">
-                          <p className="text-2xl font-black text-white leading-none">
-                            {formatCompactNumber(analytics?.totalClicks ?? 0)}
-                          </p>
-                          <p className="text-[9px] font-black uppercase tracking-widest text-outline mt-1.5 opacity-60">Clicks</p>
-                      </div>
-                  </div>
-              </div>
-            </div>
-          </section>
-        </main>
+        {/* Right Column: Live Canvas Rail (Visible on >= 1280px / xl screens) */}
+        <aside className="hidden xl:flex flex-col w-[360px] h-screen bg-[#0d0f0d] border-l border-white/5 p-6 overflow-y-auto shrink-0 space-y-6">
+          <LiveCanvasPreview user={userData} links={links} />
+          <div className="pt-2 border-t border-white/5">
+            <QuickLinksToggle
+              links={links}
+              onToggle={handleToggleLink}
+              onAdd={() => navigate("/dashboard/links")}
+            />
+          </div>
+        </aside>
       </div>
     </div>
   );
