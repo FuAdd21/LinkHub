@@ -1,0 +1,81 @@
+/* LiveActivityFeed.css */
+.activity-card {
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  border-radius: 0.625rem;
+  background-color: var(--card, #141714);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.activity-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.activity-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.activity-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #c6f035;
+}
+
+.activity-feed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  position: relative;
+}
+
+.activity-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  position: relative;
+}
+
+.activity-ring-marker {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 9999px;
+  border: 2px solid #c6f035;
+  background-color: #141714;
+  margin-top: 0.25rem;
+  flex-shrink: 0;
+}
+
+.activity-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.activity-primary-text {
+  font-size: 0.8125rem;
+  color: #d1d6d1;
+  line-height: 1.3;
+}
+
+.activity-primary-text strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.activity-time {
+  font-size: 0.6875rem;
+  color: #636b63;
+  margin-top: 0.15rem;
+  font-family: monospace;
+}
