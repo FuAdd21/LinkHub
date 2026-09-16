@@ -10,12 +10,15 @@ export const authenticateToken = (req, res, next) => {
   }
 
   if (scheme !== "Bearer" || !token) {
-    return res.status(401).json({ message: "No token provided" });
+    return res.status(401).json({ message: "No token provided", code: "NO_TOKEN" });
   }
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
     if (err) {
-      return res.status(403).json({ message: "Invalid or expired token" });
+      if (err.name === "TokenExpiredError") {
+        return res.status(401).json({ message: "Session expired. Please log in again.", code: "TOKEN_EXPIRED" });
+      }
+      return res.status(403).json({ message: "Invalid token. Please log in again.", code: "TOKEN_INVALID" });
     }
 
     req.user = user;
