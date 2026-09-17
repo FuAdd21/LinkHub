@@ -1,46 +1,104 @@
-import React, { useState, useEffect, useContext, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect, useContext, useCallback } from "react";
+import { useParams, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
-import { LogOut, Edit3, Link2, Palette, ChevronDown } from "lucide-react";
-import ProfileHeader from "../Components/ProfileHeader";
-import ShareButtons from "../Components/ShareButtons";
+import toast from "react-hot-toast";
+import {
+  ArrowUpRight,
+  CheckCircle2,
+  Globe,
+  Link2,
+  Sparkles,
+  Share2,
+  Copy,
+  ExternalLink,
+  Edit,
+  LayoutDashboard,
+  AlertCircle,
+} from "lucide-react";
+import {
+  FaGithub,
+  FaInstagram,
+  FaLinkedin,
+  FaTiktok,
+  FaTwitter,
+  FaYoutube,
+  FaTelegram,
+  FaSpotify,
+} from "react-icons/fa";
 import QRCodeGenerator from "../Components/QRCodeGenerator";
-import EditProfileModal from "../Components/EditProfileModal";
-import LinkCard from "../Components/LinkCard";
-import SocialCardPublic from "../Components/SocialCardPublic";
 import { API_BASE_URL, assetUrl } from "../api/config.js";
 
-const SocialCardSkeleton = () => (
-  <div className="w-full h-[72px] rounded-xl bg-white/5 border border-white/10 animate-pulse" />
-);
+function getPlatformIcon(platform = "", url = "") {
+  const p = (platform || "").toLowerCase();
+  const u = (url || "").toLowerCase();
 
-const PublicProfile = () => {
+  if (p.includes("github") || u.includes("github.com")) return FaGithub;
+  if (p.includes("youtube") || u.includes("youtube.com") || u.includes("youtu.be")) return FaYoutube;
+  if (p.includes("instagram") || u.includes("instagram.com")) return FaInstagram;
+  if (p.includes("tiktok") || u.includes("tiktok.com")) return FaTiktok;
+  if (p.includes("twitter") || p.includes("x") || u.includes("twitter.com") || u.includes("x.com")) return FaTwitter;
+  if (p.includes("linkedin") || u.includes("linkedin.com")) return FaLinkedin;
+  if (p.includes("telegram") || u.includes("t.me")) return FaTelegram;
+  if (p.includes("spotify") || u.includes("spotify.com")) return FaSpotify;
+
+  return Link2;
+}
+
+function extractDomain(url = "") {
+  try {
+    const parsed = new URL(url.startsWith("http") ? url : `https://${url}`);
+    return parsed.hostname.replace("www.", "") + (parsed.pathname !== "/" ? parsed.pathname.slice(0, 15) : "");
+  } catch {
+    return url || "linkhub.io";
+  }
+}
+
+function getSocialUrl(platform, value) {
+  if (!value) return null;
+  if (value.startsWith("http://") || value.startsWith("https://")) return value;
+  const clean = value.replace(/^@/, "").trim();
+  switch (platform.toLowerCase()) {
+    case "youtube":
+      return value.startsWith("@") ? `https://youtube.com/${value}` : `https://youtube.com/@${clean}`;
+    case "github":
+      return `https://github.com/${clean}`;
+    case "instagram":
+      return `https://instagram.com/${clean}`;
+    case "tiktok":
+      return `https://tiktok.com/@${clean}`;
+    case "twitter":
+    case "x":
+      return `https://twitter.com/${clean}`;
+    case "linkedin":
+      return `https://linkedin.com/in/${clean}`;
+    case "telegram":
+      return `https://t.me/${clean}`;
+    case "spotify":
+      return `https://open.spotify.com/artist/${clean}`;
+    default:
+      return `https://${clean}`;
+  }
+}
+
+export default function PublicProfile() {
   const { username } = useParams();
-  const navigate = useNavigate();
-  const { user, isAuthenticated, logout } = useContext(AuthContext);
+  const { user: authUser, isAuthenticated } = useContext(AuthContext);
 
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Owner State
-  const isOwner = isAuthenticated && user?.username === username;
-  const [ownerMenuOpen, setOwnerMenuOpen] = useState(false);
-  const [editModalOpen, setEditModalOpen] = useState(false);
+  const isOwner = isAuthenticated && authUser?.username === username;
 
-  // Fetch profile data
   const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get(
-        `${API_BASE_URL}/api/profile/${username}`,
-      );
-      setUserData(response.data);
+      const res = await axios.get(`${API_BASE_URL}/api/profile/${username}`);
+      setUserData(res.data);
     } catch (err) {
-      setError(err.response?.data?.message || "User not found");
+      setError(err.response?.data?.message || "User profile not found");
     } finally {
       setLoading(false);
     }
@@ -52,41 +110,19 @@ const PublicProfile = () => {
     }
   }, [fetchProfile, username]);
 
-  const handleProfileUpdate = (newUsername) => {
-    if (newUsername && newUsername !== username) {
-      navigate(`/${newUsername}`);
-    } else {
-      fetchProfile();
-    }
-  };
-
-  useEffect(() => {
-    if (userData?.theme) {
-      document.documentElement.setAttribute("data-theme", userData.theme);
-    }
-    return () => {
-      document.documentElement.removeAttribute("data-theme");
-    };
-  }, [userData?.theme]);
-
-  // Track profile view for analytics (if visitor is not the owner)
+  // Track profile view analytics (if not the owner)
   useEffect(() => {
     if (userData && username && !isOwner) {
-      axios
-        .post(`${API_BASE_URL}/api/analytics/view/${username}`)
-        .catch(() => {});
+      axios.post(`${API_BASE_URL}/api/analytics/view/${username}`).catch(() => {});
     }
   }, [userData, username, isOwner]);
 
-  // SEO metadata update
+  // Dynamic document title & meta description
   useEffect(() => {
     if (userData) {
-      const displayName = userData.full_name || userData.name || `@${username}`;
-      const bioText =
-        userData.bio || `Check out ${displayName}'s curated links on LinkHub.`;
-      const titleText = `${displayName} (@${username}) | LinkHub`;
-
-      document.title = titleText;
+      const displayName = userData.name || `@${username}`;
+      const bioText = userData.bio || `Explore ${displayName}'s curated links on LinkHub.`;
+      document.title = `${displayName} (@${username}) | LinkHub`;
 
       let metaDesc = document.querySelector('meta[name="description"]');
       if (!metaDesc) {
@@ -95,49 +131,53 @@ const PublicProfile = () => {
         document.head.appendChild(metaDesc);
       }
       metaDesc.content = bioText;
-
-      let ogTitle = document.querySelector('meta[property="og:title"]');
-      if (!ogTitle) {
-        ogTitle = document.createElement("meta");
-        ogTitle.setAttribute("property", "og:title");
-        document.head.appendChild(ogTitle);
-      }
-      ogTitle.content = titleText;
-
-      let ogDesc = document.querySelector('meta[property="og:description"]');
-      if (!ogDesc) {
-        ogDesc = document.createElement("meta");
-        ogDesc.setAttribute("property", "og:description");
-        document.head.appendChild(ogDesc);
-      }
-      ogDesc.content = bioText;
-
-      if (userData.avatar) {
-        const fullAvatar = assetUrl(userData.avatar);
-        let ogImage = document.querySelector('meta[property="og:image"]');
-        if (!ogImage) {
-          ogImage = document.createElement("meta");
-          ogImage.setAttribute("property", "og:image");
-          document.head.appendChild(ogImage);
-        }
-        ogImage.content = fullAvatar;
-      }
     }
   }, [userData, username]);
+
+  const handleShare = async () => {
+    const profileUrl = window.location.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${userData?.name || username} on LinkHub`,
+          text: userData?.bio || `Check out ${userData?.name || username}'s profile`,
+          url: profileUrl,
+        });
+        return;
+      } catch {
+        // Fallback to clipboard if share was cancelled or unsupported
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(profileUrl);
+      toast.success("Profile link copied to clipboard!");
+    } catch {
+      toast.error("Failed to copy link");
+    }
+  };
+
+  const handleLinkClick = (linkId) => {
+    if (!linkId) return;
+    try {
+      axios.post(`${API_BASE_URL}/api/analytics/click/${linkId}`).catch(() => {});
+    } catch {}
+  };
 
   // ──── Loading State ────
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#020202] flex items-center justify-center">
-        <div className="flex flex-col items-center gap-6 w-full max-w-[440px] px-6">
-          <div className="w-28 h-28 rounded-[40px] bg-white/5 border border-white/10 animate-pulse rotate-3" />
-          <div className="w-40 h-5 rounded-full bg-white/5 animate-pulse" />
-          <div className="w-64 h-3 rounded-full bg-white/5 animate-pulse" />
-          <div className="w-full mt-8 space-y-4">
+      <div className="min-h-screen bg-[#0B0A07] flex items-center justify-center p-4">
+        <div className="flex flex-col items-center gap-5 w-full max-w-[420px]">
+          <div className="w-20 h-20 rounded-full bg-white/5 border border-white/10 animate-pulse" />
+          <div className="w-36 h-4 rounded-full bg-white/5 animate-pulse" />
+          <div className="w-24 h-3 rounded-full bg-white/5 animate-pulse" />
+          <div className="w-56 h-3 rounded-full bg-white/5 animate-pulse" />
+          <div className="w-full mt-6 space-y-3">
             {[1, 2, 3].map((i) => (
               <div
-                key={`link-${i}`}
-                className="w-full h-16 rounded-3xl bg-white/5 border border-white/10 animate-pulse"
+                key={i}
+                className="w-full h-14 rounded-xl bg-white/5 border border-white/10 animate-pulse"
               />
             ))}
           </div>
@@ -149,245 +189,242 @@ const PublicProfile = () => {
   // ──── Error State ────
   if (error || !userData) {
     return (
-      <div className="min-h-screen bg-[#020202] flex items-center justify-center relative overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/10 rounded-full blur-[140px]" />
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-center relative z-10 px-6"
-        >
-          <div className="inline-flex h-20 w-20 items-center justify-center rounded-[32px] bg-white/5 border border-white/10 text-4xl mb-6 shadow-2xl">
-            ⛓️
+      <div className="min-h-screen bg-[#0B0A07] flex items-center justify-center p-4">
+        <div className="text-center max-w-sm w-full bg-[#13120D] border border-white/10 rounded-2xl p-8 shadow-2xl space-y-4">
+          <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto text-red-400">
+            <AlertCircle className="w-6 h-6" />
           </div>
-          <h2 className="text-white text-3xl font-black tracking-tighter mb-4 italic">
-            SIGNAL LOST
-          </h2>
-          <p className="text-white/40 text-sm font-medium mb-10 max-w-[280px] mx-auto">
-            The profile at @{username} has not been materialized in this dimension.
+          <h2 className="text-lg font-bold text-white">Profile Not Found</h2>
+          <p className="text-xs text-slate-400">
+            The profile at <span className="text-[#c6f035] font-mono font-bold">@{username}</span> does not exist or has not been claimed.
           </p>
-          <a
-            href="/"
-            className="inline-flex items-center gap-2 px-8 py-4 bg-white text-black rounded-2xl text-[13px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl"
-          >
-            Claim this node
-          </a>
-        </motion.div>
+          <div className="pt-2">
+            <Link
+              to="/"
+              className="inline-flex items-center justify-center px-5 py-2.5 bg-[#c6f035] text-[#0d0f0d] font-bold text-xs font-mono rounded-xl hover:brightness-110 transition-all"
+            >
+              Go to LinkHub
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }
 
-  const activeSocialPlatforms = Object.entries(userData.socials || {})
-    .filter(([_, val]) => val)
-    .map(([key]) => key);
+  const name = userData.name || userData.username;
+  const bio = userData.bio || "";
+  const avatarUrl = userData.avatar ? assetUrl(userData.avatar) : null;
+  const initials = name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  const accentColor = userData.accent_color || "#c6f035";
+  const visibleLinks = (userData.links || []).filter((l) => l.is_visible !== 0);
+  const totalAudience = userData.totalAudience || 0;
+  const totalAudienceFormatted = userData.totalAudienceFormatted || "0";
+
+  // Build active socials list from user.socials & integrations
+  const socialsMap = new Map();
+
+  // First check connected integrations
+  if (Array.isArray(userData.integrations)) {
+    userData.integrations.forEach((item) => {
+      if (item.profileUrl) {
+        socialsMap.set(item.provider.toLowerCase(), item.profileUrl);
+      } else if (item.handle) {
+        socialsMap.set(
+          item.provider.toLowerCase(),
+          getSocialUrl(item.provider, item.handle)
+        );
+      }
+    });
+  }
+
+  // Next check profile socials object
+  if (userData.socials) {
+    Object.entries(userData.socials).forEach(([platform, val]) => {
+      if (val && !socialsMap.has(platform.toLowerCase())) {
+        socialsMap.set(platform.toLowerCase(), getSocialUrl(platform, val));
+      }
+    });
+  }
+
+  const activeSocials = Array.from(socialsMap.entries());
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-start py-16 px-6 relative overflow-x-hidden transition-colors duration-1000"
-      style={{ backgroundColor: "var(--bg-primary, #020202)" }}
+      className="min-h-screen flex flex-col items-center justify-between px-4 py-10 sm:py-16 relative overflow-x-hidden selection:bg-[#c6f035] selection:text-[#0d0f0d]"
+      style={{
+        backgroundColor: "#0B0A07",
+        backgroundImage: "radial-gradient(circle at top, rgba(198, 240, 53, 0.03), transparent 70%)",
+      }}
     >
-      {/* ─── OWNER NAVIGATION MENU ─── */}
+      {/* Top Floating Owner Action Bar */}
       {isOwner && (
-        <div className="fixed top-6 right-6 z-50">
-          <div className="relative">
-            <button
-              onClick={() => setOwnerMenuOpen(!ownerMenuOpen)}
-              className="group flex items-center gap-3 pl-2 pr-5 py-2 bg-black/60 hover:bg-black/80 backdrop-blur-2xl border border-white/10 rounded-2xl text-white text-[13px] font-black tracking-tight transition-all shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] active:scale-95"
-            >
-              <div className="w-10 h-10 rounded-xl overflow-hidden bg-gradient-to-tr from-[#00f2ff] to-[#7000ff] p-0.5 transition-transform group-hover:rotate-6">
-                 <div className="w-full h-full rounded-[10px] overflow-hidden bg-black">
-                    {userData.avatar ? (
-                      <img
-                        src={assetUrl(userData.avatar)}
-                        alt="Owner"
-                        className="w-full h-full object-cover opacity-90"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-[10px] font-black uppercase">
-                        Me
-                      </div>
-                    )}
-                 </div>
-              </div>
-              <span className="hidden sm:inline">Nodal Controller</span>
-              <ChevronDown
-                className={`w-4 h-4 transition-transform duration-500 opacity-40 ${ownerMenuOpen ? "rotate-180" : ""}`}
-              />
-            </button>
-            <AnimatePresence>
-              {ownerMenuOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 15, scale: 0.95, rotate: -2 }}
-                  animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
-                  exit={{ opacity: 0, y: 15, scale: 0.95, rotate: -2 }}
-                  className="absolute right-0 mt-3 w-64 bg-black/40 border border-white/10 rounded-[32px] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)] overflow-hidden backdrop-blur-3xl z-50 p-2"
-                >
-                  <button
-                    onClick={() => {
-                      setOwnerMenuOpen(false);
-                      setEditModalOpen(true);
-                    }}
-                    className="w-full flex items-center gap-4 px-5 py-4 text-xs font-black uppercase tracking-widest text-white/50 hover:text-white hover:bg-white/5 rounded-[24px] transition-all"
-                  >
-                    <Edit3 className="w-4 h-4 text-cyan-400" />
-                    Edit Archetype
-                  </button>
-                  <button
-                    onClick={() => {
-                      setOwnerMenuOpen(false);
-                      navigate("/dashboard/links");
-                    }}
-                    className="w-full flex items-center gap-4 px-5 py-4 text-xs font-black uppercase tracking-widest text-white/50 hover:text-white hover:bg-white/5 rounded-[24px] transition-all"
-                  >
-                    <Link2 className="w-4 h-4 text-purple-400" />
-                    Manage Flux
-                  </button>
-                  <button
-                    onClick={() => {
-                      setOwnerMenuOpen(false);
-                      navigate("/dashboard/settings");
-                    }}
-                    className="w-full flex items-center gap-4 px-5 py-4 text-xs font-black uppercase tracking-widest text-white/50 hover:text-white hover:bg-white/5 rounded-[24px] transition-all"
-                  >
-                    <Palette className="w-4 h-4 text-pink-400" />
-                    Aura Selection
-                  </button>
-                  <div className="h-px w-full bg-white/5 my-2" />
-                  <button
-                    onClick={() => {
-                      logout();
-                      navigate("/login");
-                    }}
-                    className="w-full flex items-center gap-4 px-5 py-4 text-xs font-black uppercase tracking-widest text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-[24px] transition-all"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Sever Connection
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+        <div className="fixed top-4 right-4 z-40">
+          <Link
+            to="/dashboard/links"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#13120D]/90 hover:bg-[#181711] backdrop-blur-md border border-white/10 hover:border-[#c6f035]/50 text-white text-xs font-mono font-bold transition-all shadow-xl"
+          >
+            <LayoutDashboard className="w-3.5 h-3.5 text-[#c6f035]" />
+            <span className="hidden sm:inline">Edit in Dashboard</span>
+            <span className="sm:hidden">Edit</span>
+          </Link>
         </div>
       )}
 
-      {/* Experimental atmospheric background */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden select-none">
+      {/* Main Profile Canvas Card (matches LiveCanvasPreview exactly) */}
+      <div className="w-full max-w-[440px] flex flex-col items-center text-center space-y-4 relative z-10">
+        {/* Avatar with distinctive accent ring */}
         <div
-          className="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] rounded-full blur-[140px] opacity-20"
-          style={{ background: `radial-gradient(circle, var(--accent-color, #00f2ff), transparent)` }}
-        />
+          className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-[0_8px_30px_rgba(198,240,53,0.15)] transition-transform hover:scale-105"
+          style={{ borderColor: accentColor }}
+        >
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={name}
+              className="w-full h-full rounded-full object-cover"
+            />
+          ) : (
+            <div
+              className="w-full h-full rounded-full bg-[#1a1914] flex items-center justify-center font-black text-xl sm:text-2xl"
+              style={{ color: accentColor }}
+            >
+              {initials}
+            </div>
+          )}
+        </div>
+
+        {/* Identity: Name + Verified Check */}
+        <div className="flex items-center justify-center gap-2 pt-1">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+            {name}
+          </h1>
+          {userData.show_verified_badge && (
+            <CheckCircle2
+              className="w-4 h-4 sm:w-5 sm:h-5 shrink-0"
+              style={{ fill: accentColor, color: "#0d0f0d" }}
+            />
+          )}
+        </div>
+
+        {/* Handle */}
         <div
-          className="absolute -bottom-[10%] -right-[10%] w-[60%] h-[60%] rounded-full blur-[140px] opacity-20"
-          style={{ background: `radial-gradient(circle, var(--accent-secondary, #7000ff), transparent)` }}
-        />
-        {/* Subtle grid pattern */}
-        <div className="absolute inset-0 opacity-[0.03] invert transition-opacity duration-1000" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 0)', backgroundSize: '40px 40px' }} />
-      </div>
+          className="text-xs sm:text-sm font-mono font-bold -mt-2"
+          style={{ color: accentColor }}
+        >
+          @{username}
+        </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "circOut" }}
-        className="relative w-full max-w-[440px] z-10"
-      >
-        {/* Profile Header */}
-        <ProfileHeader user={userData} previewMode={false} />
-
-        {/* ─── Rich Social Profile Cards ─── */}
-        {activeSocialPlatforms.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4, duration: 0.6 }}
-            className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-10"
-          >
-            {activeSocialPlatforms.map((platform, index) => (
-              <SocialCardPublic
-                key={platform}
-                platform={platform}
-                username={userData.socials[platform]}
-                index={index}
-              />
-            ))}
-          </motion.div>
+        {/* Bio */}
+        {bio && (
+          <p className="text-xs sm:text-sm text-[#8c948c] max-w-[340px] leading-relaxed pt-0.5">
+            {bio}
+          </p>
         )}
 
-        {/* Links */}
-        {(userData.links || []).filter(l => l.is_visible !== 0).length > 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6 }}
-            className="space-y-4 mb-12"
+        {/* Combined Audience Proof Pill */}
+        {totalAudience > 0 && (
+          <div
+            className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-mono font-bold tracking-wide"
+            style={{
+              backgroundColor: `${accentColor}15`,
+              border: `1px solid ${accentColor}35`,
+              color: accentColor,
+            }}
           >
-            {(userData.links || [])
-              .filter(l => l.is_visible !== 0)
-              .map((link, index) => (
-                <LinkCard
-                  key={link.id}
-                  link={link}
-                  index={index}
-                  onTrackClick={(linkId) => {
-                    axios.post(`${API_BASE_URL}/api/analytics/click/${linkId}`).catch(console.error);
-                  }}
-                />
-              ))}
-          </motion.div>
-        ) : activeSocialPlatforms.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-20"
-          >
-            <div className="h-1px w-12 bg-white/10 mx-auto mb-6" />
-            <p className="text-[11px] font-black uppercase tracking-[0.3em] text-white/20">
-              No active nodes found.
-            </p>
-          </motion.div>
-        ) : null}
-
-        {/* Share + QR Section */}
-        <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-            className="flex items-center justify-center gap-4 py-8 border-t border-white/5"
-        >
-          <ShareButtons username={userData.username || username} />
-          <div className="h-4 w-px bg-white/5" />
-          <QRCodeGenerator username={userData.username || username} />
-        </motion.div>
-
-        {/* Footer branding */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.2 }}
-          className="flex flex-col items-center justify-center gap-4 mt-12 mb-8 group"
-        >
-          <div className="flex items-center gap-2">
-            <span className="text-[9px] font-black uppercase tracking-[0.4em] text-white/10 group-hover:text-white/30 transition-colors">
-              Engineered by
-            </span>
-            <a
-              href="/"
-              className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20 group-hover:text-white/60 transition-colors"
-            >
-              LinkHub
-            </a>
+            <span>{totalAudienceFormatted} combined audience</span>
           </div>
-          <div className="h-1.5 w-1.5 rounded-full bg-white/5 group-hover:bg-cyan-500/50 transition-colors" />
-        </motion.div>
-      </motion.div>
+        )}
 
-      {/* ─── LIVE EDITING MODAL ─── */}
-      <EditProfileModal
-        isOpen={editModalOpen}
-        onClose={() => setEditModalOpen(false)}
-        userData={userData}
-        onSaveSuccess={handleProfileUpdate}
-      />
+        {/* Connected Socials Row */}
+        {activeSocials.length > 0 && userData.show_social_row !== false && (
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+            {activeSocials.map(([platform, url]) => {
+              const IconComponent = getPlatformIcon(platform, url);
+              return (
+                <a
+                  key={platform}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={platform}
+                  className="w-9 h-9 rounded-xl bg-[#181711] border border-white/10 hover:border-white/25 flex items-center justify-center text-[#c5cbc5] hover:text-white hover:-translate-y-0.5 transition-all shadow-sm"
+                >
+                  <IconComponent className="w-4 h-4" />
+                </a>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Destination Links Cards */}
+        <div className="w-full space-y-3 pt-3">
+          {visibleLinks.length === 0 ? (
+            <div className="py-8 px-4 rounded-xl bg-[#13120D] border border-white/5 text-center text-xs text-slate-500 font-mono">
+              No links published yet.
+            </div>
+          ) : (
+            visibleLinks.map((link) => {
+              const Icon = getPlatformIcon(link.platform, link.url);
+              return (
+                <a
+                  key={link.id}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => handleLinkClick(link.id)}
+                  className="group w-full p-3.5 sm:p-4 rounded-xl bg-[#13120D]/80 hover:bg-[#161510] border border-white/5 hover:border-[#c6f035]/60 backdrop-blur-md flex items-center justify-between transition-all hover:-translate-y-0.5 shadow-md"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-[#1a1914] border border-white/5 flex items-center justify-center text-white shrink-0 group-hover:border-[#c6f035]/30 transition-colors">
+                      <Icon className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+                    </div>
+                    <div className="text-left min-w-0">
+                      <div className="text-sm font-bold text-white truncate max-w-[220px] sm:max-w-[280px]">
+                        {link.title}
+                      </div>
+                      <div className="text-[11px] font-mono text-[#788278] truncate max-w-[220px] sm:max-w-[280px]">
+                        {extractDomain(link.url)}
+                      </div>
+                    </div>
+                  </div>
+
+                  <ArrowUpRight className="w-4 h-4 text-slate-500 group-hover:text-[#c6f035] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all shrink-0 ml-2" />
+                </a>
+              );
+            })
+          )}
+        </div>
+
+        {/* Share Profile & QR Section */}
+        <div className="w-full flex items-center justify-center gap-3 pt-6 pb-2 border-t border-white/5">
+          <button
+            onClick={handleShare}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#161510] hover:bg-[#1a1914] border border-white/10 hover:border-white/20 text-slate-300 hover:text-white text-xs font-mono font-bold transition-all"
+          >
+            <Share2 className="w-3.5 h-3.5 text-[#c6f035]" />
+            <span>Share profile</span>
+          </button>
+
+          <QRCodeGenerator username={username} />
+        </div>
+      </div>
+
+      {/* Footer Branding Watermark */}
+      <div className="pt-10 pb-2 text-center relative z-10">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.2em] text-[#606760] hover:text-slate-300 transition-colors"
+        >
+          <Sparkles className="w-3 h-3 text-[#c6f035]" />
+          <span>Made with LinkHub</span>
+        </Link>
+      </div>
     </div>
   );
-};
-
-export default PublicProfile;
+}
