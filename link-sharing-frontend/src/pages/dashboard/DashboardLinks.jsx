@@ -209,22 +209,39 @@ export default function DashboardLinks({
     .slice(0, 2)
     .toUpperCase();
 
+  const activeCount = localLinks.filter((l) => l.is_visible !== 0 && l.is_visible !== false).length;
+
   return (
     <div className="flex flex-col xl:flex-row gap-8 pb-12">
       {/* Center Column: Links Editor */}
-      <div className="flex-1 min-w-0 space-y-6">
-        {/* Header Section */}
+      <div className="flex-1 min-w-0 space-y-5">
+        {/* Top Section */}
         <div>
-          <p className="text-xs text-slate-400 font-medium mb-1">
-            Build and organize your public destinations.
-          </p>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-                Your links
+              <p className="text-[10px] uppercase font-mono tracking-widest text-[#c6f035]">
+                Command Center
+              </p>
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white mt-0.5">
+                Links
               </h1>
+            </div>
+            <div className="hidden sm:block text-xs font-mono text-slate-500">
+              linkhub.io/{userData?.username || "user"}
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3">
+            <div>
+              <p className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">
+                Workspace
+              </p>
+              <h2 className="text-lg sm:text-xl font-bold text-white">
+                Your links
+              </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Drag to reorder. Changes publish instantly.
+                <span className="sm:hidden text-slate-400 font-mono">{activeCount} active links · </span>
+                Reorder, edit, and publish destinations.
               </p>
             </div>
 
@@ -239,13 +256,14 @@ export default function DashboardLinks({
         </div>
 
         {/* Status Notification Banner */}
-        <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-[#13120D] border border-white/5 text-xs text-slate-300">
-          <span className="w-5 h-5 rounded-md bg-[#c6f035]/15 text-[#c6f035] flex items-center justify-center shrink-0">
-            <CheckCircle2 className="w-3.5 h-3.5" />
+        <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-[#13120D] border border-white/5 text-xs">
+          <div className="flex items-center gap-2.5 text-slate-300">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#c6f035] shadow-[0_0_8px_#c6f035]" />
+            <span className="font-bold text-white">All changes published</span>
+          </div>
+          <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider font-semibold">
+            LIVE
           </span>
-          <span className="font-semibold text-white">All changes published</span>
-          <span className="text-slate-500">·</span>
-          <span className="text-slate-400">Your public profile is up to date.</span>
         </div>
 
         {/* Reorderable Links List */}
@@ -267,7 +285,6 @@ export default function DashboardLinks({
             </div>
           ) : (
             localLinks.map((link, index) => {
-              const IconComponent = getPlatformIcon(link.url, link.platform);
               const isVisible = link.is_visible !== 0 && link.is_visible !== false;
               const cleanUrl = (link.url || "").replace(/^https?:\/\//i, "");
 
@@ -278,7 +295,7 @@ export default function DashboardLinks({
                   onDragStart={(e) => handleDragStart(e, index)}
                   onDragOver={(e) => handleDragOver(e, index)}
                   onDragEnd={handleDragEnd}
-                  className={`group relative flex items-center gap-3.5 p-4 rounded-xl border transition-all duration-200 ${
+                  className={`group relative rounded-xl border transition-all duration-200 p-4 ${
                     draggingIdx === index
                       ? "opacity-40 bg-[#1f1d16] border-[#c6f035]/40"
                       : isVisible
@@ -286,126 +303,257 @@ export default function DashboardLinks({
                       : "bg-[#13120D]/60 border-white/5 opacity-60"
                   }`}
                 >
-                  {/* Drag Handle */}
-                  <button
-                    type="button"
-                    className="text-slate-600 hover:text-slate-300 cursor-grab active:cursor-grabbing p-1 transition-colors"
-                    title="Drag to reorder"
-                  >
-                    <GripVertical className="w-4 h-4" />
-                  </button>
-
-                  {/* Icon Box */}
-                  <div className="w-10 h-10 rounded-lg bg-[#1a1914] border border-white/5 flex items-center justify-center text-slate-300 shrink-0">
-                    <IconComponent className="w-4 h-4" />
-                  </div>
-
-                  {/* Title & URL */}
-                  <div className="flex-1 min-w-0 pr-2">
-                    <h4 className="text-sm font-bold text-white truncate group-hover:text-[#c6f035] transition-colors">
-                      {link.title}
-                    </h4>
-                    <p className="text-xs font-mono text-slate-500 truncate mt-0.5">
-                      {cleanUrl}
-                    </p>
-                  </div>
-
-                  {/* Stats (Clicks & Conversion) */}
-                  <div className="hidden sm:flex items-center gap-6 font-mono text-xs shrink-0 px-2">
-                    <div className="text-right">
-                      <span className="text-[10px] uppercase text-slate-500 tracking-wider mr-2">
-                        Clicks
-                      </span>
-                      <span className="text-slate-300 font-bold">
-                        {(Number(link.clicks) || 0).toLocaleString()}
-                      </span>
+                  {/* Mobile Top Row (hidden on sm+) */}
+                  <div className="flex items-center justify-between sm:hidden">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-2">
+                      <button
+                        type="button"
+                        className="text-slate-600 hover:text-slate-300 cursor-grab active:cursor-grabbing p-0.5 transition-colors shrink-0"
+                        title="Drag to reorder"
+                      >
+                        <GripVertical className="w-4 h-4" />
+                      </button>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-sm font-bold text-white truncate">
+                          {link.title}
+                        </h4>
+                        <p className="text-xs font-mono text-slate-500 truncate mt-0.5">
+                          {cleanUrl}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <span className="text-[10px] uppercase text-slate-500 tracking-wider mr-2">
-                        Conv.
-                      </span>
-                      <span className="text-slate-300 font-bold">
-                        {link.conversionRate || "0.0%"}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Luminous Switch Toggle */}
-                  <button
-                    type="button"
-                    onClick={() => handleToggleVisibility(link)}
-                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                      isVisible ? "bg-[#c6f035]" : "bg-[#25241f]"
-                    }`}
-                  >
-                    <span
-                      className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-[#0B0A07] shadow-lg ring-0 transition duration-200 ease-in-out ${
-                        isVisible ? "translate-x-4" : "translate-x-0"
-                      }`}
-                    />
-                  </button>
-
-                  {/* Three Dots Menu */}
-                  <div className="relative">
+                    {/* Switch Toggle */}
                     <button
                       type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setActiveMenuId(activeMenuId === link.id ? null : link.id);
-                      }}
-                      className="w-8 h-8 rounded-lg hover:bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+                      onClick={() => handleToggleVisibility(link)}
+                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        isVisible ? "bg-[#c6f035]" : "bg-[#25241f]"
+                      }`}
                     >
-                      <MoreVertical className="w-4 h-4" />
+                      <span
+                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-[#0B0A07] shadow-lg ring-0 transition duration-200 ease-in-out ${
+                          isVisible ? "translate-x-4" : "translate-x-0"
+                        }`}
+                      />
                     </button>
+                  </div>
 
-                    {activeMenuId === link.id && (
-                      <div
-                        onClick={(e) => e.stopPropagation()}
-                        className="absolute right-0 top-10 w-44 rounded-xl bg-[#1a1914] border border-white/10 shadow-2xl py-1 z-30 animate-in fade-in zoom-in-95 duration-150"
+                  {/* Tablet & Desktop Top Row (hidden on mobile) */}
+                  <div className="hidden sm:flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <button
+                        type="button"
+                        className="text-slate-600 hover:text-slate-300 cursor-grab active:cursor-grabbing p-1 transition-colors shrink-0"
+                        title="Drag to reorder"
                       >
-                        <button
-                          onClick={() => {
-                            setActiveMenuId(null);
-                            handleOpenEdit(link);
-                          }}
-                          className="w-full px-3.5 py-2 text-left text-xs text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                          Edit link
-                        </button>
-                        <button
-                          onClick={() => {
-                            setActiveMenuId(null);
-                            handleCopyLink(link.url);
-                          }}
-                          className="w-full px-3.5 py-2 text-left text-xs text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                          Copy link URL
-                        </button>
-                        <a
-                          href={link.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          onClick={() => setActiveMenuId(null)}
-                          className="w-full px-3.5 py-2 text-left text-xs text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                          Open in new tab
-                        </a>
-                        <div className="my-1 border-t border-white/5" />
-                        <button
-                          onClick={() => {
-                            setActiveMenuId(null);
-                            handleDeleteLink(link.id);
-                          }}
-                          className="w-full px-3.5 py-2 text-left text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 flex items-center gap-2"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          Delete link
-                        </button>
+                        <GripVertical className="w-4 h-4" />
+                      </button>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-sm font-bold text-white truncate group-hover:text-[#c6f035] transition-colors">
+                          {link.title}
+                        </h4>
+                        <p className="text-xs font-mono text-slate-500 truncate mt-0.5">
+                          {cleanUrl}
+                        </p>
                       </div>
-                    )}
+                    </div>
+
+                    <div className="flex items-center gap-8 font-mono text-xs shrink-0">
+                      <div className="text-left">
+                        <div className="text-sm font-bold text-white">
+                          {(Number(link.clicks) || 0).toLocaleString()}
+                        </div>
+                        <div className="text-[9px] uppercase tracking-wider text-slate-500">
+                          Clicks
+                        </div>
+                      </div>
+                      <div className="text-left min-w-[64px]">
+                        <div className="text-sm font-bold text-white">
+                          {link.conversionRate || "0.0%"}
+                        </div>
+                        <div className="text-[9px] uppercase tracking-wider text-slate-500">
+                          Conversion
+                        </div>
+                      </div>
+
+                      {/* Switch Toggle */}
+                      <button
+                        type="button"
+                        onClick={() => handleToggleVisibility(link)}
+                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          isVisible ? "bg-[#c6f035]" : "bg-[#25241f]"
+                        }`}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-[#0B0A07] shadow-lg ring-0 transition duration-200 ease-in-out ${
+                            isVisible ? "translate-x-4" : "translate-x-0"
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="border-t border-white/5 my-3" />
+
+                  {/* Bottom Row - Mobile (Clicks, Conv, and Menu) */}
+                  <div className="flex items-center justify-between sm:hidden pt-0.5">
+                    <div className="flex items-center gap-8 font-mono">
+                      <div>
+                        <div className="text-sm font-bold text-white">
+                          {(Number(link.clicks) || 0).toLocaleString()}
+                        </div>
+                        <div className="text-[9px] uppercase tracking-wider text-slate-500">
+                          Clicks
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-white">
+                          {link.conversionRate || "0.0%"}
+                        </div>
+                        <div className="text-[9px] uppercase tracking-wider text-slate-500">
+                          Conversion
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Three Dots Menu Button */}
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveMenuId(activeMenuId === link.id ? null : link.id);
+                        }}
+                        className="w-8 h-8 rounded-lg hover:bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
+
+                      {activeMenuId === link.id && (
+                        <div
+                          onClick={(e) => e.stopPropagation()}
+                          className="absolute right-0 bottom-9 w-44 rounded-xl bg-[#1a1914] border border-white/10 shadow-2xl py-1 z-30 animate-in fade-in zoom-in-95 duration-150"
+                        >
+                          <button
+                            onClick={() => {
+                              setActiveMenuId(null);
+                              handleOpenEdit(link);
+                            }}
+                            className="w-full px-3.5 py-2 text-left text-xs text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                            Edit link
+                          </button>
+                          <button
+                            onClick={() => {
+                              setActiveMenuId(null);
+                              handleCopyLink(link.url);
+                            }}
+                            className="w-full px-3.5 py-2 text-left text-xs text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                            Copy link URL
+                          </button>
+                          <a
+                            href={link.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={() => setActiveMenuId(null)}
+                            className="w-full px-3.5 py-2 text-left text-xs text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            Open in new tab
+                          </a>
+                          <div className="my-1 border-t border-white/5" />
+                          <button
+                            onClick={() => {
+                              setActiveMenuId(null);
+                              handleDeleteLink(link.id);
+                            }}
+                            className="w-full px-3.5 py-2 text-left text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 flex items-center gap-2"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            Delete link
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Bottom Row - Tablet & Desktop ("Open destination" on left, Menu on right) */}
+                  <div className="hidden sm:flex items-center justify-between pt-0.5 text-xs">
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-slate-500 hover:text-[#c6f035] transition-colors inline-flex items-center gap-1.5 font-mono text-xs"
+                    >
+                      <ArrowUpRight className="w-3.5 h-3.5" />
+                      Open destination
+                    </a>
+
+                    <div className="relative">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setActiveMenuId(activeMenuId === link.id ? null : link.id);
+                        }}
+                        className="w-8 h-8 rounded-lg hover:bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+                      >
+                        <MoreVertical className="w-4 h-4" />
+                      </button>
+
+                      {activeMenuId === link.id && (
+                        <div
+                          onClick={(e) => e.stopPropagation()}
+                          className="absolute right-0 top-10 w-44 rounded-xl bg-[#1a1914] border border-white/10 shadow-2xl py-1 z-30 animate-in fade-in zoom-in-95 duration-150"
+                        >
+                          <button
+                            onClick={() => {
+                              setActiveMenuId(null);
+                              handleOpenEdit(link);
+                            }}
+                            className="w-full px-3.5 py-2 text-left text-xs text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                            Edit link
+                          </button>
+                          <button
+                            onClick={() => {
+                              setActiveMenuId(null);
+                              handleCopyLink(link.url);
+                            }}
+                            className="w-full px-3.5 py-2 text-left text-xs text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                            Copy link URL
+                          </button>
+                          <a
+                            href={link.url}
+                            target="_blank"
+                            rel="noreferrer"
+                            onClick={() => setActiveMenuId(null)}
+                            className="w-full px-3.5 py-2 text-left text-xs text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            Open in new tab
+                          </a>
+                          <div className="my-1 border-t border-white/5" />
+                          <button
+                            onClick={() => {
+                              setActiveMenuId(null);
+                              handleDeleteLink(link.id);
+                            }}
+                            className="w-full px-3.5 py-2 text-left text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 flex items-center gap-2"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            Delete link
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -414,8 +562,8 @@ export default function DashboardLinks({
         </div>
       </div>
 
-      {/* Right Column: Profile Preview (Desktop View matching image copy.png) */}
-      <div className="w-full xl:w-[380px] shrink-0 space-y-4">
+      {/* Right Column: Profile Preview (Desktop View matching image copy.png, hidden on tablet and mobile) */}
+      <div className="hidden xl:block w-[380px] shrink-0 space-y-4">
         <div className="flex items-center justify-between px-1">
           <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
             Profile preview
