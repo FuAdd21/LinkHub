@@ -11,7 +11,15 @@ export const getPublicProfile = async (req, res) => {
 
     // Fetch user by username
     const [users] = await db.query(
-      `SELECT id, name, username, email, bio, avatar, banner_url, theme, background_type, background_value,
+      `SELECT id, name, username, email, bio, avatar, banner_url,
+              COALESCE(theme, 'Obsidian') as theme,
+              COALESCE(accent_color, '#c6f035') as accent_color,
+              COALESCE(surface_color, '#11120F') as surface_color,
+              COALESCE(font_heading, 'Manrope / Semibold') as font_heading,
+              COALESCE(font_labels, 'IBM Plex Mono / Medium') as font_labels,
+              COALESCE(show_verified_badge, 1) as show_verified_badge,
+              COALESCE(show_social_row, 1) as show_social_row,
+              background_type, background_value,
               youtubeId, githubUser, telegramUser, instagram, twitter, linkedin, tiktok
        FROM clients WHERE username = ?`,
       [username.toLowerCase()],
@@ -46,7 +54,13 @@ export const getPublicProfile = async (req, res) => {
       bio: user.bio,
       avatar: user.avatar,
       banner_url: user.banner_url,
-      theme: user.theme || "dark-pro",
+      theme: user.theme || "Obsidian",
+      accent_color: user.accent_color || "#c6f035",
+      surface_color: user.surface_color || "#11120F",
+      font_heading: user.font_heading || "Manrope / Semibold",
+      font_labels: user.font_labels || "IBM Plex Mono / Medium",
+      show_verified_badge: Boolean(user.show_verified_badge),
+      show_social_row: Boolean(user.show_social_row),
       background_type: user.background_type || "gradient",
       background_value: user.background_value,
       socials: {
@@ -121,11 +135,27 @@ export const updateProfile = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const { bio, theme, background_type, background_value } = req.body;
+    const {
+      name,
+      bio,
+      theme,
+      accent_color,
+      surface_color,
+      font_heading,
+      font_labels,
+      show_verified_badge,
+      show_social_row,
+      background_type,
+      background_value,
+    } = req.body;
 
     const updates = [];
     const values = [];
 
+    if (name !== undefined) {
+      updates.push("name = ?");
+      values.push(name.trim());
+    }
     if (bio !== undefined) {
       updates.push("bio = ?");
       values.push(bio);
@@ -133,6 +163,30 @@ export const updateProfile = async (req, res) => {
     if (theme !== undefined) {
       updates.push("theme = ?");
       values.push(theme);
+    }
+    if (accent_color !== undefined) {
+      updates.push("accent_color = ?");
+      values.push(accent_color);
+    }
+    if (surface_color !== undefined) {
+      updates.push("surface_color = ?");
+      values.push(surface_color);
+    }
+    if (font_heading !== undefined) {
+      updates.push("font_heading = ?");
+      values.push(font_heading);
+    }
+    if (font_labels !== undefined) {
+      updates.push("font_labels = ?");
+      values.push(font_labels);
+    }
+    if (show_verified_badge !== undefined) {
+      updates.push("show_verified_badge = ?");
+      values.push(show_verified_badge ? 1 : 0);
+    }
+    if (show_social_row !== undefined) {
+      updates.push("show_social_row = ?");
+      values.push(show_social_row ? 1 : 0);
     }
     if (background_type !== undefined) {
       updates.push("background_type = ?");
@@ -160,11 +214,18 @@ export const updateProfile = async (req, res) => {
 
     // Return updated profile
     const [updated] = await db.query(
-      `SELECT id, name, username, bio, avatar, banner_url, theme, background_type, background_value FROM clients WHERE id = ?`,
+      `SELECT id, name, username, bio, avatar, banner_url, theme,
+              COALESCE(accent_color, '#c6f035') as accent_color,
+              COALESCE(surface_color, '#11120F') as surface_color,
+              COALESCE(font_heading, 'Manrope / Semibold') as font_heading,
+              COALESCE(font_labels, 'IBM Plex Mono / Medium') as font_labels,
+              COALESCE(show_verified_badge, 1) as show_verified_badge,
+              COALESCE(show_social_row, 1) as show_social_row,
+              background_type, background_value FROM clients WHERE id = ?`,
       [userId],
     );
 
-    res.json({ message: "Profile updated", profile: updated[0] });
+    res.json({ message: "Profile updated", user: updated[0], profile: updated[0] });
   } catch (err) {
     console.error("updateProfile error:", err);
     res.status(500).json({ message: "Server error" });

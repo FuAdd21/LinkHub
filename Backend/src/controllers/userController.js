@@ -66,6 +66,18 @@ export const updateAvatar = async (req, res) => {
   }
 };
 
+export const removeAvatar = async (req, res) => {
+  try {
+    await db.query("UPDATE clients SET avatar = NULL WHERE id = ?", [
+      req.user.id,
+    ]);
+    res.json({ message: "Avatar removed", avatar: null });
+  } catch (err) {
+    console.error("removeAvatar error:", err);
+    res.status(500).json({ message: "Failed to remove avatar" });
+  }
+};
+
 export const updateBanner = async (req, res) => {
   try {
     if (!req.file) {
@@ -83,6 +95,89 @@ export const updateBanner = async (req, res) => {
   } catch (err) {
     console.error("updateBanner error:", err);
     res.status(500).json({ message: "Failed to update banner" });
+  }
+};
+
+export const updateProfileDetails = async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const { name, username, bio, show_in_search, usage_summaries } = req.body;
+
+    const updates = [];
+    const values = [];
+
+    if (name !== undefined) {
+      updates.push("name = ?");
+      values.push(name.trim());
+    }
+
+    if (username !== undefined) {
+      const cleanUsername = username.toLowerCase().trim();
+      const usernameRegex = /^[a-z0-9_-]{3,30}$/;
+      if (!usernameRegex.test(cleanUsername)) {
+        return res.status(400).json({
+          message: "Username must be 3-30 characters, lowercase letters, numbers, hyphens or underscores",
+        });
+      }
+
+      const [existing] = await db.query(
+        "SELECT id FROM clients WHERE username = ? AND id != ?",
+        [cleanUsername, userId]
+      );
+      if (existing.length > 0) {
+        return res.status(409).json({ message: "Username already taken" });
+      }
+
+      updates.push("username = ?");
+      values.push(cleanUsername);
+    }
+
+    if (bio !== undefined) {
+      updates.push("bio = ?");
+      values.push(bio);
+    }
+
+    if (show_in_search !== undefined) {
+      updates.push("show_in_search = ?");
+      values.push(show_in_search ? 1 : 0);
+    }
+
+    if (usage_summaries !== undefined) {
+      updates.push("usage_summaries = ?");
+      values.push(usage_summaries ? 1 : 0);
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ message: "No fields to update" });
+    }
+
+    values.push(userId);
+    await db.query(`UPDATE clients SET ${updates.join(", ")} WHERE id = ?`, values);
+
+    const [updated] = await db.query(
+      `SELECT id, name, username, email, bio, avatar, banner_url,
+              COALESCE(theme, 'Obsidian') as theme,
+              COALESCE(accent_color, '#c6f035') as accent_color,
+              COALESCE(surface_color, '#11120F') as surface_color,
+              COALESCE(font_heading, 'Manrope / Semibold') as font_heading,
+              COALESCE(font_labels, 'IBM Plex Mono / Medium') as font_labels,
+              COALESCE(show_verified_badge, 1) as show_verified_badge,
+              COALESCE(show_social_row, 1) as show_social_row,
+              COALESCE(show_in_search, 1) as show_in_search,
+              COALESCE(usage_summaries, 1) as usage_summaries,
+              custom_domain
+       FROM clients WHERE id = ?`,
+      [userId]
+    );
+
+    res.json({ message: "Profile details updated", user: updated[0] });
+  } catch (err) {
+    console.error("updateProfileDetails error:", err);
+    res.status(500).json({ message: "Failed to update profile details" });
   }
 };
 
@@ -132,7 +227,17 @@ export const getMe = async (req, res) => {
     }
 
     const [results] = await db.query(
-      `SELECT id, name, username, email, bio, avatar, banner_url, theme, background_type, background_value,
+      `SELECT id, name, username, email, bio, avatar, banner_url,
+              COALESCE(theme, 'Obsidian') as theme,
+              COALESCE(accent_color, '#c6f035') as accent_color,
+              COALESCE(surface_color, '#11120F') as surface_color,
+              COALESCE(font_heading, 'Manrope / Semibold') as font_heading,
+              COALESCE(font_labels, 'IBM Plex Mono / Medium') as font_labels,
+              COALESCE(show_verified_badge, 1) as show_verified_badge,
+              COALESCE(show_social_row, 1) as show_social_row,
+              COALESCE(show_in_search, 1) as show_in_search,
+              COALESCE(usage_summaries, 1) as usage_summaries,
+              custom_domain, background_type, background_value,
               youtubeId, githubUser, telegramUser, instagram, twitter, linkedin, tiktok
        FROM clients WHERE id = ?`,
       [userId],

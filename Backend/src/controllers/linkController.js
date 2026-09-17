@@ -20,19 +20,41 @@ export const getLinks = async (req, res) => {
     if (!userId) {
       return res.status(401).json({ message: "Invalid token - no user id" });
     }
+
+    // Get total profile views for conversion rate calculation
+    const [viewsRes] = await db.query(
+      "SELECT COUNT(*) as total FROM profile_views WHERE user_id = ?",
+      [userId]
+    );
+    const totalViews = Number(viewsRes[0]?.total) || 0;
+
     const [results] = await db.query(
-      `SELECT id, title, url, platform, username, profileData, avatar_url, icon, position, is_visible, scheduled_at
-       FROM links WHERE user_id = ? ORDER BY position ASC, id DESC`,
+      `SELECT l.id, l.title, l.url, l.platform, l.username, l.profileData, l.avatar_url, l.icon, l.position, l.is_visible, l.scheduled_at,
+              COUNT(c.id) as clicks
+       FROM links l
+       LEFT JOIN clicks c ON c.link_id = l.id
+       WHERE l.user_id = ?
+       GROUP BY l.id
+       ORDER BY l.position ASC, l.id DESC`,
       [userId]
     );
 
-    const parsed = results.map((link) => ({
-      ...link,
-      profileData:
-        typeof link.profileData === "string"
-          ? JSON.parse(link.profileData)
-          : link.profileData,
-    }));
+    const parsed = results.map((link) => {
+      const clicksCount = Number(link.clicks) || 0;
+      const convRate = totalViews > 0
+        ? ((clicksCount / totalViews) * 100).toFixed(1) + "%"
+        : (clicksCount > 0 ? "100.0%" : "0.0%");
+
+      return {
+        ...link,
+        clicks: clicksCount,
+        conversionRate: convRate,
+        profileData:
+          typeof link.profileData === "string"
+            ? JSON.parse(link.profileData)
+            : link.profileData,
+      };
+    });
 
     res.json(parsed);
   } catch (err) {

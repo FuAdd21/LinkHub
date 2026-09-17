@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   fetchDashboardSnapshot,
   readDashboardSnapshot,
@@ -102,6 +102,16 @@ export default function useDashboardData() {
     }));
   }, [mutate]);
 
+  const updateIntegrations = useCallback((integrationsUpdater) => {
+    mutate((currentSnapshot) => ({
+      ...currentSnapshot,
+      integrations:
+        typeof integrationsUpdater === "function"
+          ? integrationsUpdater(currentSnapshot?.integrations)
+          : integrationsUpdater,
+    }));
+  }, [mutate]);
+
   return {
     snapshot,
     loading,
@@ -111,5 +121,6 @@ export default function useDashboardData() {
     updateUser,
     updateLinks,
     updateAnalytics,
+    updateIntegrations,
   };
 }

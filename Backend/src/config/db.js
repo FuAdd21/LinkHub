@@ -89,6 +89,21 @@ export const initDatabase = async () => {
       )
     `);
 
+    // Create integrations table
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS integrations (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        provider VARCHAR(50) NOT NULL,
+        status VARCHAR(20) DEFAULT 'connected',
+        config JSON DEFAULT NULL,
+        last_synced_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_user_provider (user_id, provider),
+        FOREIGN KEY (user_id) REFERENCES clients(id) ON DELETE CASCADE
+      )
+    `);
+
     // ──── Safe column additions for links table ────
     const linkColumns = [
       ["platform", "VARCHAR(50) DEFAULT NULL"],
@@ -107,7 +122,16 @@ export const initDatabase = async () => {
     const clientColumns = [
       ["username", "VARCHAR(50) UNIQUE DEFAULT NULL"],
       ["bio", "TEXT DEFAULT NULL"],
-      ["theme", "VARCHAR(50) DEFAULT 'dark-pro'"],
+      ["theme", "VARCHAR(50) DEFAULT 'Obsidian'"],
+      ["accent_color", "VARCHAR(30) DEFAULT '#c6f035'"],
+      ["surface_color", "VARCHAR(30) DEFAULT '#11120F'"],
+      ["font_heading", "VARCHAR(50) DEFAULT 'Manrope / Semibold'"],
+      ["font_labels", "VARCHAR(50) DEFAULT 'IBM Plex Mono / Medium'"],
+      ["show_verified_badge", "TINYINT(1) DEFAULT 1"],
+      ["show_social_row", "TINYINT(1) DEFAULT 1"],
+      ["show_in_search", "TINYINT(1) DEFAULT 1"],
+      ["usage_summaries", "TINYINT(1) DEFAULT 1"],
+      ["custom_domain", "VARCHAR(255) DEFAULT NULL"],
       ["background_type", "VARCHAR(20) DEFAULT 'gradient'"],
       ["background_value", "VARCHAR(255) DEFAULT NULL"],
       ["avatar", "VARCHAR(512) DEFAULT NULL"],

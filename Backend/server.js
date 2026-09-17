@@ -15,6 +15,7 @@ import featuredRoutes from "./src/routes/featuredRoutes.js";
 import socialRoutes from "./src/routes/socialRoutes.js";
 import profileRoutes from "./src/routes/profileRoutes.js";
 import analyticsRoutes from "./src/routes/analyticsRoutes.js";
+import integrationRoutes from "./src/routes/integrationRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -42,6 +43,7 @@ app.use("/api", featuredRoutes);
 app.use("/api/socials", socialRoutes);
 app.use("/api", profileRoutes);
 app.use("/api", analyticsRoutes);
+app.use("/api/integrations", integrationRoutes);
 
 // Health check
 app.get("/health", (req, res) => {

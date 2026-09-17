@@ -1,201 +1,41 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
-import axios from "axios";
 import toast from "react-hot-toast";
-import { DndProvider, useDrag, useDrop } from "react-dnd";
-import { HTML5Backend } from "react-dnd-html5-backend";
-import { API_BASE_URL, getDashboardAuthConfig } from "../../api/dashboardApi";
-import { getAvatarUrl, getBannerUrl } from "../../Components/dashboard/dashboardUtils";
+import {
+  GripVertical,
+  Plus,
+  CheckCircle2,
+  MoreVertical,
+  ArrowUpRight,
+  ExternalLink,
+  Trash2,
+  Edit2,
+  Copy,
+  Globe,
+  Github,
+  Youtube,
+  Instagram,
+  Twitter,
+  Linkedin,
+  Radio,
+  FileText,
+  Calendar,
+  X,
+} from "lucide-react";
+import { api } from "../../api/config";
+import { getAvatarUrl } from "../../Components/dashboard/dashboardUtils";
 
-const DND_TYPE = "DASHBOARD_LINK_ITEM";
-
-function DraggableLinkCard({
-  link,
-  index,
-  moveLink,
-  commitReorder,
-  onDelete,
-  onToggleVisibility,
-  onUpdateLink,
-}) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editTitle, setEditTitle] = useState(link.title || "");
-  const [editUrl, setEditUrl] = useState(link.url || "");
-  const [isSaving, setIsSaving] = useState(false);
-
-  const ref = useRef(null);
-
-  const [{ isDragging }, drag, preview] = useDrag({
-    type: DND_TYPE,
-    item: () => ({ id: link.id, index }),
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
-    end: () => {
-      commitReorder();
-    },
-  });
-
-  const [, drop] = useDrop({
-    accept: DND_TYPE,
-    hover(item) {
-      if (!ref.current) return;
-      const dragIndex = item.index;
-      const hoverIndex = index;
-      if (dragIndex === hoverIndex) return;
-      moveLink(dragIndex, hoverIndex);
-      item.index = hoverIndex;
-    },
-  });
-
-  preview(drop(ref));
-
-  const isVisible = link.is_visible !== 0 && link.is_visible !== false;
-
-  async function handleSaveEdit() {
-    if (!editTitle.trim() || !editUrl.trim()) {
-      toast.error("Title and URL cannot be empty");
-      return;
-    }
-    setIsSaving(true);
-    try {
-      await onUpdateLink(link.id, {
-        title: editTitle.trim(),
-        url: editUrl.trim(),
-        platform: link.platform || "General",
-      });
-      setIsEditing(false);
-      toast.success("Link updated");
-    } catch {
-      toast.error("Failed to update link");
-    } finally {
-      setIsSaving(false);
-    }
-  }
-
-  return (
-    <div
-      ref={ref}
-      style={{ opacity: isDragging ? 0.35 : 1 }}
-      className={`group relative p-5 bg-surface-container-high/40 rounded-2xl border transition-all ${
-        !isVisible
-          ? "border-outline-variant/5 opacity-60 bg-surface-container-high/20"
-          : "border-outline-variant/10 hover:bg-surface-container-high hover:border-outline-variant/20"
-      }`}
-    >
-      {isEditing ? (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-widest text-primary">
-              Editing Link
-            </span>
-            <button
-              onClick={() => {
-                setEditTitle(link.title || "");
-                setEditUrl(link.url || "");
-                setIsEditing(false);
-              }}
-              className="text-xs text-outline hover:text-white"
-            >
-              Cancel
-            </button>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <input
-              value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
-              placeholder="Title"
-              className="w-full bg-surface-container-highest border border-outline-variant/20 rounded-xl px-4 py-2.5 text-white font-bold text-sm outline-none focus:ring-2 focus:ring-primary/40"
-            />
-            <input
-              value={editUrl}
-              onChange={(e) => setEditUrl(e.target.value)}
-              placeholder="https://..."
-              className="w-full bg-surface-container-highest border border-outline-variant/20 rounded-xl px-4 py-2.5 text-white font-bold text-sm outline-none focus:ring-2 focus:ring-primary/40"
-            />
-          </div>
-          <div className="flex justify-end gap-2 pt-1">
-            <button
-              disabled={isSaving}
-              onClick={handleSaveEdit}
-              className="px-4 py-2 rounded-xl bg-primary text-black font-bold text-xs hover:bg-primary-hover transition-colors"
-            >
-              {isSaving ? "Saving..." : "Save"}
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4 min-w-0 flex-1">
-            <div className="w-12 h-12 shrink-0 rounded-xl bg-surface-container-highest flex items-center justify-center text-white">
-              <span className="material-symbols-outlined">
-                {link.platform === "General" ? "link" : "alternate_email"}
-              </span>
-            </div>
-            <div className="text-left min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <h4 className="font-bold text-white text-sm uppercase tracking-wider truncate">
-                  {link.title}
-                </h4>
-                {!isVisible && (
-                  <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-white/10 text-outline tracking-wider">
-                    Hidden
-                  </span>
-                )}
-              </div>
-              <p className="text-[11px] text-outline font-medium opacity-60 truncate">
-                {link.url}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
-            {/* Visibility Toggle */}
-            <button
-              onClick={() => onToggleVisibility(link.id)}
-              title={isVisible ? "Hide link on profile" : "Show link on profile"}
-              className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
-                isVisible
-                  ? "text-outline hover:text-white hover:bg-white/5"
-                  : "text-amber-400/80 hover:text-amber-300 hover:bg-amber-400/10"
-              }`}
-            >
-              <span className="material-symbols-outlined text-lg">
-                {isVisible ? "visibility" : "visibility_off"}
-              </span>
-            </button>
-
-            {/* Inline Edit Button */}
-            <button
-              onClick={() => setIsEditing(true)}
-              title="Edit link"
-              className="w-9 h-9 rounded-xl flex items-center justify-center text-outline hover:text-white hover:bg-white/5 transition-colors"
-            >
-              <span className="material-symbols-outlined text-lg">edit</span>
-            </button>
-
-            {/* Delete Button */}
-            <button
-              onClick={() => onDelete(link.id)}
-              title="Remove link"
-              className="w-9 h-9 rounded-xl flex items-center justify-center text-error-dim hover:text-error hover:bg-error/10 transition-colors"
-            >
-              <span className="material-symbols-outlined text-lg">delete</span>
-            </button>
-
-            {/* Drag Handle */}
-            <div
-              ref={drag}
-              title="Drag to reorder"
-              className="w-9 h-9 rounded-xl flex items-center justify-center cursor-grab active:cursor-grabbing text-outline hover:text-white hover:bg-white/5 transition-colors"
-            >
-              <span className="material-symbols-outlined text-lg">drag_indicator</span>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+// Helper to pick platform icon
+function getPlatformIcon(url = "", platform = "") {
+  const lowerUrl = (url + " " + platform).toLowerCase();
+  if (lowerUrl.includes("github")) return Github;
+  if (lowerUrl.includes("youtube") || lowerUrl.includes("youtu.be")) return Youtube;
+  if (lowerUrl.includes("instagram")) return Instagram;
+  if (lowerUrl.includes("twitter") || lowerUrl.includes("x.com")) return Twitter;
+  if (lowerUrl.includes("linkedin")) return Linkedin;
+  if (lowerUrl.includes("cal.com") || lowerUrl.includes("calendar")) return Calendar;
+  if (lowerUrl.includes("essay") || lowerUrl.includes("blog") || lowerUrl.includes("notes")) return FileText;
+  if (lowerUrl.includes("podcast") || lowerUrl.includes("spotify")) return Radio;
+  return ArrowUpRight;
 }
 
 export default function DashboardLinks({
@@ -205,107 +45,47 @@ export default function DashboardLinks({
   onUserChange,
   onLinksChange,
 }) {
-  const [newLink, setNewLink] = useState({
-    title: "",
-    url: "",
-    platform: "General",
-  });
-  const [loading, setLoading] = useState(false);
   const [localLinks, setLocalLinks] = useState(links);
+  const [activeMenuId, setActiveMenuId] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingLink, setEditingLink] = useState(null);
+  const [form, setForm] = useState({ title: "", url: "", platform: "General" });
+  const [saving, setSaving] = useState(false);
+  const [draggingIdx, setDraggingIdx] = useState(null);
 
   useEffect(() => {
     setLocalLinks(links);
   }, [links]);
 
-  const avatarUrl = getAvatarUrl(userData);
-  const bannerUrl = getBannerUrl(userData);
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = () => setActiveMenuId(null);
+    window.addEventListener("click", handleClickOutside);
+    return () => window.removeEventListener("click", handleClickOutside);
+  }, []);
 
-  async function handleAddLink(e) {
-    if (e) e.preventDefault();
-    if (!newLink.title || !newLink.url) {
-      toast.error("Title and URL required");
-      return;
-    }
-    setLoading(true);
-    try {
-      await axios.post(
-        `${API_BASE_URL}/api/mylinks`,
-        newLink,
-        getDashboardAuthConfig()
-      );
-      onRefresh();
-      setNewLink({ title: "", url: "", platform: "General" });
-      toast.success("Link added to your network");
-    } catch {
-      toast.error("Failed to add link");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function handleDelete(id) {
-    try {
-      await axios.delete(
-        `${API_BASE_URL}/api/mylinks/${id}`,
-        getDashboardAuthConfig()
-      );
-      setLocalLinks((prev) => prev.filter((l) => l.id !== id));
-      onRefresh();
-      toast.success("Link removed");
-    } catch {
-      toast.error("Failed to remove link");
-    }
-  }
-
-  async function handleToggleVisibility(id) {
-    try {
-      const { data } = await axios.put(
-        `${API_BASE_URL}/api/mylinks/${id}/visibility`,
-        {},
-        getDashboardAuthConfig()
-      );
-      const isVisibleNow = data.link?.is_visible !== 0 && data.link?.is_visible !== false;
-      setLocalLinks((prev) =>
-        prev.map((l) =>
-          l.id === id ? { ...l, is_visible: data.link?.is_visible } : l
-        )
-      );
-      onRefresh();
-      toast.success(isVisibleNow ? "Link is now visible" : "Link is now hidden");
-    } catch {
-      toast.error("Failed to update link visibility");
-    }
-  }
-
-  async function handleUpdateLink(id, updateData) {
-    await axios.put(
-      `${API_BASE_URL}/api/mylinks/${id}`,
-      updateData,
-      getDashboardAuthConfig()
-    );
-    setLocalLinks((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, ...updateData } : l))
-    );
-    onRefresh();
-  }
-
-  const moveLink = (dragIndex, hoverIndex) => {
-    setLocalLinks((prev) => {
-      const updated = [...prev];
-      const [dragged] = updated.splice(dragIndex, 1);
-      updated.splice(hoverIndex, 0, dragged);
-      return updated;
-    });
+  // Drag & drop reordering
+  const handleDragStart = (e, index) => {
+    setDraggingIdx(index);
+    e.dataTransfer.effectAllowed = "move";
   };
 
-  const commitReorder = async () => {
+  const handleDragOver = (e, index) => {
+    e.preventDefault();
+    if (draggingIdx === null || draggingIdx === index) return;
+
+    const updated = [...localLinks];
+    const [draggedItem] = updated.splice(draggingIdx, 1);
+    updated.splice(index, 0, draggedItem);
+    setDraggingIdx(index);
+    setLocalLinks(updated);
+  };
+
+  const handleDragEnd = async () => {
+    setDraggingIdx(null);
     try {
       const order = localLinks.map((l) => l.id);
-      await axios.put(
-        `${API_BASE_URL}/api/mylinks/order`,
-        { order },
-        getDashboardAuthConfig()
-      );
+      await api.put("/api/mylinks/order", { order });
       onLinksChange?.(localLinks);
       toast.success("Link order updated");
     } catch {
@@ -314,196 +94,468 @@ export default function DashboardLinks({
     }
   };
 
+  // Visibility toggle
+  const handleToggleVisibility = async (link) => {
+    const currentVal = link.is_visible !== 0 && link.is_visible !== false;
+    const nextVal = currentVal ? 0 : 1;
+
+    // Optimistic UI update
+    const updated = localLinks.map((l) =>
+      l.id === link.id ? { ...l, is_visible: nextVal } : l
+    );
+    setLocalLinks(updated);
+
+    try {
+      await api.put(`/api/mylinks/${link.id}/visibility`, { is_visible: nextVal });
+      onLinksChange?.(updated);
+      toast.success(nextVal ? "Link is now visible" : "Link is hidden");
+    } catch {
+      toast.error("Failed to update link visibility");
+      onRefresh?.();
+    }
+  };
+
+  // Open modal for Create
+  const handleOpenCreate = () => {
+    setEditingLink(null);
+    setForm({ title: "", url: "", platform: "General" });
+    setModalOpen(true);
+  };
+
+  // Open modal for Edit
+  const handleOpenEdit = (link) => {
+    setEditingLink(link);
+    setForm({
+      title: link.title || "",
+      url: link.url || "",
+      platform: link.platform || "General",
+    });
+    setModalOpen(true);
+  };
+
+  // Save Link (Create or Edit)
+  const handleSaveLink = async (e) => {
+    e.preventDefault();
+    if (!form.title.trim() || !form.url.trim()) {
+      toast.error("Title and URL are required");
+      return;
+    }
+
+    let normalizedUrl = form.url.trim();
+    if (!/^https?:\/\//i.test(normalizedUrl)) {
+      normalizedUrl = `https://${normalizedUrl}`;
+    }
+
+    setSaving(true);
+    try {
+      if (editingLink) {
+        const res = await api.put(`/api/mylinks/${editingLink.id}`, {
+          title: form.title.trim(),
+          url: normalizedUrl,
+          platform: form.platform,
+        });
+        const updated = localLinks.map((l) =>
+          l.id === editingLink.id ? { ...l, ...res.data } : l
+        );
+        setLocalLinks(updated);
+        onLinksChange?.(updated);
+        toast.success("Link updated");
+      } else {
+        const res = await api.post("/api/mylinks", {
+          title: form.title.trim(),
+          url: normalizedUrl,
+          platform: form.platform,
+        });
+        const updated = [res.data, ...localLinks];
+        setLocalLinks(updated);
+        onLinksChange?.(updated);
+        toast.success("Link published");
+      }
+      setModalOpen(false);
+      onRefresh?.();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to save link");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Delete Link
+  const handleDeleteLink = async (linkId) => {
+    if (!window.confirm("Are you sure you want to delete this link?")) return;
+    try {
+      await api.delete(`/api/mylinks/${linkId}`);
+      const updated = localLinks.filter((l) => l.id !== linkId);
+      setLocalLinks(updated);
+      onLinksChange?.(updated);
+      toast.success("Link removed");
+      onRefresh?.();
+    } catch {
+      toast.error("Failed to delete link");
+    }
+  };
+
+  // Copy link to clipboard
+  const handleCopyLink = (url) => {
+    navigator.clipboard.writeText(url);
+    toast.success("Link copied to clipboard");
+  };
+
+  const avatarUrl = getAvatarUrl(userData?.avatar);
+  const userInitials = (userData?.name || "MK")
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        {/* Profile Identity Section */}
-        <section className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-black text-white tracking-tight">
-              Profile Identity
-            </h2>
-            <span className="bg-white/5 border border-white/10 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-400">
-              {localLinks?.length ?? 0} {localLinks?.length === 1 ? "Link" : "Links"} Active
-            </span>
-          </div>
-
-        <div className="bg-surface-container-low/30 backdrop-blur-xl border border-outline-variant/10 rounded-[2rem] overflow-hidden">
-          {/* Banner */}
-          <div className="relative w-full h-36">
-            {bannerUrl ? (
-              <img src={bannerUrl} className="w-full h-full object-cover" alt="Banner" />
-            ) : (
-              <div className="w-full h-full bg-gradient-to-tr from-primary/20 via-tertiary/10 to-transparent" />
-            )}
-            {/* Avatar overlapping banner bottom-left */}
-            <div className="absolute -bottom-10 left-6">
-              <div className="w-20 h-20 rounded-full p-0.5 bg-gradient-to-tr from-primary to-tertiary shadow-2xl ring-4 ring-[#0b0e14]">
-                <div className="w-full h-full rounded-full border-4 border-[#0b0e14] overflow-hidden bg-surface-dim">
-                  {avatarUrl ? (
-                    <img src={avatarUrl} className="w-full h-full object-cover" alt="Avatar" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-primary/40 bg-surface-container-high">
-                      <span className="material-symbols-outlined text-3xl">person</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Fields */}
-          <div className="pt-14 px-8 pb-8 space-y-6">
-            <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-outline px-1">Full Name</label>
-                <input
-                  readOnly
-                  value={userData?.full_name || userData?.name || ""}
-                  placeholder="Set your name in Profile"
-                  className="w-full bg-surface-container-high/50 border border-outline-variant/5 rounded-xl px-5 py-3.5 text-white font-bold text-sm focus:ring-2 focus:ring-primary/40 outline-none transition-all placeholder:text-outline/40"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-outline px-1">Username</label>
-                <input
-                  readOnly
-                  value={userData?.username ? `@${userData.username}` : ""}
-                  placeholder="@username"
-                  className="w-full bg-surface-container-high/50 border border-outline-variant/5 rounded-xl px-5 py-3.5 text-white font-bold text-sm focus:ring-2 focus:ring-primary/40 outline-none transition-all placeholder:text-outline/40"
-                />
-              </div>
-            </div>
-
-            <div className="w-full space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-outline px-1">Bio</label>
-              <textarea
-                readOnly
-                value={userData?.bio || ""}
-                placeholder="No bio configured yet. Customize your bio in the Profile tab."
-                rows={3}
-                className="w-full bg-surface-container-high/50 border border-outline-variant/5 rounded-2xl px-5 py-4 text-slate-300 font-medium text-sm focus:ring-2 focus:ring-primary/40 outline-none transition-all resize-none leading-relaxed placeholder:text-outline/40"
-              />
-            </div>
-
-            <div className="w-full flex items-center justify-between pt-1 border-t border-white/5">
-              <span className="text-xs text-outline font-medium">
-                Need to change your name, avatar, or bio?
-              </span>
-              <Link
-                to="/dashboard/profile"
-                className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
-              >
-                Edit Profile{" "}
-                <span className="material-symbols-outlined text-sm">
-                  arrow_forward
-                </span>
-              </Link>
-            </div>
-          </div>
-        </div>
-        </section>
-
-        {/* Your Network Section */}
-        <section className="space-y-6">
-          <h2 className="text-2xl font-black text-white tracking-tight">
-            Your Network
-          </h2>
-
-          <div className="bg-surface-container-low/30 backdrop-blur-xl border border-outline-variant/10 rounded-[2.5rem] p-8 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-outline px-1">
-                  Title
-                </label>
-                <input
-                  placeholder="My Portfolio"
-                  className="w-full bg-surface-container-high border-none rounded-xl px-5 py-3.5 text-on-surface font-bold text-sm focus:ring-2 focus:ring-primary/40 transition-all outline-none"
-                  value={newLink.title}
-                  onChange={(e) =>
-                    setNewLink((p) => ({ ...p, title: e.target.value }))
-                  }
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-outline px-1">
-                  Platform
-                </label>
-                <div className="relative">
-                  <select
-                    className="w-full bg-surface-container-high border-none rounded-xl px-5 py-3.5 text-on-surface font-bold text-sm focus:ring-2 focus:ring-primary/40 transition-all outline-none appearance-none cursor-pointer"
-                    value={newLink.platform}
-                    onChange={(e) =>
-                      setNewLink((p) => ({ ...p, platform: e.target.value }))
-                    }
-                  >
-                    <option value="General">General</option>
-                    <option value="Instagram">Instagram</option>
-                    <option value="Twitter">Twitter / X</option>
-                    <option value="GitHub">GitHub</option>
-                  </select>
-                  <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-outline text-lg">
-                    expand_more
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-outline px-1">
-                URL
-              </label>
-              <input
-                placeholder="https://"
-                className="w-full bg-surface-container-high border-none rounded-xl px-5 py-3.5 text-on-surface font-bold text-sm focus:ring-2 focus:ring-primary/40 transition-all outline-none"
-                value={newLink.url}
-                onChange={(e) =>
-                  setNewLink((p) => ({ ...p, url: e.target.value }))
-                }
-              />
+    <div className="flex flex-col xl:flex-row gap-8 pb-12">
+      {/* Center Column: Links Editor */}
+      <div className="flex-1 min-w-0 space-y-6">
+        {/* Header Section */}
+        <div>
+          <p className="text-xs text-slate-400 font-medium mb-1">
+            Build and organize your public destinations.
+          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                Your links
+              </h1>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Drag to reorder. Changes publish instantly.
+              </p>
             </div>
 
             <button
-              disabled={loading}
-              onClick={handleAddLink}
-              className="w-full py-4 flex items-center justify-center gap-2 rounded-2xl border border-white/5 bg-white/5 hover:bg-white/10 transition-all active:scale-95 group shadow-lg"
+              onClick={handleOpenCreate}
+              className="px-4 py-2.5 rounded-lg bg-[#c6f035] text-[#0B0A07] font-bold text-xs hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-lg shadow-[#c6f035]/10"
             >
-              <span className="material-symbols-outlined text-xl group-hover:scale-110 transition-transform">
-                add
-              </span>
-              <span className="text-[11px] font-black uppercase tracking-[0.2em]">
-                {loading ? "Adding Link..." : "Add Link"}
-              </span>
+              <Plus className="w-4 h-4 stroke-[3]" />
+              Add link
             </button>
           </div>
+        </div>
 
-          {/* Existing Links List */}
-          <div className="space-y-4 pt-4">
-            {localLinks && localLinks.length > 0 ? (
-              localLinks.map((link, index) => (
-                <DraggableLinkCard
+        {/* Status Notification Banner */}
+        <div className="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-[#13120D] border border-white/5 text-xs text-slate-300">
+          <span className="w-5 h-5 rounded-md bg-[#c6f035]/15 text-[#c6f035] flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+          </span>
+          <span className="font-semibold text-white">All changes published</span>
+          <span className="text-slate-500">·</span>
+          <span className="text-slate-400">Your public profile is up to date.</span>
+        </div>
+
+        {/* Reorderable Links List */}
+        <div className="space-y-3">
+          {localLinks.length === 0 ? (
+            <div className="p-12 text-center rounded-2xl bg-[#13120D] border border-white/5 space-y-3">
+              <Globe className="w-8 h-8 text-slate-600 mx-auto" />
+              <h3 className="text-sm font-bold text-white">No links active yet</h3>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                Add your first link destination to share your tools, content, and socials with the world.
+              </p>
+              <button
+                onClick={handleOpenCreate}
+                className="px-4 py-2 rounded-lg bg-[#c6f035] text-[#0B0A07] font-bold text-xs hover:brightness-110 active:scale-95 transition-all inline-flex items-center gap-1.5 mt-2"
+              >
+                <Plus className="w-3.5 h-3.5 stroke-[3]" />
+                Add your first link
+              </button>
+            </div>
+          ) : (
+            localLinks.map((link, index) => {
+              const IconComponent = getPlatformIcon(link.url, link.platform);
+              const isVisible = link.is_visible !== 0 && link.is_visible !== false;
+              const cleanUrl = (link.url || "").replace(/^https?:\/\//i, "");
+
+              return (
+                <div
                   key={link.id}
-                  link={link}
-                  index={index}
-                  moveLink={moveLink}
-                  commitReorder={commitReorder}
-                  onDelete={handleDelete}
-                  onToggleVisibility={handleToggleVisibility}
-                  onUpdateLink={handleUpdateLink}
-                />
-              ))
-            ) : (
-              <div className="py-12 flex flex-col items-center justify-center opacity-20 transition-opacity">
-                <span className="material-symbols-outlined text-4xl mb-4">
-                  link_off
-                </span>
-                <p className="text-[10px] font-black uppercase tracking-widest">
-                  No links materialized
-                </p>
-              </div>
-            )}
-          </div>
-        </section>
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragOver={(e) => handleDragOver(e, index)}
+                  onDragEnd={handleDragEnd}
+                  className={`group relative flex items-center gap-3.5 p-4 rounded-xl border transition-all duration-200 ${
+                    draggingIdx === index
+                      ? "opacity-40 bg-[#1f1d16] border-[#c6f035]/40"
+                      : isVisible
+                      ? "bg-[#13120D] border-white/5 hover:border-white/10 hover:bg-[#161510]"
+                      : "bg-[#13120D]/60 border-white/5 opacity-60"
+                  }`}
+                >
+                  {/* Drag Handle */}
+                  <button
+                    type="button"
+                    className="text-slate-600 hover:text-slate-300 cursor-grab active:cursor-grabbing p-1 transition-colors"
+                    title="Drag to reorder"
+                  >
+                    <GripVertical className="w-4 h-4" />
+                  </button>
+
+                  {/* Icon Box */}
+                  <div className="w-10 h-10 rounded-lg bg-[#1a1914] border border-white/5 flex items-center justify-center text-slate-300 shrink-0">
+                    <IconComponent className="w-4 h-4" />
+                  </div>
+
+                  {/* Title & URL */}
+                  <div className="flex-1 min-w-0 pr-2">
+                    <h4 className="text-sm font-bold text-white truncate group-hover:text-[#c6f035] transition-colors">
+                      {link.title}
+                    </h4>
+                    <p className="text-xs font-mono text-slate-500 truncate mt-0.5">
+                      {cleanUrl}
+                    </p>
+                  </div>
+
+                  {/* Stats (Clicks & Conversion) */}
+                  <div className="hidden sm:flex items-center gap-6 font-mono text-xs shrink-0 px-2">
+                    <div className="text-right">
+                      <span className="text-[10px] uppercase text-slate-500 tracking-wider mr-2">
+                        Clicks
+                      </span>
+                      <span className="text-slate-300 font-bold">
+                        {(Number(link.clicks) || 0).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] uppercase text-slate-500 tracking-wider mr-2">
+                        Conv.
+                      </span>
+                      <span className="text-slate-300 font-bold">
+                        {link.conversionRate || "0.0%"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Luminous Switch Toggle */}
+                  <button
+                    type="button"
+                    onClick={() => handleToggleVisibility(link)}
+                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      isVisible ? "bg-[#c6f035]" : "bg-[#25241f]"
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-[#0B0A07] shadow-lg ring-0 transition duration-200 ease-in-out ${
+                        isVisible ? "translate-x-4" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+
+                  {/* Three Dots Menu */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveMenuId(activeMenuId === link.id ? null : link.id);
+                      }}
+                      className="w-8 h-8 rounded-lg hover:bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
+                    >
+                      <MoreVertical className="w-4 h-4" />
+                    </button>
+
+                    {activeMenuId === link.id && (
+                      <div
+                        onClick={(e) => e.stopPropagation()}
+                        className="absolute right-0 top-10 w-44 rounded-xl bg-[#1a1914] border border-white/10 shadow-2xl py-1 z-30 animate-in fade-in zoom-in-95 duration-150"
+                      >
+                        <button
+                          onClick={() => {
+                            setActiveMenuId(null);
+                            handleOpenEdit(link);
+                          }}
+                          className="w-full px-3.5 py-2 text-left text-xs text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                          Edit link
+                        </button>
+                        <button
+                          onClick={() => {
+                            setActiveMenuId(null);
+                            handleCopyLink(link.url);
+                          }}
+                          className="w-full px-3.5 py-2 text-left text-xs text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                          Copy link URL
+                        </button>
+                        <a
+                          href={link.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={() => setActiveMenuId(null)}
+                          className="w-full px-3.5 py-2 text-left text-xs text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          Open in new tab
+                        </a>
+                        <div className="my-1 border-t border-white/5" />
+                        <button
+                          onClick={() => {
+                            setActiveMenuId(null);
+                            handleDeleteLink(link.id);
+                          }}
+                          className="w-full px-3.5 py-2 text-left text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 flex items-center gap-2"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Delete link
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
-    </DndProvider>
+
+      {/* Right Column: Profile Preview (Desktop View matching image copy.png) */}
+      <div className="w-full xl:w-[380px] shrink-0 space-y-4">
+        <div className="flex items-center justify-between px-1">
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            Profile preview
+          </span>
+          <span className="px-2.5 py-1 rounded-md bg-[#13120D] border border-white/5 text-[11px] font-semibold text-slate-400">
+            Desktop
+          </span>
+        </div>
+
+        {/* Mockup Frame */}
+        <div className="rounded-2xl bg-[#13120D] border border-white/5 p-6 flex flex-col items-center justify-between min-h-[520px] shadow-2xl">
+          <div className="w-full flex flex-col items-center text-center space-y-4 pt-4">
+            {/* Avatar Circle */}
+            <div className="w-20 h-20 rounded-full border-2 border-[#c6f035] p-1 flex items-center justify-center">
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={userData?.name}
+                  className="w-full h-full rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full rounded-full bg-[#1a1914] flex items-center justify-center font-bold text-lg text-[#c6f035]">
+                  {userInitials}
+                </div>
+              )}
+            </div>
+
+            {/* Name & Bio */}
+            <div>
+              <h3 className="text-base font-black text-white">
+                {userData?.name || "Maya Kim"}
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {userData?.bio || "Creator · Developer"}
+              </p>
+            </div>
+
+            {/* Links Stack in preview */}
+            <div className="w-full space-y-2.5 pt-4">
+              {localLinks
+                .filter((l) => l.is_visible !== 0 && l.is_visible !== false)
+                .slice(0, 4)
+                .map((link) => (
+                  <div
+                    key={link.id}
+                    className="w-full py-3 px-4 rounded-xl bg-[#1a1914] border border-white/5 text-xs font-semibold text-slate-300 text-center hover:border-white/20 transition-colors truncate"
+                  >
+                    {link.title}
+                  </div>
+                ))}
+            </div>
+          </div>
+
+          {/* Footer branding */}
+          <div className="pt-6 pb-2 text-[10px] font-mono tracking-widest text-slate-600 uppercase">
+            linkhub
+          </div>
+        </div>
+      </div>
+
+      {/* Add / Edit Modal */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl bg-[#161510] border border-white/10 p-6 shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-4 border-b border-white/5">
+              <h3 className="text-base font-bold text-white">
+                {editingLink ? "Edit Destination" : "Add New Destination"}
+              </h3>
+              <button
+                onClick={() => setModalOpen(false)}
+                className="w-7 h-7 rounded-lg hover:bg-white/5 flex items-center justify-center text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveLink} className="space-y-4 pt-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-300">Title</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. My Open-Source Toolkit"
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-[#11120F] border border-white/10 text-xs text-white placeholder:text-slate-600 focus:border-[#c6f035] focus:outline-none"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-300">URL</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="https://github.com/..."
+                  value={form.url}
+                  onChange={(e) => setForm({ ...form, url: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-[#11120F] border border-white/10 text-xs text-white placeholder:text-slate-600 focus:border-[#c6f035] focus:outline-none"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-300">Platform</label>
+                <select
+                  value={form.platform}
+                  onChange={(e) => setForm({ ...form, platform: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-lg bg-[#11120F] border border-white/10 text-xs text-white focus:border-[#c6f035] focus:outline-none"
+                >
+                  <option value="General">General Web Link</option>
+                  <option value="GitHub">GitHub</option>
+                  <option value="YouTube">YouTube</option>
+                  <option value="Instagram">Instagram</option>
+                  <option value="Twitter">Twitter / X</option>
+                  <option value="LinkedIn">LinkedIn</option>
+                  <option value="Spotify">Spotify / Podcast</option>
+                  <option value="Calendar">Calendar (Cal.com / Calendly)</option>
+                  <option value="Newsletter">Newsletter / Substack</option>
+                </select>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/5">
+                <button
+                  type="button"
+                  onClick={() => setModalOpen(false)}
+                  className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-semibold text-slate-300 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="px-5 py-2 rounded-lg bg-[#c6f035] text-[#0B0A07] font-bold text-xs hover:brightness-110 active:scale-95 transition-all disabled:opacity-50"
+                >
+                  {saving ? "Saving..." : editingLink ? "Save Changes" : "Create Link"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

@@ -1,132 +1,445 @@
-import { useState } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { API_BASE_URL, getDashboardAuthConfig } from "../../api/dashboardApi";
+import { Check, Github, Instagram, Twitter, Youtube, ExternalLink, BadgeCheck } from "lucide-react";
+import { api } from "../../api/config";
+import { getAvatarUrl } from "../../Components/dashboard/dashboardUtils";
 
-const FONTS = [
-  { id: "Inter", label: "Inter", sub: "Modern, Clean, Neutral" },
-  { id: "Playfair Display", label: "Playfair Display", sub: "Elegant, Classic, High-End" },
-  { id: "Fira Code", label: "Fira Code", sub: "Technical, Edgy, Brutalist" },
-  { id: "Montserrat", label: "Montserrat", sub: "Geometric, Loud, Bold" },
+const THEMES = [
+  { id: "Obsidian", name: "Obsidian", bg: "#11120F", dot: "#c6f035", text: "#ffffff" },
+  { id: "Paper", name: "Paper", bg: "#f3f4f3", dot: "#11120F", text: "#11120F" },
+  { id: "Signal", name: "Signal", bg: "#0d131a", dot: "#00d2ff", text: "#ffffff" },
 ];
 
-const ACCENTS = [
-  "#919bff", "#94eccf", "#dcbcff", "#ff808b", "#8e98ff"
+const ACCENT_PALETTE = [
+  "#c6f035", // Electric Lime
+  "#00d2ff", // Cyan
+  "#ff8c42", // Orange / Amber
+  "#f43f5e", // Pink / Coral
+  "#ffffff", // White
 ];
 
-export default function DashboardThemes({ userData, onRefresh, onUserChange }) {
-  const [loading, setLoading] = useState(false);
-  const currentTheme = userData?.theme || "dark";
+const HEADING_FONTS = [
+  "Manrope / Semibold",
+  "Inter / Bold",
+  "Space Grotesk / Medium",
+  "Outfit / Semibold",
+];
 
-  async function updateTheme(updates) {
-    setLoading(true);
-    const loadingToast = toast.loading("Reshaping atmosphere...");
-    try {
-      const { data } = await axios.put(
-        `${API_BASE_URL}/api/profile`,
-        updates,
-        getDashboardAuthConfig()
-      );
-      onUserChange(data.user);
-      onRefresh();
-      toast.success("Design system synchronized", { id: loadingToast });
-    } catch (err) {
-      toast.error("Atmosphere Forge Error", { id: loadingToast });
-    } finally {
-      setLoading(false);
+const LABEL_FONTS = [
+  "IBM Plex Mono / Medium",
+  "JetBrains Mono / Regular",
+  "Fira Code / Medium",
+];
+
+export default function DashboardThemes({ userData, links = [], onRefresh, onUserChange }) {
+  const [theme, setTheme] = useState(userData?.theme || "Obsidian");
+  const [accent, setAccent] = useState(userData?.accent_color || "#c6f035");
+  const [surface, setSurface] = useState(userData?.surface_color || "#11120F");
+  const [headingFont, setHeadingFont] = useState(userData?.font_heading || "Manrope / Semibold");
+  const [labelFont, setLabelFont] = useState(userData?.font_labels || "IBM Plex Mono / Medium");
+  const [displayName, setDisplayName] = useState(userData?.name || "Maya Kim");
+  const [bio, setBio] = useState(userData?.bio || "Creator, developer, systems thinker.");
+  const [showVerified, setShowVerified] = useState(
+    userData?.show_verified_badge !== 0 && userData?.show_verified_badge !== false
+  );
+  const [showSocials, setShowSocials] = useState(
+    userData?.show_social_row !== 0 && userData?.show_social_row !== false
+  );
+
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (userData) {
+      if (userData.theme) setTheme(userData.theme);
+      if (userData.accent_color) setAccent(userData.accent_color);
+      if (userData.surface_color) setSurface(userData.surface_color);
+      if (userData.font_heading) setHeadingFont(userData.font_heading);
+      if (userData.font_labels) setLabelFont(userData.font_labels);
+      if (userData.name) setDisplayName(userData.name);
+      if (userData.bio) setBio(userData.bio);
+      setShowVerified(userData.show_verified_badge !== 0 && userData.show_verified_badge !== false);
+      setShowSocials(userData.show_social_row !== 0 && userData.show_social_row !== false);
     }
-  }
+  }, [userData]);
+
+  const handlePublish = async () => {
+    setSaving(true);
+    const loadingToast = toast.loading("Publishing appearance...");
+    try {
+      const payload = {
+        name: displayName.trim(),
+        bio: bio.trim(),
+        theme,
+        accent_color: accent,
+        surface_color: surface,
+        font_heading: headingFont,
+        font_labels: labelFont,
+        show_verified_badge: showVerified ? 1 : 0,
+        show_social_row: showSocials ? 1 : 0,
+      };
+
+      const res = await api.put("/api/profile", payload);
+      onUserChange?.(res.data.user || res.data.profile);
+      onRefresh?.();
+      toast.success("Appearance published successfully", { id: loadingToast });
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to publish appearance", {
+        id: loadingToast,
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const avatarUrl = getAvatarUrl(userData?.avatar);
+  const userInitials = (displayName || "MK")
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  // Selected Theme styling for mockup
+  const isPaper = theme === "Paper";
+  const previewBg = isPaper ? "#f3f4f3" : theme === "Signal" ? "#0d131a" : "#11120F";
+  const previewText = isPaper ? "#11120F" : "#ffffff";
+  const previewCardBg = isPaper ? "#e5e5e5" : "#1a1914";
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-700">
-      <div>
-        <h1 className="text-4xl font-black tracking-tight text-white mb-2">Select Theme</h1>
-        <p className="text-on-surface-variant font-medium">Customize how your public LinkHub profile looks to your audience.</p>
-      </div>
-
-      {/* Mode Selection */}
-      <div className="space-y-6">
-        <label className="text-[10px] font-black uppercase tracking-[0.3em] text-primary px-1">Mode</label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <button
-            onClick={() => updateTheme({ theme: "dark" })}
-            className={`flex flex-col items-center justify-center p-8 rounded-[1.5rem] border-2 transition-all ${
-              currentTheme === "dark" 
-                ? "bg-primary/5 border-primary shadow-[0_0_40px_rgba(145,155,255,0.1)]" 
-                : "bg-surface-container/40 border-outline-variant/10 hover:border-outline/40"
-            }`}
-          >
-            <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 transition-all ${currentTheme === "dark" ? "bg-primary text-black" : "bg-surface-container-highest text-outline"}`}>
-              <span className="material-symbols-outlined text-3xl">dark_mode</span>
+    <div className="flex flex-col xl:flex-row gap-8 pb-12">
+      {/* Left Column: Customization Controls */}
+      <div className="flex-1 min-w-0 space-y-6">
+        {/* Header Section */}
+        <div>
+          <p className="text-xs text-slate-400 font-medium mb-1">
+            Shape the visual system behind your public identity.
+          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+                Appearance
+              </h1>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Customize theme, typography, spacing, and profile details.
+              </p>
             </div>
-            <span className={`font-black text-sm uppercase tracking-widest ${currentTheme === "dark" ? "text-white" : "text-slate-400"}`}>Dark Mode</span>
-          </button>
 
-          <button
-            onClick={() => updateTheme({ theme: "light" })}
-            className={`flex flex-col items-center justify-center p-8 rounded-[1.5rem] border-2 transition-all ${
-              currentTheme === "light" 
-                ? "bg-white border-primary shadow-xl" 
-                : "bg-surface-container/40 border-outline-variant/10 hover:border-outline/40"
-            }`}
-          >
-            <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 transition-all ${currentTheme === "light" ? "bg-primary text-black" : "bg-surface-container-highest text-outline"}`}>
-              <span className="material-symbols-outlined text-3xl">light_mode</span>
-            </div>
-            <span className={`font-black text-sm uppercase tracking-widest ${currentTheme === "light" ? "text-black" : "text-slate-400"}`}>Light Mode</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Accent Color Selection */}
-      <div className="space-y-6">
-        <label className="text-[10px] font-black uppercase tracking-[0.3em] text-primary px-1">Accent Color</label>
-        <div className="flex flex-wrap gap-5 items-center">
-          {ACCENTS.map((color) => (
             <button
-              key={color}
-              className={`w-14 h-14 rounded-full border-4 border-transparent hover:scale-110 active:scale-95 transition-all shadow-xl relative ${
-                userData?.accent_color === color ? "ring-4 ring-primary/20 ring-offset-4 ring-offset-[#0b0e14]" : ""
-              }`}
-              style={{ backgroundColor: color }}
-              onClick={() => updateTheme({ accent_color: color })}
+              onClick={handlePublish}
+              disabled={saving}
+              className="px-6 py-2.5 rounded-lg bg-[#c6f035] text-[#0B0A07] font-bold text-xs hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-lg shadow-[#c6f035]/10 disabled:opacity-50"
             >
-              {userData?.accent_color === color && (
-                <span className="material-symbols-outlined absolute inset-0 flex items-center justify-center text-black text-xl">check</span>
-              )}
+              {saving ? "Publishing..." : "Publish"}
             </button>
-          ))}
-          <button className="w-14 h-14 rounded-full bg-surface-container-high border-2 border-dashed border-outline-variant/30 flex items-center justify-center text-outline hover:border-primary hover:text-primary transition-all group">
-            <span className="material-symbols-outlined text-2xl group-hover:scale-110 transition-transform">add</span>
-          </button>
+          </div>
+        </div>
+
+        {/* Main Appearance Card */}
+        <div className="rounded-2xl bg-[#13120D] border border-white/5 p-6 sm:p-8 space-y-8">
+          {/* SECTION 1: THEME */}
+          <div className="space-y-3">
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
+              Theme
+            </span>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {THEMES.map((t) => {
+                const isSelected = theme === t.id;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setTheme(t.id)}
+                    className={`relative p-4 rounded-xl border text-left flex flex-col justify-between h-24 transition-all ${
+                      isSelected
+                        ? "border-[#c6f035] ring-1 ring-[#c6f035]/50 bg-[#1a1914]"
+                        : "border-white/5 hover:border-white/15 bg-[#11120F]"
+                    }`}
+                  >
+                    <span
+                      className="w-4 h-4 rounded-full"
+                      style={{ backgroundColor: t.dot }}
+                    />
+                    <span className="text-xs font-bold text-white tracking-wide">
+                      {t.name}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="border-t border-white/5" />
+
+          {/* SECTION 2: COLOR SYSTEM */}
+          <div className="space-y-5">
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
+              Color system
+            </span>
+
+            {/* Accent Swatches */}
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-slate-400">Accent</span>
+              <div className="flex items-center gap-3">
+                {ACCENT_PALETTE.map((color) => {
+                  const isSelected = accent.toLowerCase() === color.toLowerCase();
+                  return (
+                    <button
+                      key={color}
+                      type="button"
+                      onClick={() => setAccent(color)}
+                      style={{ backgroundColor: color }}
+                      className={`w-6 h-6 rounded-full transition-all flex items-center justify-center ${
+                        isSelected
+                          ? "ring-2 ring-white ring-offset-2 ring-offset-[#13120D] scale-110"
+                          : "hover:scale-105 opacity-90 hover:opacity-100"
+                      }`}
+                    >
+                      {isSelected && (
+                        <Check
+                          className={`w-3 h-3 ${
+                            color === "#ffffff" ? "text-black" : "text-black"
+                          }`}
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Surface Hex Input */}
+            <div className="flex items-center justify-between gap-4">
+              <span className="text-xs font-medium text-slate-400">Surface</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={surface}
+                  onChange={(e) => setSurface(e.target.value)}
+                  className="w-28 px-3 py-1.5 rounded-lg bg-[#11120F] border border-white/10 text-xs font-mono text-white text-center focus:border-[#c6f035] focus:outline-none"
+                />
+                <div
+                  className="w-6 h-6 rounded-md border border-white/10 shrink-0"
+                  style={{ backgroundColor: surface }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-white/5" />
+
+          {/* SECTION 3: TYPOGRAPHY */}
+          <div className="space-y-4">
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
+              Typography
+            </span>
+
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <span className="text-xs font-medium text-slate-400">Heading</span>
+                <select
+                  value={headingFont}
+                  onChange={(e) => setHeadingFont(e.target.value)}
+                  className="w-full sm:w-64 px-3.5 py-2 rounded-lg bg-[#11120F] border border-white/10 text-xs text-white focus:border-[#c6f035] focus:outline-none"
+                >
+                  {HEADING_FONTS.map((font) => (
+                    <option key={font} value={font}>
+                      {font}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <span className="text-xs font-medium text-slate-400">Labels</span>
+                <select
+                  value={labelFont}
+                  onChange={(e) => setLabelFont(e.target.value)}
+                  className="w-full sm:w-64 px-3.5 py-2 rounded-lg bg-[#11120F] border border-white/10 text-xs text-white focus:border-[#c6f035] focus:outline-none"
+                >
+                  {LABEL_FONTS.map((font) => (
+                    <option key={font} value={font}>
+                      {font}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-white/5" />
+
+          {/* SECTION 4: PROFILE DETAILS */}
+          <div className="space-y-4">
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
+              Profile details
+            </span>
+
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <span className="text-xs font-medium text-slate-400">Display name</span>
+                <input
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  className="w-full sm:w-64 px-3.5 py-2 rounded-lg bg-[#11120F] border border-white/10 text-xs text-white focus:border-[#c6f035] focus:outline-none"
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                <span className="text-xs font-medium text-slate-400 pt-2">Bio</span>
+                <textarea
+                  rows={2}
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  className="w-full sm:w-64 px-3.5 py-2 rounded-lg bg-[#11120F] border border-white/10 text-xs text-white focus:border-[#c6f035] focus:outline-none resize-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-xs font-medium text-slate-400">Show verified badge</span>
+                <button
+                  type="button"
+                  onClick={() => setShowVerified(!showVerified)}
+                  className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    showVerified ? "bg-[#c6f035]" : "bg-[#25241f]"
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-[#0B0A07] shadow-lg ring-0 transition duration-200 ease-in-out ${
+                      showVerified ? "translate-x-4" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <span className="text-xs font-medium text-slate-400">Show social row</span>
+                <button
+                  type="button"
+                  onClick={() => setShowSocials(!showSocials)}
+                  className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    showSocials ? "bg-[#c6f035]" : "bg-[#25241f]"
+                  }`}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-[#0B0A07] shadow-lg ring-0 transition duration-200 ease-in-out ${
+                      showSocials ? "translate-x-4" : "translate-x-0"
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Font Selection */}
-      <div className="space-y-6">
-        <label className="text-[10px] font-black uppercase tracking-[0.3em] text-primary px-1">Font Family</label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {FONTS.map((font) => (
-            <button
-              key={font.id}
-              onClick={() => updateTheme({ font_family: font.id })}
-              className={`flex items-center justify-between p-6 rounded-2xl border-2 transition-all text-left ${
-                userData?.font_family === font.id 
-                  ? "bg-surface-container-high border-primary/50" 
-                  : "bg-surface-container-low/40 border-outline-variant/10 hover:border-outline/40"
-              }`}
+      {/* Right Column: Live Preview (Mobile View matching image copy 2.png) */}
+      <div className="w-full xl:w-[380px] shrink-0 space-y-4">
+        <div className="flex items-center justify-between px-1">
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            Live preview
+          </span>
+          <span className="px-2.5 py-1 rounded-md bg-[#13120D] border border-white/5 text-[11px] font-semibold text-slate-400">
+            Mobile
+          </span>
+        </div>
+
+        {/* Mockup Frame */}
+        <div
+          className="rounded-3xl border border-white/10 p-6 flex flex-col items-center justify-between min-h-[580px] shadow-2xl transition-all"
+          style={{ backgroundColor: previewBg }}
+        >
+          <div className="w-full flex flex-col items-center text-center space-y-4 pt-4">
+            {/* Avatar Circle */}
+            <div
+              className="w-20 h-20 rounded-full border-2 p-1 flex items-center justify-center transition-all"
+              style={{ borderColor: accent }}
             >
-              <div>
-                <h4 className="font-black text-white text-base tracking-tight">{font.label}</h4>
-                <p className="text-[11px] font-medium text-outline mt-1">{font.sub}</p>
-              </div>
-              {userData?.font_family === font.id && (
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-                  <span className="material-symbols-outlined text-lg">check_circle</span>
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={displayName}
+                  className="w-full h-full rounded-full object-cover"
+                />
+              ) : (
+                <div
+                  className="w-full h-full rounded-full flex items-center justify-center font-bold text-lg"
+                  style={{
+                    backgroundColor: isPaper ? "#dedede" : "#1a1914",
+                    color: accent,
+                  }}
+                >
+                  {userInitials}
                 </div>
               )}
-            </button>
-          ))}
+            </div>
+
+            {/* Name & Badge */}
+            <div className="space-y-1">
+              <div className="flex items-center justify-center gap-1.5">
+                <h3
+                  className="text-base font-black tracking-tight"
+                  style={{ color: previewText }}
+                >
+                  {displayName}
+                </h3>
+                {showVerified && (
+                  <BadgeCheck className="w-4 h-4 text-[#c6f035] fill-[#c6f035]" />
+                )}
+              </div>
+              <p
+                className="text-xs font-medium max-w-[240px] mx-auto opacity-75"
+                style={{ color: previewText }}
+              >
+                {bio}
+              </p>
+            </div>
+
+            {/* Social Icons Row */}
+            {showSocials && (
+              <div className="flex items-center gap-3 pt-1 text-slate-400">
+                <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+                  <Github className="w-3.5 h-3.5" />
+                </div>
+                <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+                  <Instagram className="w-3.5 h-3.5" />
+                </div>
+                <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+                  <Youtube className="w-3.5 h-3.5" />
+                </div>
+                <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </div>
+              </div>
+            )}
+
+            {/* Live Link Stack */}
+            <div className="w-full space-y-2.5 pt-4">
+              {links
+                .filter((l) => l.is_visible !== 0 && l.is_visible !== false)
+                .slice(0, 4)
+                .map((link) => (
+                  <div
+                    key={link.id}
+                    className="w-full py-3 px-4 rounded-xl border border-white/5 text-xs font-semibold text-center truncate transition-all"
+                    style={{
+                      backgroundColor: previewCardBg,
+                      color: previewText,
+                    }}
+                  >
+                    {link.title}
+                  </div>
+                ))}
+            </div>
+          </div>
+
+          {/* Footer Watermark */}
+          <div
+            className="pt-6 pb-2 text-[10px] font-mono tracking-widest uppercase opacity-40"
+            style={{ color: previewText }}
+          >
+            linkhub
+          </div>
         </div>
       </div>
     </div>

@@ -51,12 +51,14 @@ export async function fetchDashboardSnapshot({ force = false } = {}) {
     api.get("/api/users/me"),
     api.get("/api/mylinks"),
     api.get("/api/analytics"),
+    api.get("/api/integrations"),
   ])
-    .then(([userResponse, linksResponse, analyticsResponse]) =>
+    .then(([userResponse, linksResponse, analyticsResponse, integrationsResponse]) =>
       writeDashboardSnapshot({
         user: userResponse.data,
         links: linksResponse.data,
         analytics: analyticsResponse.data,
+        integrations: integrationsResponse.data,
       }),
     )
     .finally(() => {

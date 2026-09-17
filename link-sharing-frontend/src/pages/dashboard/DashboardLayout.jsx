@@ -62,11 +62,18 @@ export default function DashboardLayout() {
     refresh,
     updateUser,
     updateLinks,
+    updateIntegrations,
   } = useDashboardData();
 
   const userData = snapshot?.user;
   const links = snapshot?.links || [];
   const analytics = snapshot?.analytics;
+  const integrations = snapshot?.integrations;
+
+  const isOverviewPage =
+    location.pathname === "/dashboard" ||
+    location.pathname === "/dashboard/overview" ||
+    location.pathname === "/dashboard/";
 
   useEffect(() => {
     if (!user && !loading) {
@@ -83,7 +90,7 @@ export default function DashboardLayout() {
   const handleToggleLink = async (linkId, currentVisibility) => {
     try {
       const nextVal = currentVisibility ? 0 : 1;
-      await api.put(`/api/links/${linkId}`, { is_visible: nextVal });
+      await api.put(`/api/mylinks/${linkId}/visibility`, { is_visible: nextVal });
       updateLinks((prev) =>
         prev.map((l) => (l.id === linkId ? { ...l, is_visible: nextVal } : l))
       );
@@ -259,8 +266,10 @@ export default function DashboardLayout() {
                     element={
                       <DashboardSocials
                         userData={userData}
+                        integrationsData={integrations}
                         onRefresh={refresh}
                         onUserChange={updateUser}
+                        onIntegrationsChange={updateIntegrations}
                       />
                     }
                   />
@@ -273,6 +282,7 @@ export default function DashboardLayout() {
                     element={
                       <DashboardThemes
                         userData={userData}
+                        links={links}
                         onRefresh={refresh}
                         onUserChange={updateUser}
                       />
@@ -283,6 +293,8 @@ export default function DashboardLayout() {
                     element={
                       <DashboardSettings
                         userData={userData}
+                        onRefresh={refresh}
+                        onUserChange={updateUser}
                         onLogout={handleLogout}
                       />
                     }
@@ -294,17 +306,19 @@ export default function DashboardLayout() {
           </main>
         </div>
 
-        {/* Right Column: Live Canvas Rail (Visible on >= 1280px / xl screens) */}
-        <aside className="hidden xl:flex flex-col w-[360px] h-screen bg-[#0B0A07] border-l border-white/5 p-6 overflow-y-auto shrink-0 space-y-6">
-          <LiveCanvasPreview user={userData} links={links} />
-          <div className="pt-2 border-t border-white/5">
-            <QuickLinksToggle
-              links={links}
-              onToggle={handleToggleLink}
-              onAdd={() => navigate("/dashboard/links")}
-            />
-          </div>
-        </aside>
+        {/* Right Column: Live Canvas Rail (Visible on Overview on >= 1280px / xl screens) */}
+        {isOverviewPage && (
+          <aside className="hidden xl:flex flex-col w-[360px] h-screen bg-[#0B0A07] border-l border-white/5 p-6 overflow-y-auto shrink-0 space-y-6">
+            <LiveCanvasPreview user={userData} links={links} />
+            <div className="pt-2 border-t border-white/5">
+              <QuickLinksToggle
+                links={links}
+                onToggle={handleToggleLink}
+                onAdd={() => navigate("/dashboard/links")}
+              />
+            </div>
+          </aside>
+        )}
       </div>
     </div>
   );
