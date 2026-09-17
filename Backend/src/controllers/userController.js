@@ -105,7 +105,7 @@ export const updateProfileDetails = async (req, res) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const { name, username, bio, show_in_search, usage_summaries } = req.body;
+    const { name, username, bio, show_in_search, show_audience_totals, usage_summaries } = req.body;
 
     const updates = [];
     const values = [];
@@ -146,6 +146,11 @@ export const updateProfileDetails = async (req, res) => {
       values.push(show_in_search ? 1 : 0);
     }
 
+    if (show_audience_totals !== undefined) {
+      updates.push("show_audience_totals = ?");
+      values.push(show_audience_totals ? 1 : 0);
+    }
+
     if (usage_summaries !== undefined) {
       updates.push("usage_summaries = ?");
       values.push(usage_summaries ? 1 : 0);
@@ -168,6 +173,7 @@ export const updateProfileDetails = async (req, res) => {
               COALESCE(show_verified_badge, 1) as show_verified_badge,
               COALESCE(show_social_row, 1) as show_social_row,
               COALESCE(show_in_search, 1) as show_in_search,
+              COALESCE(show_audience_totals, 1) as show_audience_totals,
               COALESCE(usage_summaries, 1) as usage_summaries,
               custom_domain
        FROM clients WHERE id = ?`,
@@ -236,6 +242,7 @@ export const getMe = async (req, res) => {
               COALESCE(show_verified_badge, 1) as show_verified_badge,
               COALESCE(show_social_row, 1) as show_social_row,
               COALESCE(show_in_search, 1) as show_in_search,
+              COALESCE(show_audience_totals, 1) as show_audience_totals,
               COALESCE(usage_summaries, 1) as usage_summaries,
               custom_domain, background_type, background_value,
               youtubeId, githubUser, telegramUser, instagram, twitter, linkedin, tiktok

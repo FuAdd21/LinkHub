@@ -130,6 +130,7 @@ export const initDatabase = async () => {
       ["show_verified_badge", "TINYINT(1) DEFAULT 1"],
       ["show_social_row", "TINYINT(1) DEFAULT 1"],
       ["show_in_search", "TINYINT(1) DEFAULT 1"],
+      ["show_audience_totals", "TINYINT(1) DEFAULT 1"],
       ["usage_summaries", "TINYINT(1) DEFAULT 1"],
       ["custom_domain", "VARCHAR(255) DEFAULT NULL"],
       ["background_type", "VARCHAR(20) DEFAULT 'gradient'"],

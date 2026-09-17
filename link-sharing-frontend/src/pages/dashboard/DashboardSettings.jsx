@@ -15,12 +15,12 @@ import { api } from "../../api/config";
 import { getAvatarUrl } from "../../Components/dashboard/dashboardUtils";
 
 const SUBTABS = [
-  { id: "profile", label: "Profile", icon: User },
-  { id: "domain", label: "Domain", icon: Globe },
-  { id: "publishing", label: "Publishing", icon: Share2 },
-  { id: "notifications", label: "Notifications", icon: Bell },
-  { id: "security", label: "Security", icon: Shield },
-  { id: "billing", label: "Billing", icon: CreditCard },
+  { id: "profile", label: "Profile" },
+  { id: "domain", label: "Domain" },
+  { id: "publishing", label: "Publishing" },
+  { id: "notifications", label: "Notifications" },
+  { id: "security", label: "Security" },
+  { id: "billing", label: "Billing" },
 ];
 
 export default function DashboardSettings({ userData, onRefresh, onUserChange, onLogout }) {
@@ -34,14 +34,15 @@ export default function DashboardSettings({ userData, onRefresh, onUserChange, o
   const [showInSearch, setShowInSearch] = useState(
     userData?.show_in_search !== 0 && userData?.show_in_search !== false
   );
+  const [showAudienceTotals, setShowAudienceTotals] = useState(
+    userData?.show_audience_totals !== 0 && userData?.show_audience_totals !== false
+  );
   const [usageSummaries, setUsageSummaries] = useState(
     userData?.usage_summaries !== 0 && userData?.usage_summaries !== false
   );
 
   // Security Form state
   const [passwords, setPasswords] = useState({ current: "", next: "" });
-  const [newEmailInput, setNewEmailInput] = useState("");
-  const [emailPassword, setEmailPassword] = useState("");
 
   // Domain state
   const [customDomain, setCustomDomain] = useState(userData?.custom_domain || "");
@@ -58,6 +59,7 @@ export default function DashboardSettings({ userData, onRefresh, onUserChange, o
       if (userData.bio) setBio(userData.bio);
       if (userData.custom_domain) setCustomDomain(userData.custom_domain);
       setShowInSearch(userData.show_in_search !== 0 && userData.show_in_search !== false);
+      setShowAudienceTotals(userData.show_audience_totals !== 0 && userData.show_audience_totals !== false);
       setUsageSummaries(userData.usage_summaries !== 0 && userData.usage_summaries !== false);
     }
   }, [userData]);
@@ -70,6 +72,7 @@ export default function DashboardSettings({ userData, onRefresh, onUserChange, o
       setEmail(userData.email || "");
       setBio(userData.bio || "");
       setShowInSearch(userData.show_in_search !== 0 && userData.show_in_search !== false);
+      setShowAudienceTotals(userData.show_audience_totals !== 0 && userData.show_audience_totals !== false);
       setUsageSummaries(userData.usage_summaries !== 0 && userData.usage_summaries !== false);
     }
     toast("Changes discarded", { icon: "↩️" });
@@ -87,6 +90,7 @@ export default function DashboardSettings({ userData, onRefresh, onUserChange, o
         username: username.trim(),
         bio: bio.trim(),
         show_in_search: showInSearch ? 1 : 0,
+        show_audience_totals: showAudienceTotals ? 1 : 0,
         usage_summaries: usageSummaries ? 1 : 0,
       };
 
@@ -179,111 +183,119 @@ export default function DashboardSettings({ userData, onRefresh, onUserChange, o
     .toUpperCase();
 
   return (
-    <div className="space-y-8 pb-12">
-      {/* Header */}
+    <div className="space-y-6 sm:space-y-8 pb-12">
+      {/* Top Header */}
       <div>
-        <p className="text-xs text-slate-400 font-medium mb-1">
-          Manage workspace identity, publishing, and account preferences.
-        </p>
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-          Workspace settings
-        </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Control the details behind your LinkHub profile.
-        </p>
-      </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[10px] uppercase font-mono tracking-widest text-[#c6f035]">
+              Command Center
+            </p>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white mt-0.5">
+              Settings
+            </h1>
+          </div>
 
-      {/* Main Settings Card with Subtab Rail */}
-      <div className="flex flex-col lg:flex-row rounded-2xl bg-[#13120D] border border-white/5 overflow-hidden min-h-[600px]">
-        {/* Left Subtabs Navigation */}
-        <div className="w-full lg:w-56 bg-[#11120F] border-b lg:border-b-0 lg:border-r border-white/5 p-3 flex lg:flex-col gap-1 overflow-x-auto">
-          {SUBTABS.map((tab) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`relative flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all text-left ${
-                  isActive
-                    ? "bg-[#1a1914] text-white"
-                    : "text-slate-400 hover:text-white hover:bg-white/[0.02]"
-                }`}
-              >
-                {isActive && (
-                  <span className="hidden lg:block absolute left-0 top-1.5 bottom-1.5 w-0.5 bg-[#c6f035] rounded-r" />
-                )}
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
+          <div className="hidden sm:block text-xs font-mono text-slate-500">
+            linkhub.io/{username || "maya"}
+          </div>
         </div>
 
-        {/* Right Settings Content Pane */}
-        <div className="flex-1 p-6 sm:p-8 space-y-6">
-          {activeTab === "profile" && (
-            <div className="space-y-8 max-w-2xl">
-              <div>
-                <h3 className="text-sm font-bold text-white">Profile information</h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  This information appears across your workspace and public profile.
-                </p>
-              </div>
+        <div className="hidden sm:block pt-3">
+          <p className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">
+            Workspace
+          </p>
+          <h2 className="text-lg sm:text-xl font-bold text-white">
+            Account settings
+          </h2>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Manage identity, publishing, and privacy.
+          </p>
+        </div>
+      </div>
 
-              {/* Avatar Row */}
-              <div className="space-y-2">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
-                  Avatar
-                </span>
-                <div className="flex items-center gap-4 pt-1">
-                  <div className="w-16 h-16 rounded-full border-2 border-[#c6f035] p-0.5 flex items-center justify-center shrink-0">
-                    {avatarUrl ? (
-                      <img
-                        src={avatarUrl}
-                        alt="Avatar"
-                        className="w-full h-full rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full rounded-full bg-[#1a1914] flex items-center justify-center font-bold text-base text-[#c6f035]">
-                        {userInitials}
-                      </div>
-                    )}
-                  </div>
+      {/* Horizontal Segmented Tabs Pill Bar (matching mobile-05 & tablet-05) */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+        {SUBTABS.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 sm:px-5 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap border ${
+                isActive
+                  ? "border-[#c6f035] text-[#c6f035] bg-[#161510]"
+                  : "border-white/5 text-slate-400 bg-[#13120D] hover:text-white"
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
 
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleAvatarChange}
-                      accept="image/*"
-                      className="hidden"
+      {/* Settings Card */}
+      <div className="rounded-2xl bg-[#13120D] border border-white/5 p-5 sm:p-7 space-y-6">
+        {activeTab === "profile" && (
+          <form onSubmit={handleSaveProfile} className="space-y-6">
+            {/* PROFILE INFORMATION */}
+            <div className="space-y-3">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">
+                Profile Information
+              </span>
+
+              <div className="flex items-center gap-4 pt-1">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-[#c6f035] p-1 flex items-center justify-center shrink-0">
+                  {avatarUrl ? (
+                    <img
+                      src={avatarUrl}
+                      alt="Avatar"
+                      className="w-full h-full rounded-full object-cover"
                     />
+                  ) : (
+                    <div className="w-full h-full rounded-full bg-[#1a1914] flex items-center justify-center font-bold text-lg text-[#c6f035]">
+                      {userInitials}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2.5">
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleAvatarChange}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingAvatar}
+                    className="px-4 py-2 rounded-lg bg-[#1a1914] hover:bg-white/10 border border-white/10 text-xs font-semibold text-white transition-colors"
+                  >
+                    Change photo
+                  </button>
+                  {avatarUrl && (
                     <button
                       type="button"
-                      onClick={() => fileInputRef.current?.click()}
+                      onClick={handleAvatarRemove}
                       disabled={uploadingAvatar}
-                      className="px-4 py-2 rounded-lg bg-[#1a1914] hover:bg-white/10 border border-white/5 text-xs font-semibold text-white transition-colors"
+                      className="px-3.5 py-2 rounded-lg bg-white/5 hover:bg-red-500/10 hover:text-red-400 text-xs font-semibold text-slate-400 transition-colors"
                     >
-                      Change
+                      Remove
                     </button>
-                    {avatarUrl && (
-                      <button
-                        type="button"
-                        onClick={handleAvatarRemove}
-                        disabled={uploadingAvatar}
-                        className="px-4 py-2 rounded-lg bg-white/5 hover:bg-red-500/10 hover:text-red-400 text-xs font-semibold text-slate-400 transition-colors"
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
+                  )}
                 </div>
               </div>
+            </div>
 
-              {/* Form Fields */}
-              <div className="space-y-4 pt-2">
+            {/* 2-Column Responsive Layout: Left Inputs, Right Toggles */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+              {/* Left Column: Form Inputs */}
+              <div className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
-                    Display name
+                    Display Name
                   </label>
                   <input
                     type="text"
@@ -297,17 +309,20 @@ export default function DashboardSettings({ userData, onRefresh, onUserChange, o
                   <label className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
                     Handle
                   </label>
-                  <div className="relative">
+                  <div className="flex items-center rounded-lg bg-[#11120F] border border-white/10 overflow-hidden focus-within:border-[#c6f035]">
+                    <span className="px-3 text-xs font-mono text-slate-500 bg-black/20 border-r border-white/5 py-2.5">
+                      linkhub.io/
+                    </span>
                     <input
                       type="text"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-lg bg-[#11120F] border border-white/10 text-xs font-mono text-white focus:border-[#c6f035] focus:outline-none"
+                      className="w-full px-3 py-2.5 bg-transparent text-xs font-mono text-white focus:outline-none"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
+                <div className="hidden sm:block space-y-1.5">
                   <label className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
                     Email
                   </label>
@@ -332,263 +347,260 @@ export default function DashboardSettings({ userData, onRefresh, onUserChange, o
                 </div>
               </div>
 
-              {/* Public Profile Toggles */}
-              <div className="space-y-4 pt-4 border-t border-white/5">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
-                  Public profile
+              {/* Right Column: Public Profile Toggles */}
+              <div className="space-y-4 pt-2 md:pt-0">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
+                  Public Profile
                 </span>
 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h5 className="text-xs font-medium text-white">Show profile in search</h5>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      Allow your LinkHub page to appear in discovery results.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowInSearch(!showInSearch)}
-                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                      showInSearch ? "bg-[#c6f035]" : "bg-[#25241f]"
-                    }`}
-                  >
-                    <span
-                      className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-[#0B0A07] shadow-lg ring-0 transition duration-200 ease-in-out ${
-                        showInSearch ? "translate-x-4" : "translate-x-0"
+                <div className="space-y-4">
+                  {/* Toggle 1: Appear in search */}
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <h5 className="text-xs font-semibold text-white">Appear in search</h5>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Allow public discovery
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowInSearch(!showInSearch)}
+                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        showInSearch ? "bg-[#c6f035]" : "bg-[#25241f]"
                       }`}
-                    />
-                  </button>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h5 className="text-xs font-medium text-white">Usage summaries</h5>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      Receive a concise weekly performance report.
-                    </p>
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-[#0B0A07] shadow-lg ring-0 transition duration-200 ease-in-out ${
+                          showInSearch ? "translate-x-4" : "translate-x-0"
+                        }`}
+                      />
+                    </button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setUsageSummaries(!usageSummaries)}
-                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                      usageSummaries ? "bg-[#c6f035]" : "bg-[#25241f]"
-                    }`}
-                  >
-                    <span
-                      className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-[#0B0A07] shadow-lg ring-0 transition duration-200 ease-in-out ${
-                        usageSummaries ? "translate-x-4" : "translate-x-0"
-                      }`}
-                    />
-                  </button>
-                </div>
-              </div>
 
-              {/* Bottom Actions */}
-              <div className="flex items-center justify-end gap-3 pt-6 border-t border-white/5">
-                <button
-                  type="button"
-                  onClick={handleDiscard}
-                  className="px-4 py-2 rounded-lg bg-[#1a1914] hover:bg-white/10 text-xs font-semibold text-slate-300 transition-colors"
-                >
-                  Discard
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSaveProfile}
-                  disabled={saving}
-                  className="px-6 py-2 rounded-lg bg-[#c6f035] text-[#0B0A07] font-bold text-xs hover:brightness-110 active:scale-95 transition-all disabled:opacity-50"
-                >
-                  {saving ? "Saving..." : "Save"}
-                </button>
+                  <div className="border-t border-white/5" />
+
+                  {/* Toggle 2: Show audience totals */}
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <h5 className="text-xs font-semibold text-white">Show audience totals</h5>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Display combined social proof
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowAudienceTotals(!showAudienceTotals)}
+                      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                        showAudienceTotals ? "bg-[#c6f035]" : "bg-[#25241f]"
+                      }`}
+                    >
+                      <span
+                        className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-[#0B0A07] shadow-lg ring-0 transition duration-200 ease-in-out ${
+                          showAudienceTotals ? "translate-x-4" : "translate-x-0"
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  {/* Toggle 3 on Tablet/Desktop: Activity summaries */}
+                  <div className="hidden md:block">
+                    <div className="border-t border-white/5 my-4" />
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <h5 className="text-xs font-semibold text-white">Activity summaries</h5>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          Monthly performance email
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setUsageSummaries(!usageSummaries)}
+                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          usageSummaries ? "bg-[#c6f035]" : "bg-[#25241f]"
+                        }`}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-[#0B0A07] shadow-lg ring-0 transition duration-200 ease-in-out ${
+                            usageSummaries ? "translate-x-4" : "translate-x-0"
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          )}
 
-          {activeTab === "domain" && (
-            <div className="space-y-6 max-w-xl">
-              <div>
-                <h3 className="text-sm font-bold text-white">Custom domain</h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Point your personal domain (e.g. links.yourdomain.com) to your LinkHub profile.
-                </p>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
-                  Domain Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="links.mydomain.com"
-                  value={customDomain}
-                  onChange={(e) => setCustomDomain(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-lg bg-[#11120F] border border-white/10 text-xs font-mono text-white focus:border-[#c6f035] focus:outline-none"
-                />
-              </div>
-
-              <div className="p-4 rounded-xl bg-[#11120F] border border-white/5 space-y-2 text-xs font-mono">
-                <span className="text-slate-400 font-bold">DNS Configuration</span>
-                <p className="text-slate-500">
-                  Create a CNAME record in your DNS provider:
-                </p>
-                <div className="flex items-center justify-between p-2.5 rounded bg-black/40 text-slate-300">
-                  <span>CNAME @ cname.linkhub.io</span>
-                </div>
-              </div>
-
+            {/* Mobile Actions: Full-width "Save changes" button (matching mobile-05) */}
+            <div className="md:hidden pt-4">
               <button
-                type="button"
-                onClick={() => toast.success("Domain configuration saved")}
-                className="px-5 py-2 rounded-lg bg-[#c6f035] text-[#0B0A07] font-bold text-xs hover:brightness-110"
+                type="submit"
+                disabled={saving}
+                className="w-full py-3 rounded-xl bg-[#c6f035] text-[#0B0A07] font-bold text-sm hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-[#c6f035]/15 disabled:opacity-50"
               >
-                Save Domain
+                {saving ? "Saving changes..." : "Save changes"}
               </button>
             </div>
-          )}
 
-          {activeTab === "security" && (
-            <div className="space-y-8 max-w-xl">
-              <div>
-                <h3 className="text-sm font-bold text-white">Security & Password</h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Update your authentication credentials and manage session safety.
-                </p>
-              </div>
-
-              <form onSubmit={handlePasswordChange} className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
-                    Current password
-                  </label>
-                  <input
-                    type="password"
-                    value={passwords.current}
-                    onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-lg bg-[#11120F] border border-white/10 text-xs text-white focus:border-[#c6f035] focus:outline-none"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
-                    New password
-                  </label>
-                  <input
-                    type="password"
-                    value={passwords.next}
-                    onChange={(e) => setPasswords({ ...passwords, next: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-lg bg-[#11120F] border border-white/10 text-xs text-white focus:border-[#c6f035] focus:outline-none"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="px-5 py-2 rounded-lg bg-[#c6f035] text-[#0B0A07] font-bold text-xs hover:brightness-110"
-                >
-                  Update Password
-                </button>
-              </form>
+            {/* Tablet & Desktop Actions: Discard & Save buttons (matching tablet-05) */}
+            <div className="hidden md:flex items-center justify-end gap-3 pt-6 border-t border-white/5">
+              <button
+                type="button"
+                onClick={handleDiscard}
+                className="px-5 py-2 rounded-lg bg-[#161510] hover:bg-white/5 border border-white/5 text-xs font-semibold text-slate-300 transition-colors"
+              >
+                Discard
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="px-6 py-2 rounded-lg bg-[#c6f035] text-[#0B0A07] font-bold text-xs hover:brightness-110 active:scale-95 transition-all disabled:opacity-50"
+              >
+                {saving ? "Saving..." : "Save"}
+              </button>
             </div>
-          )}
+          </form>
+        )}
 
-          {activeTab === "publishing" && (
-            <div className="space-y-6 max-w-xl">
-              <div>
-                <h3 className="text-sm font-bold text-white">Publishing & SEO</h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Control how your public profile displays in search engines and social links.
-                </p>
+        {/* DOMAIN SUBTAB */}
+        {activeTab === "domain" && (
+          <div className="space-y-6 max-w-xl">
+            <div>
+              <h3 className="text-sm font-bold text-white">Custom Domain</h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Point your personal domain (e.g. links.yourdomain.com) to your LinkHub profile.
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
+                Domain Name
+              </label>
+              <input
+                type="text"
+                placeholder="links.mydomain.com"
+                value={customDomain}
+                onChange={(e) => setCustomDomain(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-lg bg-[#11120F] border border-white/10 text-xs font-mono text-white focus:border-[#c6f035] focus:outline-none"
+              />
+            </div>
+
+            <div className="p-4 rounded-xl bg-[#11120F] border border-white/5 space-y-2 text-xs font-mono">
+              <span className="text-slate-400 font-bold">DNS Configuration</span>
+              <p className="text-slate-500">
+                Create a CNAME record in your DNS provider:
+              </p>
+              <div className="flex items-center justify-between p-2.5 rounded bg-black/40 text-slate-300">
+                <span>CNAME @ cname.linkhub.io</span>
               </div>
+            </div>
 
+            <button
+              type="button"
+              onClick={() => toast.success("Domain configuration saved")}
+              className="px-5 py-2 rounded-lg bg-[#c6f035] text-[#0B0A07] font-bold text-xs hover:brightness-110"
+            >
+              Save Domain
+            </button>
+          </div>
+        )}
+
+        {/* PUBLISHING SUBTAB */}
+        {activeTab === "publishing" && (
+          <div className="space-y-4 max-w-xl">
+            <h3 className="text-sm font-bold text-white">Publishing & SEO</h3>
+            <p className="text-xs text-slate-500">
+              Configure how your LinkHub page appears when shared on social networks and search engines.
+            </p>
+            <div className="p-4 rounded-xl bg-[#11120F] border border-white/5 space-y-2 text-xs">
+              <div className="font-bold text-white">Live URL</div>
+              <div className="font-mono text-slate-400 text-[11px]">
+                https://linkhub.io/{username}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* NOTIFICATIONS SUBTAB */}
+        {activeTab === "notifications" && (
+          <div className="space-y-4 max-w-xl">
+            <h3 className="text-sm font-bold text-white">Notification Preferences</h3>
+            <p className="text-xs text-slate-500">
+              Manage email alerts for link clicks, milestones, and security logins.
+            </p>
+            <div className="flex items-center justify-between p-4 rounded-xl bg-[#11120F] border border-white/5">
+              <span className="text-xs text-white">Milestone celebration alerts</span>
+              <span className="text-xs font-bold text-[#c6f035]">Enabled</span>
+            </div>
+          </div>
+        )}
+
+        {/* SECURITY SUBTAB */}
+        {activeTab === "security" && (
+          <form onSubmit={handlePasswordChange} className="space-y-6 max-w-xl">
+            <div>
+              <h3 className="text-sm font-bold text-white">Change Password</h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Ensure your account is using a secure, random password.
+              </p>
+            </div>
+
+            <div className="space-y-4">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
-                  SEO Title
+                  Current Password
                 </label>
                 <input
-                  type="text"
-                  defaultValue={`${name} (@${username}) — LinkHub`}
+                  type="password"
+                  required
+                  value={passwords.current}
+                  onChange={(e) => setPasswords({ ...passwords, current: e.target.value })}
                   className="w-full px-4 py-2.5 rounded-lg bg-[#11120F] border border-white/10 text-xs text-white focus:border-[#c6f035] focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
-                  Meta Description
+                  New Password
                 </label>
-                <textarea
-                  rows={2}
-                  defaultValue={bio}
-                  className="w-full px-4 py-2.5 rounded-lg bg-[#11120F] border border-white/10 text-xs text-white focus:border-[#c6f035] focus:outline-none resize-none"
+                <input
+                  type="password"
+                  required
+                  value={passwords.next}
+                  onChange={(e) => setPasswords({ ...passwords, next: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-lg bg-[#11120F] border border-white/10 text-xs text-white focus:border-[#c6f035] focus:outline-none"
                 />
               </div>
-
-              <button
-                type="button"
-                onClick={() => toast.success("SEO parameters updated")}
-                className="px-5 py-2 rounded-lg bg-[#c6f035] text-[#0B0A07] font-bold text-xs hover:brightness-110"
-              >
-                Save SEO
-              </button>
             </div>
-          )}
 
-          {activeTab === "notifications" && (
-            <div className="space-y-6 max-w-xl">
+            <button
+              type="submit"
+              disabled={saving}
+              className="px-5 py-2 rounded-lg bg-[#c6f035] text-[#0B0A07] font-bold text-xs hover:brightness-110 active:scale-95 disabled:opacity-50"
+            >
+              Update Password
+            </button>
+          </form>
+        )}
+
+        {/* BILLING SUBTAB */}
+        {activeTab === "billing" && (
+          <div className="space-y-4 max-w-xl">
+            <h3 className="text-sm font-bold text-white">Subscription & Plan</h3>
+            <p className="text-xs text-slate-500">
+              You are currently on the LinkHub Pro plan with unlimited custom links and integrations.
+            </p>
+            <div className="p-4 rounded-xl bg-[#11120F] border border-[#c6f035]/20 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-white">Notifications</h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Choose which alerts and reports you want delivered to your email.
-                </p>
+                <div className="text-xs font-bold text-[#c6f035]">LinkHub Pro</div>
+                <div className="text-[11px] text-slate-400 mt-0.5">Active tier · Renews yearly</div>
               </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 rounded-xl bg-[#11120F] border border-white/5">
-                  <div>
-                    <h5 className="text-xs font-bold text-white">Traffic Surges</h5>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      Get notified when daily profile views spike above normal.
-                    </p>
-                  </div>
-                  <input type="checkbox" defaultChecked className="accent-[#c6f035] w-4 h-4" />
-                </div>
-
-                <div className="flex items-center justify-between p-4 rounded-xl bg-[#11120F] border border-white/5">
-                  <div>
-                    <h5 className="text-xs font-bold text-white">Security Notifications</h5>
-                    <p className="text-[11px] text-slate-500 mt-0.5">
-                      Immediate alert upon sign-in from a new device.
-                    </p>
-                  </div>
-                  <input type="checkbox" defaultChecked className="accent-[#c6f035] w-4 h-4" />
-                </div>
-              </div>
+              <span className="px-2.5 py-1 rounded-md bg-[#c6f035]/15 text-[#c6f035] text-xs font-bold font-mono">
+                PRO
+              </span>
             </div>
-          )}
-
-          {activeTab === "billing" && (
-            <div className="space-y-6 max-w-xl">
-              <div>
-                <h3 className="text-sm font-bold text-white">Subscription & Plan</h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Manage your subscription tier and payment details.
-                </p>
-              </div>
-
-              <div className="p-5 rounded-xl bg-[#11120F] border border-[#c6f035]/30 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono font-bold text-[#c6f035] uppercase tracking-wider">
-                    PRO TIER ACTIVE
-                  </span>
-                  <span className="text-xs text-slate-400 font-mono">Renews monthly</span>
-                </div>
-                <h4 className="text-base font-bold text-white">LinkHub Pro</h4>
-                <p className="text-xs text-slate-400">
-                  Unlimited destinations, verified badges, custom themes, and full analytics history.
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
