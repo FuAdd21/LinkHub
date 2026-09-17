@@ -69,6 +69,8 @@ export const getPublicProfile = async (req, res) => {
         formattedFollowers: conf.formattedFollowers || formatFollowerCount(followers),
         profileUrl: conf.profileUrl,
         label: conf.label || "FOLLOWERS",
+        videos: conf.videos || 0,
+        repos: conf.repos || 0,
       };
     });
 

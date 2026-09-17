@@ -304,7 +304,7 @@ export default function DashboardLayout() {
         {/* Right Column: Live Canvas Rail (Visible on Overview on >= 1280px / xl screens) */}
         {isOverviewPage && (
           <aside className="hidden xl:flex flex-col w-[360px] h-screen bg-[#0B0A07] border-l border-white/5 p-6 overflow-y-auto shrink-0 space-y-6">
-            <LiveCanvasPreview user={userData} links={links} />
+            <LiveCanvasPreview user={userData} links={links} integrations={integrations} />
             <div className="pt-2 border-t border-white/5">
               <QuickLinksToggle
                 links={links}
