@@ -6,52 +6,45 @@ import {
   User,
   CheckCircle2,
   ExternalLink,
+  Plus,
+  Trash2,
+  Edit3,
+  X,
+  Link2,
+  AlertCircle,
   Share2,
 } from "lucide-react";
+import {
+  FaGithub,
+  FaInstagram,
+  FaLinkedin,
+  FaTiktok,
+  FaTwitter,
+  FaYoutube,
+  FaSpotify,
+} from "react-icons/fa";
 import { api } from "../../api/config";
 import { getAvatarUrl } from "../../Components/dashboard/dashboardUtils";
 
-const PLATFORM_CONFIG = {
-  YouTube: {
-    color: "#00d2ff",
-    pillCode: "YT",
-    defaultFollowers: "842K",
-    label: "SUBSCRIBERS",
-    barPercent: 30,
-    growth: "+4.2%",
-    handle: "@mayamakes",
-    name: "Maya Makes",
-  },
-  TikTok: {
-    color: "#ff8c42",
-    pillCode: "TK",
-    defaultFollowers: "1.60M",
-    label: "FOLLOWERS",
-    barPercent: 56,
-    growth: "+5.1%",
-    handle: "@maya.codes",
-    name: "Maya Kim",
-  },
-  Instagram: {
-    color: "#d946ef",
-    pillCode: "IG",
-    defaultFollowers: "386K",
-    label: "FOLLOWERS",
-    barPercent: 13.5,
-    growth: "+2.4%",
-    handle: "@mayakim",
-    name: "Maya Kim",
-  },
-  GitHub: {
-    color: "#c6f035",
-    pillCode: "GH",
-    defaultFollowers: "18.4K",
-    label: "FOLLOWERS",
-    barPercent: 2,
-    growth: "+1.8%",
-    handle: "@mayakim",
-    name: "Maya Kim",
-  },
+const PLATFORM_ICONS = {
+  youtube: FaYoutube,
+  github: FaGithub,
+  instagram: FaInstagram,
+  tiktok: FaTiktok,
+  twitter: FaTwitter,
+  x: FaTwitter,
+  linkedin: FaLinkedin,
+  spotify: FaSpotify,
+};
+
+const DEFAULT_PLATFORM_META = {
+  youtube: { name: "YouTube", color: "#ff0000", pillCode: "YT", label: "SUBSCRIBERS", placeholder: "e.g. @mkbhd or channel URL" },
+  github: { name: "GitHub", color: "#c6f035", pillCode: "GH", label: "FOLLOWERS", placeholder: "e.g. torvalds or profile URL" },
+  instagram: { name: "Instagram", color: "#d946ef", pillCode: "IG", label: "FOLLOWERS", placeholder: "e.g. natgeo or profile URL" },
+  tiktok: { name: "TikTok", color: "#00f2ff", pillCode: "TK", label: "FOLLOWERS", placeholder: "e.g. @tiktok or profile URL" },
+  twitter: { name: "X (Twitter)", color: "#e2e8f0", pillCode: "X", label: "FOLLOWERS", placeholder: "e.g. @elonmusk" },
+  linkedin: { name: "LinkedIn", color: "#0a66c2", pillCode: "IN", label: "CONNECTIONS", placeholder: "e.g. username or profile URL" },
+  spotify: { name: "Spotify", color: "#1db954", pillCode: "SP", label: "LISTENERS", placeholder: "e.g. artist URL or name" },
 };
 
 export default function DashboardSocials({
@@ -66,35 +59,55 @@ export default function DashboardSocials({
   const [syncingAll, setSyncingAll] = useState(false);
   const [loadingAction, setLoadingAction] = useState(null);
 
+  // Modal State for Connecting/Editing handles
+  const [connectModalOpen, setConnectModalOpen] = useState(false);
+  const [modalProvider, setModalProvider] = useState("youtube");
+  const [modalHandle, setModalHandle] = useState("");
+  const [connecting, setConnecting] = useState(false);
+
   useEffect(() => {
     if (integrationsData) {
       setData(integrationsData);
     }
   }, [integrationsData]);
 
-  // Close menu on outside click
+  // Close dropdown menu on outside click
   useEffect(() => {
     const handleClick = () => setActiveMenu(null);
     window.addEventListener("click", handleClick);
     return () => window.removeEventListener("click", handleClick);
   }, []);
 
-  const handleSyncAll = async () => {
-    setSyncingAll(true);
-    const toastId = toast.loading("Syncing all connected platform APIs...");
+  const refreshData = async () => {
     try {
-      // Sync each connected tool
-      const connected = data?.connected || [];
-      for (const tool of connected) {
-        try {
-          await api.post(`/api/integrations/${tool.provider}/sync`);
-        } catch {}
-      }
       const res = await api.get("/api/integrations");
       setData(res.data);
       onIntegrationsChange?.(res.data);
       onRefresh?.();
-      toast.success("All platform metrics refreshed from APIs", { id: toastId });
+      return res.data;
+    } catch (err) {
+      console.error("Failed to reload integrations:", err);
+    }
+  };
+
+  const handleSyncAll = async () => {
+    setSyncingAll(true);
+    const toastId = toast.loading("Syncing all connected platform APIs...");
+    try {
+      const connected = data?.connected || [];
+      if (connected.length === 0) {
+        toast("No active platforms to sync. Connect an account below.", { id: toastId, icon: "ℹ️" });
+        return;
+      }
+      for (const tool of connected) {
+        try {
+          await api.post(`/api/integrations/${tool.provider}/sync`);
+        } catch (e) {
+          console.warn(`Sync failed for ${tool.provider}:`, e);
+        }
+      }
+      await refreshData();
+      toast.success("Live platform metrics refreshed", { id: toastId });
     } catch {
       toast.error("Failed to sync platform metrics", { id: toastId });
     } finally {
@@ -102,96 +115,84 @@ export default function DashboardSocials({
     }
   };
 
-  const handleToggle = async (provider, targetStatus) => {
+  const handleSyncSingle = async (provider) => {
     setLoadingAction(provider);
-    const toastId = toast.loading(
-      targetStatus === "connected" ? `Connecting ${provider}...` : `Disconnecting ${provider}...`
-    );
-
+    const toastId = toast.loading(`Syncing live data from ${provider}...`);
     try {
-      await api.post("/api/integrations/toggle", { provider, status: targetStatus });
-      toast.success(
-        targetStatus === "connected" ? `${provider} connected` : `${provider} disconnected`,
-        { id: toastId }
-      );
-
-      const res = await api.get("/api/integrations");
-      setData(res.data);
-      onIntegrationsChange?.(res.data);
-      onRefresh?.();
+      await api.post(`/api/integrations/${provider}/sync`);
+      await refreshData();
+      toast.success(`${provider} metrics updated`, { id: toastId });
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update integration", {
-        id: toastId,
-      });
+      toast.error(err.response?.data?.message || `Failed to sync ${provider}`, { id: toastId });
     } finally {
       setLoadingAction(null);
       setActiveMenu(null);
     }
   };
 
+  const handleDisconnect = async (provider) => {
+    setLoadingAction(provider);
+    const toastId = toast.loading(`Disconnecting ${provider}...`);
+    try {
+      await api.post("/api/integrations/disconnect", { provider });
+      await refreshData();
+      toast.success(`${provider} disconnected`, { id: toastId });
+    } catch (err) {
+      toast.error(err.response?.data?.message || `Failed to disconnect ${provider}`, { id: toastId });
+    } finally {
+      setLoadingAction(null);
+      setActiveMenu(null);
+    }
+  };
+
+  const openConnectModal = (provider, currentHandle = "") => {
+    setModalProvider(provider);
+    setModalHandle(currentHandle || "");
+    setConnectModalOpen(true);
+    setActiveMenu(null);
+  };
+
+  const handleConnectSubmit = async (e) => {
+    e.preventDefault();
+    if (!modalHandle.trim()) {
+      toast.error("Please enter a username, handle, or URL");
+      return;
+    }
+
+    setConnecting(true);
+    const toastId = toast.loading(`Connecting to ${modalProvider} & fetching live stats...`);
+
+    try {
+      await api.post("/api/integrations/connect", {
+        provider: modalProvider,
+        handle: modalHandle.trim(),
+      });
+      await refreshData();
+      toast.success(`${modalProvider} connected with live profile data!`, { id: toastId });
+      setConnectModalOpen(false);
+      setModalHandle("");
+    } catch (err) {
+      toast.error(
+        err.response?.data?.message || `Failed to connect ${modalProvider}. Please check the handle.`,
+        { id: toastId }
+      );
+    } finally {
+      setConnecting(false);
+    }
+  };
+
   const avatarUrl = getAvatarUrl(userData?.avatar);
-  const userInitials = (userData?.name || "MK")
+  const userInitials = (userData?.name || "U")
     .split(" ")
     .map((w) => w[0])
     .join("")
     .slice(0, 2)
     .toUpperCase();
 
-  // Merge connected platforms with our rich design data
-  const networks = [
-    {
-      id: "youtube",
-      provider: "YouTube",
-      name: "Maya Makes",
-      handle: "@mayamakes",
-      followers: "842K",
-      label: "SUBSCRIBERS",
-      growth: "+4.2%",
-      color: "#00d2ff",
-      pillCode: "YT",
-      barPercent: 30,
-      connected: true,
-    },
-    {
-      id: "tiktok",
-      provider: "TikTok",
-      name: "Maya Kim",
-      handle: "@maya.codes",
-      followers: "1.60M",
-      label: "FOLLOWERS",
-      growth: "+5.1%",
-      color: "#ff8c42",
-      pillCode: "TK",
-      barPercent: 56,
-      connected: true,
-    },
-    {
-      id: "instagram",
-      provider: "Instagram",
-      name: "Maya Kim",
-      handle: "@mayakim",
-      followers: "386K",
-      label: "FOLLOWERS",
-      growth: "+2.4%",
-      color: "#d946ef",
-      pillCode: "IG",
-      barPercent: 13.5,
-      connected: true,
-    },
-    {
-      id: "github",
-      provider: "GitHub",
-      name: "Maya Kim",
-      handle: "@mayakim",
-      followers: "18.4K",
-      label: "FOLLOWERS",
-      growth: "+1.8%",
-      color: "#c6f035",
-      pillCode: "GH",
-      barPercent: 2,
-      connected: true,
-    },
-  ];
+  const connectedList = data?.connected || [];
+  const availableList = data?.available || [];
+  const totalAudienceFormatted = data?.totalAudienceFormatted || "0";
+  const activeCount = data?.activeCount || 0;
 
   return (
     <div className="space-y-6 sm:space-y-8 pb-12">
@@ -209,13 +210,13 @@ export default function DashboardSocials({
 
           <div className="flex items-center gap-4">
             <div className="hidden sm:block text-xs font-mono text-slate-500">
-              linkhub.io/{userData?.username || "maya"}
+              linkhub.io/{userData?.username || "profile"}
             </div>
 
             <button
               onClick={handleSyncAll}
-              disabled={syncingAll}
-              className="px-4 py-2 rounded-lg border border-[#c6f035] text-[#c6f035] font-bold text-xs hover:bg-[#c6f035]/10 flex items-center gap-2 transition-colors disabled:opacity-50"
+              disabled={syncingAll || connectedList.length === 0}
+              className="px-4 py-2 rounded-lg border border-[#c6f035] text-[#c6f035] font-bold text-xs hover:bg-[#c6f035]/10 flex items-center gap-2 transition-colors disabled:opacity-40"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${syncingAll ? "animate-spin" : ""}`} />
               <span>{syncingAll ? "Syncing..." : "Sync all"}</span>
@@ -231,7 +232,7 @@ export default function DashboardSocials({
             Connected audiences
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Real-time profile identity and follower totals fetched from platform APIs.
+            Real-time profile identity and follower totals fetched directly from platform APIs.
           </p>
         </div>
       </div>
@@ -244,97 +245,266 @@ export default function DashboardSocials({
           </span>
           <div className="flex items-baseline gap-3 mt-1">
             <span className="text-3xl sm:text-4xl font-mono font-black text-white tracking-tight">
-              2.84M
+              {totalAudienceFormatted}
             </span>
-            <span className="text-xs font-mono font-bold text-[#c6f035]">
-              +3.8% in 30 days
-            </span>
+            {activeCount > 0 ? (
+              <span className="text-xs font-mono font-bold text-[#c6f035]">
+                {activeCount} active platform{activeCount > 1 ? "s" : ""}
+              </span>
+            ) : (
+              <span className="text-xs font-mono text-slate-500">
+                0 platforms connected
+              </span>
+            )}
           </div>
+          {activeCount === 0 && (
+            <p className="text-xs text-slate-400 mt-1">
+              Connect your YouTube channel, GitHub, or Instagram below to aggregate your live reach.
+            </p>
+          )}
         </div>
 
         <div className="flex items-center sm:items-end justify-between sm:justify-start sm:flex-col gap-1 text-right">
-          <div className="hidden lg:block text-right mb-1">
-            <span className="text-lg font-mono font-bold text-white">2.31M</span>
-            <span className="text-[9px] font-mono uppercase tracking-wider text-slate-500 block">
-              EST. UNIQUE REACH
-            </span>
-          </div>
           <span className="text-xs font-mono font-bold text-[#c6f035]">
-            4 / 4 LIVE
+            {activeCount} / {connectedList.length + availableList.length} LIVE
           </span>
           <span className="text-[10px] font-mono text-slate-500">
-            Fetched 2 min ago
+            {data?.lastSyncSummary || "No active syncs"}
           </span>
         </div>
       </div>
 
-      {/* Main Grid: 2x2 Network Cards (+ Preview on Desktop) */}
+      {/* Main Grid: Connected Network Cards (+ Preview on Desktop) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left 2 Cols: 2x2 Network Cards */}
-        <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {networks.map((net) => (
-            <div
-              key={net.id}
-              className="p-5 rounded-2xl bg-[#13120D] border border-white/5 hover:border-white/10 transition-all flex flex-col justify-between space-y-4"
+        {/* Left 2 Cols: Connected Cards */}
+        <div className="lg:col-span-2 space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-300 font-mono">
+              Active Connected Networks ({connectedList.length})
+            </h3>
+            <button
+              onClick={() => openConnectModal("youtube")}
+              className="text-xs font-mono font-bold text-[#c6f035] hover:underline flex items-center gap-1.5"
             >
-              {/* Card Top: Avatar with colored ring & Name/Handle */}
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-11 h-11 rounded-full border-2 p-0.5 flex items-center justify-center shrink-0"
-                    style={{ borderColor: net.color }}
-                  >
-                    <div className="w-full h-full rounded-full bg-[#1a1914] flex items-center justify-center">
-                      <User className="w-4 h-4 text-white" />
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-white">{net.name}</h4>
-                    <p className="text-xs font-mono text-slate-500 mt-0.5">
-                      {net.handle}
-                    </p>
-                  </div>
-                </div>
+              <Plus className="w-3.5 h-3.5" />
+              <span>Connect network</span>
+            </button>
+          </div>
 
-                {/* Platform Badge */}
-                <span
-                  className="px-2 py-0.5 rounded text-[10px] font-mono font-bold"
-                  style={{ backgroundColor: `${net.color}15`, color: net.color }}
+          {connectedList.length === 0 ? (
+            <div className="p-8 rounded-2xl bg-[#13120D] border border-white/5 text-center space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto text-slate-400">
+                <Link2 className="w-6 h-6" />
+              </div>
+              <h4 className="text-sm font-bold text-white">No platforms connected yet</h4>
+              <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                Connect your YouTube channel, GitHub account, Instagram, or TikTok to sync your real subscribers, followers, and social proofs dynamically.
+              </p>
+              <div className="pt-2 flex justify-center gap-2">
+                <button
+                  onClick={() => openConnectModal("youtube")}
+                  className="px-4 py-2 rounded-xl bg-[#c6f035] text-[#0d0f0d] font-bold text-xs hover:brightness-110 transition-all flex items-center gap-2"
                 >
-                  {net.provider}
-                </span>
-              </div>
-
-              {/* Card Middle: Follower Count & 30D growth */}
-              <div className="flex items-baseline justify-between pt-1">
-                <div>
-                  <div className="text-2xl font-mono font-black text-white tracking-tight">
-                    {net.followers}
-                  </div>
-                  <div className="text-[9px] font-mono uppercase tracking-wider text-slate-500 mt-0.5">
-                    {net.label}
-                  </div>
-                </div>
-                <div className="text-right">
-                  <span className="text-xs font-mono font-bold text-[#c6f035]">
-                    {net.growth}
-                  </span>
-                  <span className="text-[9px] font-mono uppercase text-slate-500 block">
-                    30D
-                  </span>
-                </div>
-              </div>
-
-              {/* Card Bottom: Live status dot */}
-              <div className="pt-2 border-t border-white/5 flex items-center gap-2 text-[10px] font-mono text-slate-500">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#c6f035] shadow-[0_0_6px_#c6f035]" />
-                <span>Live · fetched 2 min ago</span>
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Connect YouTube</span>
+                </button>
+                <button
+                  onClick={() => openConnectModal("github")}
+                  className="px-4 py-2 rounded-xl bg-white/10 text-white font-bold text-xs hover:bg-white/20 transition-all flex items-center gap-2"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Connect GitHub</span>
+                </button>
               </div>
             </div>
-          ))}
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {connectedList.map((net) => {
+                const IconComponent = PLATFORM_ICONS[net.provider.toLowerCase()] || Link2;
+                const meta = DEFAULT_PLATFORM_META[net.provider.toLowerCase()] || {};
+                const netColor = net.color || meta.color || "#c6f035";
+
+                return (
+                  <div
+                    key={net.provider}
+                    className="p-5 rounded-2xl bg-[#13120D] border border-white/5 hover:border-white/15 transition-all flex flex-col justify-between space-y-4 relative"
+                  >
+                    {/* Card Top: Avatar with colored ring & Name/Handle */}
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div
+                          className="w-11 h-11 rounded-full border-2 p-0.5 flex items-center justify-center shrink-0 overflow-hidden"
+                          style={{ borderColor: netColor }}
+                        >
+                          {net.avatar ? (
+                            <img
+                              src={net.avatar}
+                              alt={net.name}
+                              className="w-full h-full rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full rounded-full bg-[#1a1914] flex items-center justify-center">
+                              <IconComponent className="w-5 h-5 text-white" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-sm font-bold text-white truncate max-w-[150px]">
+                            {net.name}
+                          </h4>
+                          <p className="text-xs font-mono text-slate-500 mt-0.5 truncate max-w-[150px]">
+                            {net.handle || "Connected"}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Platform Badge & Menu */}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span
+                          className="px-2 py-0.5 rounded text-[10px] font-mono font-bold"
+                          style={{ backgroundColor: `${netColor}15`, color: netColor }}
+                        >
+                          {net.name}
+                        </span>
+
+                        <div className="relative">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveMenu(activeMenu === net.provider ? null : net.provider);
+                            }}
+                            className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+
+                          {activeMenu === net.provider && (
+                            <div
+                              onClick={(e) => e.stopPropagation()}
+                              className="absolute right-0 top-full mt-1 w-44 rounded-xl bg-[#1a1914] border border-white/10 shadow-2xl z-30 py-1.5 text-xs font-mono"
+                            >
+                              <button
+                                onClick={() => handleSyncSingle(net.provider)}
+                                className="w-full px-3 py-2 text-left text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
+                              >
+                                <RefreshCw className="w-3.5 h-3.5 text-[#c6f035]" />
+                                <span>Sync now</span>
+                              </button>
+                              <button
+                                onClick={() => openConnectModal(net.provider, net.handle)}
+                                className="w-full px-3 py-2 text-left text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
+                              >
+                                <Edit3 className="w-3.5 h-3.5 text-blue-400" />
+                                <span>Edit handle</span>
+                              </button>
+                              {net.profileUrl && (
+                                <a
+                                  href={net.profileUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="w-full px-3 py-2 text-left text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
+                                >
+                                  <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+                                  <span>View profile</span>
+                                </a>
+                              )}
+                              <div className="h-px bg-white/5 my-1" />
+                              <button
+                                onClick={() => handleDisconnect(net.provider)}
+                                className="w-full px-3 py-2 text-left text-red-400 hover:text-red-300 hover:bg-red-500/10 flex items-center gap-2"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                <span>Disconnect</span>
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Card Middle: Real Follower Count */}
+                    <div className="flex items-baseline justify-between pt-1">
+                      <div>
+                        <div className="text-2xl font-mono font-black text-white tracking-tight">
+                          {net.formattedFollowers || net.followers}
+                        </div>
+                        <div className="text-[9px] font-mono uppercase tracking-wider text-slate-500 mt-0.5">
+                          {net.label || "FOLLOWERS"}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-xs font-mono font-bold text-[#c6f035]">
+                          {net.barPercent}%
+                        </span>
+                        <span className="text-[9px] font-mono uppercase text-slate-500 block">
+                          SHARE
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Card Bottom: Live status dot & sync time */}
+                    <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[10px] font-mono text-slate-500">
+                      <div className="flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#c6f035] shadow-[0_0_6px_#c6f035]" />
+                        <span>Live · {net.timeAgo || "Just now"}</span>
+                      </div>
+                      {net.profileUrl && (
+                        <a
+                          href={net.profileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="hover:text-white transition-colors"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Available / Connect More Section */}
+          <div className="pt-4 space-y-3">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 font-mono">
+              Available Platforms ({availableList.length})
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {availableList.map((tool) => {
+                const IconComponent = PLATFORM_ICONS[tool.provider.toLowerCase()] || Link2;
+                return (
+                  <div
+                    key={tool.provider}
+                    className="p-4 rounded-xl bg-[#13120D] border border-white/5 flex items-center justify-between gap-3 hover:border-white/10 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className="w-9 h-9 rounded-lg flex items-center justify-center text-white shrink-0"
+                        style={{ backgroundColor: `${tool.color || "#888"}20` }}
+                      >
+                        <IconComponent className="w-4 h-4" style={{ color: tool.color }} />
+                      </div>
+                      <div className="min-w-0">
+                        <h5 className="text-xs font-bold text-white truncate">{tool.name}</h5>
+                        <p className="text-[10px] text-slate-500 truncate">{tool.description}</p>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => openConnectModal(tool.provider)}
+                      className="px-3 py-1.5 rounded-lg border border-[#c6f035]/30 text-[#c6f035] hover:bg-[#c6f035] hover:text-[#0d0f0d] text-xs font-mono font-bold transition-all shrink-0"
+                    >
+                      Connect
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
-        {/* Right 1 Col on Desktop: Public Profile Preview (matching desktop-04 screenshot) */}
+        {/* Right 1 Col on Desktop: Live Canvas Public Profile Preview */}
         <div className="hidden lg:block p-6 rounded-2xl bg-[#13120D] border border-white/5 space-y-6">
           <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
             Public Profile Preview
@@ -357,103 +527,46 @@ export default function DashboardSocials({
 
             <div>
               <h3 className="text-base font-black text-white">
-                {userData?.name || "Maya Kim"}
+                {userData?.name || "Your Profile"}
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                @maya · Creator & developer
+                @{userData?.username || "username"} · {userData?.bio || "Creator & Developer"}
               </p>
             </div>
 
             <div className="text-xs font-bold text-[#c6f035] pt-1">
-              2.84M combined audience
+              {totalAudienceFormatted} combined audience
             </div>
           </div>
 
-          {/* 2x2 Mini Platform pills */}
+          {/* Connected mini platform pills */}
           <div className="grid grid-cols-2 gap-2 pt-2 text-xs font-mono">
-            {networks.map((net) => (
-              <div
-                key={net.id}
-                className="flex items-center justify-between px-3 py-2 rounded-xl bg-[#161510] border border-white/5"
-              >
-                <div className="flex items-center gap-2">
-                  <span
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: net.color }}
-                  />
-                  <span className="text-slate-400 font-bold">{net.pillCode}</span>
-                </div>
-                <span className="text-white font-bold">{net.followers}</span>
+            {connectedList.length === 0 ? (
+              <div className="col-span-2 text-center py-4 text-[11px] text-slate-500">
+                No active platforms connected.
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Tablet Public Profile Preview (underneath the 2x2 grid, matching tablet-04) */}
-      <div className="hidden md:block lg:hidden rounded-2xl bg-[#13120D] border border-white/5 p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] font-mono uppercase tracking-wider text-[#c6f035] font-bold">
-            Public Profile Preview
-          </span>
-          <span className="text-[10px] font-mono text-slate-500">
-            Live social proof
-          </span>
-        </div>
-
-        <div className="flex items-center gap-6">
-          <div className="w-16 h-16 rounded-full border-2 border-[#c6f035] p-1 shrink-0 flex items-center justify-center">
-            {avatarUrl ? (
-              <img
-                src={avatarUrl}
-                alt={userData?.name}
-                className="w-full h-full rounded-full object-cover"
-              />
             ) : (
-              <div className="w-full h-full rounded-full bg-[#1a1914] flex items-center justify-center font-bold text-[#c6f035]">
-                {userInitials}
-              </div>
+              connectedList.map((net) => (
+                <div
+                  key={net.provider}
+                  className="flex items-center justify-between px-3 py-2 rounded-xl bg-[#161510] border border-white/5"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: net.color }}
+                    />
+                    <span className="text-slate-400 font-bold truncate">{net.badge || net.name}</span>
+                  </div>
+                  <span className="text-white font-bold shrink-0">{net.formattedFollowers || net.followers}</span>
+                </div>
+              ))
             )}
           </div>
-          <div>
-            <h3 className="text-base font-bold text-white">
-              {userData?.name || "Maya Kim"}
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              @maya · Creator & developer
-            </p>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-xl font-black font-mono text-white">2.84M</span>
-              <span className="text-[9px] font-mono uppercase tracking-wider text-slate-500">
-                COMBINED AUDIENCE
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 pt-2">
-          {networks.map((net) => (
-            <div
-              key={net.id}
-              className="p-3.5 rounded-xl bg-[#161510] border border-white/5 flex items-center justify-between"
-            >
-              <div className="flex items-center gap-2.5">
-                <span
-                  className="w-2.5 h-2.5 rounded-full"
-                  style={{ backgroundColor: net.color }}
-                />
-                <div>
-                  <div className="text-xs font-bold text-white">{net.provider}</div>
-                  <div className="text-[10px] font-mono text-slate-500">Verified connected profile</div>
-                </div>
-              </div>
-              <span className="text-sm font-mono font-bold text-white">{net.followers}</span>
-            </div>
-          ))}
         </div>
       </div>
 
-      {/* Audience Composition Bars (matching desktop-04) */}
+      {/* Audience Composition Bars */}
       <div className="rounded-2xl bg-[#13120D] border border-white/5 p-5 sm:p-6 space-y-6">
         <div className="flex items-center justify-between">
           <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">
@@ -464,33 +577,135 @@ export default function DashboardSocials({
           </span>
         </div>
 
-        {/* 4 Horizontal Bars */}
-        <div className="space-y-4">
-          {networks.map((net) => (
-            <div key={net.id} className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs font-mono">
-                <span className="text-slate-300 font-bold">{net.provider}</span>
-                <span className="text-white font-bold">{net.followers}</span>
+        {connectedList.length === 0 ? (
+          <p className="text-xs text-slate-500 font-mono py-2">
+            No audience data yet. Connect YouTube, GitHub, Instagram, or TikTok to see your live audience breakdown.
+          </p>
+        ) : (
+          <div className="space-y-4">
+            {connectedList.map((net) => (
+              <div key={net.provider} className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs font-mono">
+                  <span className="text-slate-300 font-bold">{net.name}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400">{net.barPercent}%</span>
+                    <span className="text-white font-bold">{net.formattedFollowers || net.followers}</span>
+                  </div>
+                </div>
+                <div className="w-full h-3 rounded-full bg-[#1c1a14] overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${net.barPercent}%`,
+                      backgroundColor: net.color,
+                    }}
+                  />
+                </div>
               </div>
-              <div className="w-full h-3 rounded-full bg-[#1c1a14] overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{
-                    width: `${net.barPercent}%`,
-                    backgroundColor: net.color,
-                  }}
-                />
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
-        {/* Footer Note */}
         <div className="pt-4 border-t border-white/5 flex flex-col sm:flex-row sm:items-center justify-between text-[10px] font-mono text-slate-500 gap-2">
-          <span>Totals refresh independently from each connected platform.</span>
-          <span className="text-slate-400">Next automatic sync in 13 min</span>
+          <span>Totals refresh independently from each connected platform API.</span>
+          <span className="text-slate-400">Live synchronization active</span>
         </div>
       </div>
+
+      {/* ─── CONNECT ACCOUNT MODAL ─── */}
+      {connectModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md bg-[#13120D] border border-white/10 rounded-2xl p-6 shadow-2xl space-y-5"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span
+                  className="w-3 h-3 rounded-full"
+                  style={{ backgroundColor: DEFAULT_PLATFORM_META[modalProvider]?.color || "#c6f035" }}
+                />
+                <h3 className="text-base font-bold text-white">
+                  Connect {DEFAULT_PLATFORM_META[modalProvider]?.name || modalProvider}
+                </h3>
+              </div>
+              <button
+                onClick={() => setConnectModalOpen(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Platform Selector Tabs */}
+            <div className="flex gap-2 p-1 rounded-xl bg-[#0B0A07] border border-white/5 overflow-x-auto">
+              {Object.keys(DEFAULT_PLATFORM_META).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => {
+                    setModalProvider(p);
+                    setModalHandle("");
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold whitespace-nowrap transition-all ${
+                    modalProvider === p
+                      ? "bg-[#c6f035] text-[#0d0f0d]"
+                      : "text-slate-400 hover:text-white"
+                  }`}
+                >
+                  {DEFAULT_PLATFORM_META[p].name}
+                </button>
+              ))}
+            </div>
+
+            <form onSubmit={handleConnectSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-mono uppercase text-slate-400 mb-1.5">
+                  Account Handle or URL
+                </label>
+                <input
+                  type="text"
+                  value={modalHandle}
+                  onChange={(e) => setModalHandle(e.target.value)}
+                  placeholder={DEFAULT_PLATFORM_META[modalProvider]?.placeholder || "@handle or URL"}
+                  autoFocus
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#1a1914] border border-white/10 text-white text-sm font-mono focus:border-[#c6f035] focus:outline-none placeholder:text-slate-600"
+                />
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Our system will query the platform in real-time to fetch your avatar, name, and live subscriber/follower count.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setConnectModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-mono text-slate-400 hover:text-white transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={connecting || !modalHandle.trim()}
+                  className="px-5 py-2.5 rounded-xl bg-[#c6f035] text-[#0d0f0d] font-bold text-xs font-mono hover:brightness-110 disabled:opacity-50 transition-all flex items-center gap-2"
+                >
+                  {connecting ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Connecting & Fetching...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Connect Account</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
