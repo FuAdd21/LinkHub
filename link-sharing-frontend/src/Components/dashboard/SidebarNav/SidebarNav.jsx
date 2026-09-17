@@ -177,6 +177,7 @@ export default function SidebarNav({
                   {user?.email || "maya@studio.dev"}
                 </span>
               </div>
+            </div>
             <button
               onClick={() => setShowMenu((prev) => !prev)}
               className="hidden lg:block p-1 rounded hover:bg-white/5 text-slate-400 hover:text-white transition-colors"
