@@ -16,6 +16,7 @@ import {
   Settings,
   AlertCircle,
   RefreshCw,
+  MoreHorizontal,
 } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
 import useDashboardData from "../../hooks/useDashboardData";
