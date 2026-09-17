@@ -51,6 +51,7 @@ export const validate = (rules) => {
     if (errors.length > 0) {
       return res.status(400).json({
         success: false,
+        error: errors[0].message,
         message: errors[0].message,
         errors,
       });

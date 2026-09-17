@@ -54,12 +54,33 @@ export const register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Auto-generate clean unique username
+    const baseUsername = (
+      name.trim().toLowerCase().replace(/[^a-z0-9]/g, "") ||
+      normalizedEmail.split("@")[0].replace(/[^a-z0-9]/g, "")
+    ).slice(0, 20);
+
+    let candidateUsername = baseUsername || "user";
+    let counter = 1;
+    while (true) {
+      const [existing] = await db.query(
+        "SELECT id FROM clients WHERE username = ? LIMIT 1",
+        [candidateUsername]
+      );
+      if (existing.length === 0) break;
+      candidateUsername = `${baseUsername}${counter++}`;
+    }
+
     const [result] = await db.query(
-      "INSERT INTO clients (name, email, password, phone) VALUES (?, ?, ?, ?)",
-      [name.trim(), normalizedEmail, hashedPassword, phone ? phone.trim() : ""],
+      "INSERT INTO clients (name, email, password, phone, username) VALUES (?, ?, ?, ?, ?)",
+      [name.trim(), normalizedEmail, hashedPassword, phone ? phone.trim() : "", candidateUsername],
     );
 
-    res.json({ message: "Account created successfully!", clientId: result.insertId });
+    res.json({
+      message: "Account created successfully!",
+      clientId: result.insertId,
+      username: candidateUsername,
+    });
   } catch (err) {
     console.error("Register error:", err);
     res.status(500).json({ error: "Registration failed. Please try again." });

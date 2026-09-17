@@ -26,10 +26,16 @@ const Register = () => {
 
     try {
       await axios.post(`${API_BASE_URL}/register`, form);
-      toast.success("Identity registered. Welcome to the ecosystem.");
+      toast.success("Account created successfully! Please sign in.");
       navigate("/login");
     } catch (err) {
-      toast.error(err.response?.data?.error || "Registration failed");
+      const msg =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        (err.code === "ERR_NETWORK"
+          ? "Cannot connect to server. Please verify the backend is running."
+          : "Registration failed. Please check your inputs.");
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -144,7 +150,7 @@ const Register = () => {
                   onChange={(e) => updateField("password", e.target.value)}
                   placeholder="••••••••"
                   required
-                  minLength={6}
+                  minLength={8}
                   className="w-full bg-[var(--saas-bg-elevated)] border border-[var(--saas-border)] focus:border-[var(--saas-accent-primary)] focus:ring-4 focus:ring-[var(--saas-accent-glow)]/10 rounded-2xl py-3.5 pl-11 pr-11 text-sm font-semibold text-[var(--saas-text-primary)] transition-all outline-none placeholder:text-[var(--saas-text-secondary)]/30"
                 />
                 <button
@@ -158,6 +164,17 @@ const Register = () => {
                     <Eye className="w-4.5 h-4.5" />
                   )}
                 </button>
+              </div>
+              <div className="mt-2 px-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-mono">
+                <span className={form.password.length >= 8 ? "text-[#c6f035]" : "text-slate-500"}>
+                  {form.password.length >= 8 ? "✓" : "○"} 8+ chars
+                </span>
+                <span className={/[A-Z]/.test(form.password) ? "text-[#c6f035]" : "text-slate-500"}>
+                  {/[A-Z]/.test(form.password) ? "✓" : "○"} 1 uppercase
+                </span>
+                <span className={/[0-9]/.test(form.password) ? "text-[#c6f035]" : "text-slate-500"}>
+                  {/[0-9]/.test(form.password) ? "✓" : "○"} 1 number
+                </span>
               </div>
             </div>
 
