@@ -69,7 +69,7 @@ export default function SidebarNav({
 
       {/* Sidebar Container */}
       <aside
-        className={`sidebar-container fixed top-0 bottom-0 left-0 z-50 transition-transform duration-200 lg:translate-x-0 ${
+        className={`sidebar-container fixed top-0 bottom-0 left-0 z-50 transition-transform duration-200 md:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -77,22 +77,22 @@ export default function SidebarNav({
         <div className="flex items-center justify-between pb-6 pt-2">
           <Link
             to="/dashboard/overview"
-            className="flex items-center gap-2.5 group"
+            className="flex items-center gap-2.5 group mx-auto lg:mx-0"
             onClick={handleNavClick}
           >
             <div className="w-8 h-8 rounded-lg bg-[#c6f035] flex items-center justify-center text-[#0e1208] font-black shadow-sm group-hover:scale-105 transition-transform">
               <Link2 className="w-5 h-5 stroke-[2.5]" />
             </div>
-            <span className="text-base font-extrabold tracking-tight text-white">
+            <span className="hidden lg:inline text-base font-extrabold tracking-tight text-white">
               LinkHub
             </span>
-            <span className="sidebar-brand-badge uppercase">PRO</span>
+            <span className="hidden lg:inline sidebar-brand-badge uppercase">PRO</span>
           </Link>
 
           {/* Close button on mobile */}
           <button
             onClick={onClose}
-            className="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5"
+            className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5"
             aria-label="Close sidebar"
           >
             <X className="w-5 h-5" />
@@ -100,7 +100,7 @@ export default function SidebarNav({
         </div>
 
         {/* Section Label */}
-        <div className="px-2 pt-3 pb-2 text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#606760]">
+        <div className="hidden lg:block px-2 pt-3 pb-2 text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#606760]">
           Workspace
         </div>
 
@@ -118,18 +118,19 @@ export default function SidebarNav({
                 to={item.path}
                 onClick={handleNavClick}
                 className={`sidebar-nav-item ${isActive ? "active" : ""}`}
+                title={item.label}
               >
-                <Icon className={`w-4 h-4 ${isActive ? "text-[#c6f035]" : ""}`} />
-                <span className="flex-1">{item.label}</span>
+                <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-[#c6f035]" : ""}`} />
+                <span className="hidden lg:inline flex-1">{item.label}</span>
 
                 {item.badge !== undefined && (
-                  <span className="text-[11px] font-bold text-slate-400 bg-white/5 px-2 py-0.5 rounded-full">
+                  <span className="hidden lg:inline-flex text-[11px] font-bold text-slate-400 bg-white/5 px-2 py-0.5 rounded-full">
                     {item.badge}
                   </span>
                 )}
 
                 {item.dot && (
-                  <span className="w-2 h-2 rounded-full bg-[#c6f035] shadow-[0_0_6px_#c6f035]" />
+                  <span className="hidden lg:inline-block w-2 h-2 rounded-full bg-[#c6f035] shadow-[0_0_6px_#c6f035]" />
                 )}
               </Link>
             );
@@ -137,7 +138,7 @@ export default function SidebarNav({
         </nav>
 
         {/* Profile Health Section */}
-        <div className="sidebar-health-card mb-4 mt-auto">
+        <div className="hidden lg:block sidebar-health-card mb-4 mt-auto">
           <div className="flex items-center justify-between text-xs font-bold mb-1.5">
             <span className="text-slate-300">Profile health</span>
             <span className="text-[#c6f035]">{Math.max(completionPercent, 92)}%</span>
@@ -154,34 +155,32 @@ export default function SidebarNav({
         </div>
 
         {/* User Profile Pill */}
-        <div className="relative pt-2 border-t border-white/5">
-          <div className="sidebar-user-pill justify-between">
+        <div className="relative pt-2 border-t border-white/5 mt-auto lg:mt-0">
+          <div className="sidebar-user-pill justify-center lg:justify-between">
             <div className="flex items-center gap-2.5 min-w-0">
               {avatarUrl ? (
                 <img
                   src={avatarUrl}
-                  alt={user?.name || "Avatar"}
-                  className="w-8 h-8 rounded-full object-cover border border-white/10"
+                  alt={user?.name || "User"}
+                  className="w-8 h-8 rounded-full object-cover shrink-0 border border-white/10"
                 />
               ) : (
-                <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#c6f035] to-[#22d3ee] flex items-center justify-center text-[#0e1208] text-xs font-black">
+                <div className="w-8 h-8 rounded-full bg-[#1e231e] text-[#c6f035] font-bold text-xs flex items-center justify-center shrink-0 border border-white/10">
                   {initials}
                 </div>
               )}
-              <div className="truncate">
-                <div className="text-xs font-bold text-white truncate">
-                  {user?.name || user?.username || "Maya K."}
-                </div>
-                <div className="text-[11px] text-slate-400 truncate">
-                  {user?.email || (user?.username ? `${user.username}@linkhub` : "user@linkhub")}
-                </div>
+              <div className="hidden lg:flex flex-col min-w-0">
+                <span className="text-xs font-bold text-white truncate leading-snug">
+                  {user?.name || user?.username || "Maya Kim"}
+                </span>
+                <span className="text-[11px] text-slate-500 truncate leading-tight">
+                  {user?.email || "maya@studio.dev"}
+                </span>
               </div>
-            </div>
-
             <button
-              onClick={() => setShowMenu(!showMenu)}
-              className="p-1 rounded-md text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
-              aria-label="User options"
+              onClick={() => setShowMenu((prev) => !prev)}
+              className="hidden lg:block p-1 rounded hover:bg-white/5 text-slate-400 hover:text-white transition-colors"
+              aria-label="User settings menu"
             >
               <MoreHorizontal className="w-4 h-4" />
             </button>
