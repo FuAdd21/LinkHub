@@ -1,4 +1,5 @@
 import { db } from "../config/db.js";
+import { formatFollowerCount } from "../services/youtubeService.js";
 
 // GET /api/profile/:username — Public profile page data
 export const getPublicProfile = async (req, res) => {
@@ -41,6 +42,36 @@ export const getPublicProfile = async (req, res) => {
       [user.id],
     );
 
+    // Fetch connected integrations with real metrics
+    const [integrationRows] = await db.query(
+      `SELECT provider, config, last_synced_at
+       FROM integrations
+       WHERE user_id = ? AND status = 'connected' AND config IS NOT NULL`,
+      [user.id]
+    );
+
+    let totalAudience = 0;
+    const connectedIntegrations = integrationRows.map((r) => {
+      let conf = {};
+      try {
+        conf = typeof r.config === "string" ? JSON.parse(r.config) : (r.config || {});
+      } catch {
+        conf = {};
+      }
+      const followers = Number(conf.followers) || 0;
+      totalAudience += followers;
+      return {
+        provider: r.provider,
+        handle: conf.handle,
+        name: conf.name,
+        avatar: conf.avatar,
+        followers,
+        formattedFollowers: conf.formattedFollowers || formatFollowerCount(followers),
+        profileUrl: conf.profileUrl,
+        label: conf.label || "FOLLOWERS",
+      };
+    });
+
     // Parse profileData JSON for each link
     const parsedLinks = links.map((link) => ({
       ...link,
@@ -63,6 +94,9 @@ export const getPublicProfile = async (req, res) => {
       show_social_row: Boolean(user.show_social_row),
       background_type: user.background_type || "gradient",
       background_value: user.background_value,
+      totalAudience,
+      totalAudienceFormatted: formatFollowerCount(totalAudience),
+      integrations: connectedIntegrations,
       socials: {
         youtube: user.youtubeId,
         github: user.githubUser,

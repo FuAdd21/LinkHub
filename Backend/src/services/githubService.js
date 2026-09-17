@@ -1,8 +1,20 @@
 import axios from "axios";
+import { formatFollowerCount } from "./youtubeService.js";
 
 const PLACEHOLDER_AVATAR = "/placeholder-avatar.png";
 
-export async function getGitHubUser(username) {
+export function cleanGitHubUsername(input) {
+  if (!input) return "";
+  let u = input.trim();
+  if (u.includes("github.com/")) {
+    const match = u.match(/github\.com\/([a-zA-Z0-9_-]+)/);
+    if (match) return match[1];
+  }
+  return u.replace(/^@/, "").split("/")[0].split("?")[0];
+}
+
+export async function getGitHubUser(input) {
+  const username = cleanGitHubUsername(input);
   try {
     if (!username) {
       return { platform: "GitHub", error: "No username provided" };
@@ -19,13 +31,16 @@ export async function getGitHubUser(username) {
     );
 
     const user = response.data;
+    const followers = user.followers || 0;
 
     return {
       platform: "GitHub",
       username: user.login,
+      handle: `@${user.login}`,
       name: user.name || user.login,
       avatar: user.avatar_url || PLACEHOLDER_AVATAR,
-      followers: user.followers || 0,
+      followers,
+      formattedFollowers: formatFollowerCount(followers),
       following: user.following || 0,
       repos: user.public_repos || 0,
       bio: user.bio || null,
