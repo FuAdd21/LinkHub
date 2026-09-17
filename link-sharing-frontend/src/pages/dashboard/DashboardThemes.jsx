@@ -46,6 +46,7 @@ export default function DashboardThemes({ userData, links = [], onRefresh, onUse
     userData?.show_social_row !== 0 && userData?.show_social_row !== false
   );
 
+  const [activeMobileTab, setActiveMobileTab] = useState("design");
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -105,22 +106,140 @@ export default function DashboardThemes({ userData, links = [], onRefresh, onUse
   const previewText = isPaper ? "#11120F" : "#ffffff";
   const previewCardBg = isPaper ? "#e5e5e5" : "#1a1914";
 
-  return (
-    <div className="flex flex-col xl:flex-row gap-8 pb-12">
-      {/* Left Column: Customization Controls */}
-      <div className="flex-1 min-w-0 space-y-6">
-        {/* Header Section */}
-        <div>
-          <p className="text-xs text-slate-400 font-medium mb-1">
-            Shape the visual system behind your public identity.
+  // Shared Preview Component
+  const renderPreviewFrame = (isMobileInline = false) => (
+    <div
+      className={`rounded-3xl border border-white/10 p-6 flex flex-col items-center justify-between shadow-2xl transition-all ${
+        isMobileInline ? "min-h-[460px]" : "min-h-[580px]"
+      }`}
+      style={{ backgroundColor: previewBg }}
+    >
+      <div className="w-full flex flex-col items-center text-center space-y-4 pt-3">
+        {/* Avatar Circle */}
+        <div
+          className="w-20 h-20 rounded-full border-2 p-1 flex items-center justify-center transition-all"
+          style={{ borderColor: accent }}
+        >
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={displayName}
+              className="w-full h-full rounded-full object-cover"
+            />
+          ) : (
+            <div
+              className="w-full h-full rounded-full flex items-center justify-center font-bold text-lg"
+              style={{
+                backgroundColor: isPaper ? "#dedede" : "#1a1914",
+                color: accent,
+              }}
+            >
+              {userInitials}
+            </div>
+          )}
+        </div>
+
+        {/* Name & Badge */}
+        <div className="space-y-1">
+          <div className="flex items-center justify-center gap-1.5">
+            <h3
+              className="text-base font-black tracking-tight"
+              style={{ color: previewText }}
+            >
+              {displayName}
+            </h3>
+            {showVerified && (
+              <BadgeCheck className="w-4 h-4 text-[#c6f035] fill-[#c6f035]" />
+            )}
+          </div>
+          <p
+            className="text-xs font-medium max-w-[240px] mx-auto opacity-75"
+            style={{ color: previewText }}
+          >
+            {bio}
           </p>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        </div>
+
+        {/* Social Icons Row */}
+        {showSocials && (
+          <div className="flex items-center gap-3 pt-1 text-slate-400">
+            <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+              <Github className="w-3.5 h-3.5" />
+            </div>
+            <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+              <Instagram className="w-3.5 h-3.5" />
+            </div>
+            <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+              <Youtube className="w-3.5 h-3.5" />
+            </div>
+            <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+              <ExternalLink className="w-3.5 h-3.5" />
+            </div>
+          </div>
+        )}
+
+        {/* Live Link Stack */}
+        <div className="w-full space-y-2.5 pt-4">
+          {links
+            .filter((l) => l.is_visible !== 0 && l.is_visible !== false)
+            .slice(0, 4)
+            .map((link) => (
+              <div
+                key={link.id}
+                className="w-full py-3 px-4 rounded-xl border border-white/5 text-xs font-semibold text-center truncate transition-all"
+                style={{
+                  backgroundColor: previewCardBg,
+                  color: previewText,
+                }}
+              >
+                {link.title}
+              </div>
+            ))}
+        </div>
+      </div>
+
+      {/* Audience Proof or Watermark */}
+      <div className="pt-6 pb-2 text-center space-y-1">
+        <div className="text-xs font-bold text-[#c6f035]">
+          2.84M combined audience
+        </div>
+        <div className="text-[10px] font-mono text-slate-500">
+          linkhub.io/{userData?.username || "maya"}
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="flex flex-col md:flex-row gap-8 pb-12">
+      {/* Left Column: Customization Controls */}
+      <div className="flex-1 min-w-0 space-y-5">
+        {/* Top Header */}
+        <div>
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+              <p className="text-[10px] uppercase font-mono tracking-widest text-[#c6f035]">
+                Command Center
+              </p>
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white mt-0.5">
                 Appearance
               </h1>
+            </div>
+            <div className="hidden sm:block text-xs font-mono text-slate-500">
+              linkhub.io/{userData?.username || "user"}
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3">
+            <div>
+              <p className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">
+                Identity Studio
+              </p>
+              <h2 className="text-lg sm:text-xl font-bold text-white">
+                Appearance
+              </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Customize theme, typography, spacing, and profile details.
+                Shape the visual system behind your public identity.
               </p>
             </div>
 
@@ -134,14 +253,74 @@ export default function DashboardThemes({ userData, links = [], onRefresh, onUse
           </div>
         </div>
 
-        {/* Main Appearance Card */}
-        <div className="rounded-2xl bg-[#13120D] border border-white/5 p-6 sm:p-8 space-y-8">
-          {/* SECTION 1: THEME */}
-          <div className="space-y-3">
+        {/* Mobile Sub-tabs: Design | Profile | Preview */}
+        <div className="flex md:hidden items-center gap-2 pt-1 pb-1">
+          <button
+            type="button"
+            onClick={() => setActiveMobileTab("design")}
+            className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all border ${
+              activeMobileTab === "design"
+                ? "border-[#c6f035] text-[#c6f035] bg-[#161510]"
+                : "border-white/5 text-slate-400 bg-[#13120D] hover:text-white"
+            }`}
+          >
+            Design
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveMobileTab("profile")}
+            className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all border ${
+              activeMobileTab === "profile"
+                ? "border-[#c6f035] text-[#c6f035] bg-[#161510]"
+                : "border-white/5 text-slate-400 bg-[#13120D] hover:text-white"
+            }`}
+          >
+            Profile
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveMobileTab("preview")}
+            className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all border ${
+              activeMobileTab === "preview"
+                ? "border-[#c6f035] text-[#c6f035] bg-[#161510]"
+                : "border-white/5 text-slate-400 bg-[#13120D] hover:text-white"
+            }`}
+          >
+            Preview
+          </button>
+        </div>
+
+        {/* Mobile "Preview" tab view */}
+        {activeMobileTab === "preview" && (
+          <div className="md:hidden space-y-4 pt-2">
+            <div className="flex items-center justify-between px-1">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Live Profile
+              </span>
+              <span className="px-2.5 py-0.5 rounded-md border border-[#c6f035] text-[11px] font-bold text-[#c6f035]">
+                Mobile
+              </span>
+            </div>
+            {renderPreviewFrame(true)}
+          </div>
+        )}
+
+        {/* Main Appearance Controls (Design / Profile) */}
+        <div
+          className={`rounded-2xl bg-[#13120D] border border-white/5 p-5 sm:p-7 space-y-7 ${
+            activeMobileTab === "preview" ? "hidden md:block" : "block"
+          }`}
+        >
+          {/* SECTION 1: THEME (Show on desktop/tablet, or mobile if 'design') */}
+          <div
+            className={`space-y-3 ${
+              activeMobileTab === "profile" ? "hidden md:block" : "block"
+            }`}
+          >
             <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
               Theme
             </span>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-3 sm:gap-4">
               {THEMES.map((t) => {
                 const isSelected = theme === t.id;
                 return (
@@ -149,7 +328,7 @@ export default function DashboardThemes({ userData, links = [], onRefresh, onUse
                     key={t.id}
                     type="button"
                     onClick={() => setTheme(t.id)}
-                    className={`relative p-4 rounded-xl border text-left flex flex-col justify-between h-24 transition-all ${
+                    className={`relative p-3.5 sm:p-4 rounded-xl border text-left flex flex-col justify-between h-24 transition-all ${
                       isSelected
                         ? "border-[#c6f035] ring-1 ring-[#c6f035]/50 bg-[#1a1914]"
                         : "border-white/5 hover:border-white/15 bg-[#11120F]"
@@ -168,10 +347,13 @@ export default function DashboardThemes({ userData, links = [], onRefresh, onUse
             </div>
           </div>
 
-          <div className="border-t border-white/5" />
-
           {/* SECTION 2: COLOR SYSTEM */}
-          <div className="space-y-5">
+          <div
+            className={`space-y-5 ${
+              activeMobileTab === "profile" ? "hidden md:block" : "block"
+            }`}
+          >
+            <div className="border-t border-white/5" />
             <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
               Color system
             </span>
@@ -179,7 +361,7 @@ export default function DashboardThemes({ userData, links = [], onRefresh, onUse
             {/* Accent Swatches */}
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-slate-400">Accent</span>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5 sm:gap-3">
                 {ACCENT_PALETTE.map((color) => {
                   const isSelected = accent.toLowerCase() === color.toLowerCase();
                   return (
@@ -195,11 +377,7 @@ export default function DashboardThemes({ userData, links = [], onRefresh, onUse
                       }`}
                     >
                       {isSelected && (
-                        <Check
-                          className={`w-3 h-3 ${
-                            color === "#ffffff" ? "text-black" : "text-black"
-                          }`}
-                        />
+                        <Check className="w-3 h-3 text-black" />
                       )}
                     </button>
                   );
@@ -225,10 +403,13 @@ export default function DashboardThemes({ userData, links = [], onRefresh, onUse
             </div>
           </div>
 
-          <div className="border-t border-white/5" />
-
           {/* SECTION 3: TYPOGRAPHY */}
-          <div className="space-y-4">
+          <div
+            className={`space-y-4 ${
+              activeMobileTab === "profile" ? "hidden md:block" : "block"
+            }`}
+          >
+            <div className="border-t border-white/5" />
             <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
               Typography
             </span>
@@ -266,10 +447,13 @@ export default function DashboardThemes({ userData, links = [], onRefresh, onUse
             </div>
           </div>
 
-          <div className="border-t border-white/5" />
-
           {/* SECTION 4: PROFILE DETAILS */}
-          <div className="space-y-4">
+          <div
+            className={`space-y-4 ${
+              activeMobileTab === "design" ? "hidden md:block" : "block"
+            }`}
+          >
+            <div className="border-t border-white/5" />
             <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400">
               Profile details
             </span>
@@ -331,116 +515,35 @@ export default function DashboardThemes({ userData, links = [], onRefresh, onUse
             </div>
           </div>
         </div>
+
+        {/* Mobile: In 'design' tab, show live profile preview box right below theme card (matching mobile-02 screenshot!) */}
+        {activeMobileTab === "design" && (
+          <div className="md:hidden space-y-3 pt-2">
+            <div className="flex items-center justify-between px-1">
+              <span className="text-[10px] font-mono uppercase tracking-wider text-[#c6f035]">
+                Live Profile
+              </span>
+              <span className="px-2.5 py-0.5 rounded-md border border-[#c6f035] text-[10px] font-bold text-[#c6f035]">
+                Mobile
+              </span>
+            </div>
+            {renderPreviewFrame(true)}
+          </div>
+        )}
       </div>
 
-      {/* Right Column: Live Preview (Mobile View matching image copy 2.png) */}
-      <div className="w-full xl:w-[380px] shrink-0 space-y-4">
+      {/* Right Column: Live Preview (Tablet & Desktop 2-column view matching tablet-02) */}
+      <div className="hidden md:block w-full md:w-[320px] xl:w-[380px] shrink-0 space-y-4">
         <div className="flex items-center justify-between px-1">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-            Live preview
+          <span className="text-[10px] font-mono uppercase tracking-wider text-[#c6f035]">
+            Live Preview
           </span>
-          <span className="px-2.5 py-1 rounded-md bg-[#13120D] border border-white/5 text-[11px] font-semibold text-slate-400">
+          <span className="px-2.5 py-0.5 rounded-md border border-[#c6f035] text-[10px] font-bold text-[#c6f035]">
             Mobile
           </span>
         </div>
 
-        {/* Mockup Frame */}
-        <div
-          className="rounded-3xl border border-white/10 p-6 flex flex-col items-center justify-between min-h-[580px] shadow-2xl transition-all"
-          style={{ backgroundColor: previewBg }}
-        >
-          <div className="w-full flex flex-col items-center text-center space-y-4 pt-4">
-            {/* Avatar Circle */}
-            <div
-              className="w-20 h-20 rounded-full border-2 p-1 flex items-center justify-center transition-all"
-              style={{ borderColor: accent }}
-            >
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt={displayName}
-                  className="w-full h-full rounded-full object-cover"
-                />
-              ) : (
-                <div
-                  className="w-full h-full rounded-full flex items-center justify-center font-bold text-lg"
-                  style={{
-                    backgroundColor: isPaper ? "#dedede" : "#1a1914",
-                    color: accent,
-                  }}
-                >
-                  {userInitials}
-                </div>
-              )}
-            </div>
-
-            {/* Name & Badge */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-center gap-1.5">
-                <h3
-                  className="text-base font-black tracking-tight"
-                  style={{ color: previewText }}
-                >
-                  {displayName}
-                </h3>
-                {showVerified && (
-                  <BadgeCheck className="w-4 h-4 text-[#c6f035] fill-[#c6f035]" />
-                )}
-              </div>
-              <p
-                className="text-xs font-medium max-w-[240px] mx-auto opacity-75"
-                style={{ color: previewText }}
-              >
-                {bio}
-              </p>
-            </div>
-
-            {/* Social Icons Row */}
-            {showSocials && (
-              <div className="flex items-center gap-3 pt-1 text-slate-400">
-                <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
-                  <Github className="w-3.5 h-3.5" />
-                </div>
-                <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
-                  <Instagram className="w-3.5 h-3.5" />
-                </div>
-                <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
-                  <Youtube className="w-3.5 h-3.5" />
-                </div>
-                <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
-                  <ExternalLink className="w-3.5 h-3.5" />
-                </div>
-              </div>
-            )}
-
-            {/* Live Link Stack */}
-            <div className="w-full space-y-2.5 pt-4">
-              {links
-                .filter((l) => l.is_visible !== 0 && l.is_visible !== false)
-                .slice(0, 4)
-                .map((link) => (
-                  <div
-                    key={link.id}
-                    className="w-full py-3 px-4 rounded-xl border border-white/5 text-xs font-semibold text-center truncate transition-all"
-                    style={{
-                      backgroundColor: previewCardBg,
-                      color: previewText,
-                    }}
-                  >
-                    {link.title}
-                  </div>
-                ))}
-            </div>
-          </div>
-
-          {/* Footer Watermark */}
-          <div
-            className="pt-6 pb-2 text-[10px] font-mono tracking-widest uppercase opacity-40"
-            style={{ color: previewText }}
-          >
-            linkhub
-          </div>
-        </div>
+        {renderPreviewFrame(false)}
       </div>
     </div>
   );
