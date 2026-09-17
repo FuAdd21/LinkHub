@@ -269,7 +269,7 @@ export default function DashboardLayout() {
                   />
                   <Route
                     path="analytics"
-                    element={<DashboardAnalytics analytics={analytics} />}
+                    element={<DashboardAnalytics analytics={analytics} userData={userData} />}
                   />
                   <Route
                     path="themes"

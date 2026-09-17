@@ -27,34 +27,34 @@ ChartJS.register(
   Filler
 );
 
-export default function DashboardAnalytics({ analytics }) {
+export default function DashboardAnalytics({ analytics, userData }) {
   const [timeframe, setTimeframe] = useState("30");
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const totalViews = analytics?.totalViews ?? 24892;
   const totalClicks = analytics?.totalClicks ?? 10418;
   const clickRate = analytics?.clickRate ?? "41.85";
-  const uniqueVisitors = analytics?.uniqueVisitors ?? 18206;
+  const totalFollowers = analytics?.totalFollowers ?? "2.84M";
 
   const deltas = analytics?.deltas || {
     views: "+12.8%",
     clicks: "+18.3%",
-    rate: "+2.4%",
-    visitors: "-1.7%",
+    rate: "+4.1%",
+    followers: "+3.8%",
   };
 
-  // Device breakdown
-  const deviceMix = analytics?.deviceMix || {
-    mobile: 68,
-    desktop: 23,
-    tablet: 9,
-  };
+  // Audience platforms breakdown
+  const audienceBreakdown = analytics?.audienceBreakdown || [
+    { platform: "TikTok", count: "1.60M", color: "#c6f035", raw: 1600 },
+    { platform: "YouTube", count: "842K", color: "#00d2ff", raw: 842 },
+    { platform: "Instagram", count: "386K", color: "#ff8c42", raw: 386 },
+    { platform: "GitHub", count: "18.4K", color: "#f43f5e", raw: 18.4 },
+  ];
 
   // Daily growth chart data
   const rawClicksPerDay = analytics?.clicksPerDay || [];
   const rawViewsPerDay = analytics?.viewsPerDay || [];
 
-  // Generate fallback days if database has low activity
   const dates = rawClicksPerDay.length > 0
     ? rawClicksPerDay.map((d) =>
         new Date(d.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })
@@ -77,8 +77,8 @@ export default function DashboardAnalytics({ analytics }) {
         data: viewsData,
         borderColor: "#c6f035",
         backgroundColor: "rgba(198, 240, 53, 0.05)",
-        borderWidth: 2,
-        tension: 0.4,
+        borderWidth: 2.5,
+        tension: 0.35,
         pointRadius: 0,
         pointHoverRadius: 4,
         pointHoverBackgroundColor: "#c6f035",
@@ -89,8 +89,8 @@ export default function DashboardAnalytics({ analytics }) {
         data: clicksData,
         borderColor: "#00d2ff",
         backgroundColor: "transparent",
-        borderWidth: 2,
-        tension: 0.4,
+        borderWidth: 2.5,
+        tension: 0.35,
         pointRadius: 0,
         pointHoverRadius: 4,
         pointHoverBackgroundColor: "#00d2ff",
@@ -122,27 +122,27 @@ export default function DashboardAnalytics({ analytics }) {
         border: { display: false },
       },
       y: {
-        grid: { color: "rgba(255,255,255,0.03)" },
+        grid: { color: "rgba(255,255,255,0.04)" },
         ticks: { display: false },
         border: { display: false },
       },
     },
   };
 
-  // Device Donut chart
-  const doughnutData = {
-    labels: ["Mobile", "Desktop", "Tablet"],
+  // Donut chart data
+  const donutData = {
+    labels: audienceBreakdown.map((a) => a.platform),
     datasets: [
       {
-        data: [deviceMix.mobile, deviceMix.desktop, deviceMix.tablet],
-        backgroundColor: ["#c6f035", "#00d2ff", "#ff8c42"],
+        data: audienceBreakdown.map((a) => a.raw),
+        backgroundColor: audienceBreakdown.map((a) => a.color),
         borderWidth: 0,
-        cutout: "75%",
+        cutout: "72%",
       },
     ],
   };
 
-  const doughnutOptions = {
+  const donutOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -160,233 +160,245 @@ export default function DashboardAnalytics({ analytics }) {
 
   // Destination Performance Rows from real topLinks
   const topLinks = analytics?.topLinks || [
-    { title: "My open-source toolkit", clicks: 4286, conversionRate: "38.7%", avgTime: "01:42", change: "+18.4%" },
-    { title: "Build in public — weekly", clicks: 3104, conversionRate: "31.2%", avgTime: "02:18", change: "+11.7%" },
-    { title: "Behind the scenes", clicks: 1879, conversionRate: "24.8%", avgTime: "00:58", change: "+6.2%" },
-    { title: "Read my latest essay", clicks: 986, conversionRate: "18.4%", avgTime: "03:06", change: "+4.8%" },
+    { title: "GitHub toolkit", clicks: 4286, conversionRate: "38.7%", avgTime: "01:42", change: "+18.4%" },
+    { title: "YouTube channel", clicks: 3104, conversionRate: "31.2%", avgTime: "02:18", change: "+11.7%" },
+    { title: "Instagram", clicks: 1879, conversionRate: "24.8%", avgTime: "00:58", change: "+6.2%" },
+    { title: "Notes", clicks: 986, conversionRate: "18.4%", avgTime: "03:06", change: "+4.8%" },
   ];
 
   return (
-    <div className="space-y-8 pb-12">
+    <div className="space-y-6 sm:space-y-8 pb-12">
       {/* Header */}
       <div>
-        <p className="text-xs text-slate-400 font-medium mb-1">
-          Understand attention, intent, and conversion across every destination.
-        </p>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-              Performance
-            </h1>
-            <p className="text-xs text-slate-500 mt-0.5">
-              A detailed view of audience behavior across the last {timeframe} days.
+            <p className="text-[10px] uppercase font-mono tracking-widest text-[#c6f035]">
+              Command Center
             </p>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white mt-0.5">
+              Analytics
+            </h1>
           </div>
 
-          {/* Timeframe Dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="px-4 py-2 rounded-lg bg-[#13120D] border border-white/10 text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-2"
-            >
-              <span>Last {timeframe} days</span>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-            </button>
+          <div className="flex items-center gap-4">
+            <div className="hidden sm:block text-xs font-mono text-slate-500">
+              linkhub.io/{userData?.username || "maya"}
+            </div>
 
-            {dropdownOpen && (
-              <div className="absolute right-0 top-10 w-36 rounded-xl bg-[#161510] border border-white/10 shadow-2xl py-1 z-30 animate-in fade-in zoom-in-95 duration-150">
-                {["7", "30", "90"].map((days) => (
-                  <button
-                    key={days}
-                    onClick={() => {
-                      setTimeframe(days);
-                      setDropdownOpen(false);
-                    }}
-                    className={`w-full px-3.5 py-2 text-left text-xs font-medium hover:bg-white/5 ${
-                      timeframe === days ? "text-[#c6f035] font-bold" : "text-slate-300"
-                    }`}
-                  >
-                    Last {days} days
-                  </button>
-                ))}
-              </div>
-            )}
+            {/* Timeframe Button */}
+            <div className="relative">
+              <button
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-lg border border-[#c6f035] text-[#c6f035] font-bold text-xs hover:bg-[#c6f035]/10 flex items-center gap-1.5 transition-colors"
+              >
+                <span>Last {timeframe} days</span>
+                <ChevronDown className="w-3.5 h-3.5" />
+              </button>
+
+              {dropdownOpen && (
+                <div className="absolute right-0 top-10 w-36 rounded-xl bg-[#161510] border border-white/10 shadow-2xl py-1 z-30 animate-in fade-in zoom-in-95 duration-150">
+                  {["7", "30", "90"].map((days) => (
+                    <button
+                      key={days}
+                      onClick={() => {
+                        setTimeframe(days);
+                        setDropdownOpen(false);
+                      }}
+                      className={`w-full px-3.5 py-2 text-left text-xs font-medium hover:bg-white/5 ${
+                        timeframe === days ? "text-[#c6f035] font-bold" : "text-slate-300"
+                      }`}
+                    >
+                      Last {days} days
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
+        </div>
+
+        <div className="hidden sm:block pt-3">
+          <p className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">
+            Performance
+          </p>
+          <h2 className="text-lg sm:text-xl font-bold text-white">
+            Audience intelligence
+          </h2>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Understand reach, traffic, and conversion.
+          </p>
         </div>
       </div>
 
-      {/* 4 Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 4 Metric Cards: 2x2 on Mobile, 1x4 on Tablet/Desktop */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         {/* Card 1: Views */}
-        <div className="p-5 rounded-xl bg-[#13120D] border border-white/5 space-y-2">
-          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
-            Profile views
+        <div className="p-4 sm:p-5 rounded-xl bg-[#13120D] border border-white/5 flex flex-col justify-between space-y-2">
+          <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-slate-400">
+            Views
           </span>
-          <div className="text-2xl sm:text-3xl font-mono font-bold text-white tracking-tight">
+          <div className="text-xl sm:text-2xl lg:text-3xl font-mono font-bold text-white tracking-tight">
             {Number(totalViews).toLocaleString()}
           </div>
-          <div className="flex items-center gap-1 text-xs font-mono font-medium text-[#c6f035]">
-            <ArrowUpRight className="w-3.5 h-3.5" />
-            <span>{deltas.views || "+12.8%"}</span>
+          <div className="text-right text-[11px] font-mono font-bold text-[#c6f035]">
+            {deltas.views || "+12.8%"}
           </div>
         </div>
 
         {/* Card 2: Clicks */}
-        <div className="p-5 rounded-xl bg-[#13120D] border border-white/5 space-y-2">
-          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
-            Total clicks
+        <div className="p-4 sm:p-5 rounded-xl bg-[#13120D] border border-white/5 flex flex-col justify-between space-y-2">
+          <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-slate-400">
+            Clicks
           </span>
-          <div className="text-2xl sm:text-3xl font-mono font-bold text-white tracking-tight">
+          <div className="text-xl sm:text-2xl lg:text-3xl font-mono font-bold text-white tracking-tight">
             {Number(totalClicks).toLocaleString()}
           </div>
-          <div className="flex items-center gap-1 text-xs font-mono font-medium text-[#c6f035]">
-            <ArrowUpRight className="w-3.5 h-3.5" />
-            <span>{deltas.clicks || "+18.3%"}</span>
+          <div className="text-right text-[11px] font-mono font-bold text-[#c6f035]">
+            {deltas.clicks || "+18.3%"}
           </div>
         </div>
 
         {/* Card 3: Click Rate */}
-        <div className="p-5 rounded-xl bg-[#13120D] border border-white/5 space-y-2">
-          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
-            Click rate
+        <div className="p-4 sm:p-5 rounded-xl bg-[#13120D] border border-white/5 flex flex-col justify-between space-y-2">
+          <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-slate-400">
+            Click Rate
           </span>
-          <div className="text-2xl sm:text-3xl font-mono font-bold text-white tracking-tight">
+          <div className="text-xl sm:text-2xl lg:text-3xl font-mono font-bold text-white tracking-tight">
             {clickRate}%
           </div>
-          <div className="flex items-center gap-1 text-xs font-mono font-medium text-[#c6f035]">
-            <ArrowUpRight className="w-3.5 h-3.5" />
-            <span>{deltas.rate || "+2.4%"}</span>
+          <div className="text-right text-[11px] font-mono font-bold text-[#c6f035]">
+            {deltas.rate || "+4.1%"}
           </div>
         </div>
 
-        {/* Card 4: Unique Visitors */}
-        <div className="p-5 rounded-xl bg-[#13120D] border border-white/5 space-y-2">
-          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400">
-            Unique visitors
+        {/* Card 4: Followers */}
+        <div className="p-4 sm:p-5 rounded-xl bg-[#13120D] border border-white/5 flex flex-col justify-between space-y-2">
+          <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-slate-400">
+            Followers
           </span>
-          <div className="text-2xl sm:text-3xl font-mono font-bold text-white tracking-tight">
-            {Number(uniqueVisitors).toLocaleString()}
+          <div className="text-xl sm:text-2xl lg:text-3xl font-mono font-bold text-white tracking-tight">
+            {totalFollowers}
           </div>
-          <div className="flex items-center gap-1 text-xs font-mono font-medium text-[#f43f5e]">
-            <ArrowDownRight className="w-3.5 h-3.5" />
-            <span>{deltas.visitors || "-1.7%"}</span>
+          <div className="text-right text-[11px] font-mono font-bold text-[#c6f035]">
+            {deltas.followers || "+3.8%"}
           </div>
         </div>
       </div>
 
-      {/* Middle Row: Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Audience Growth Chart (2 cols) */}
-        <div className="lg:col-span-2 p-6 rounded-2xl bg-[#13120D] border border-white/5 flex flex-col justify-between space-y-4">
-          <div className="flex items-center justify-between">
+      {/* Audience Growth Chart */}
+      <div className="p-5 sm:p-6 rounded-2xl bg-[#13120D] border border-white/5 space-y-4">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">
+            Audience Growth
+          </span>
+          <div className="flex items-center gap-4 text-xs font-mono">
+            <div className="flex items-center gap-1.5 text-slate-400">
+              <span className="w-2.5 h-0.5 bg-[#c6f035] rounded-full" />
+              <span>Views</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-slate-400">
+              <span className="w-2.5 h-0.5 bg-[#00d2ff] rounded-full" />
+              <span>Clicks</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="h-48 sm:h-64 w-full pt-2">
+          <Line data={lineChartData} options={lineChartOptions} />
+        </div>
+      </div>
+
+      {/* Bottom Section: Audience Mix & Top Destinations */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Audience Mix Card */}
+        <div className="p-5 sm:p-6 rounded-2xl bg-[#13120D] border border-white/5 flex flex-col justify-between space-y-6">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">
+            Audience Mix
+          </span>
+
+          {/* On Tablet & Desktop: Show Donut Chart in Center */}
+          <div className="hidden md:flex flex-col items-center space-y-4">
+            <div className="text-center">
+              <div className="text-3xl font-black text-white font-mono tracking-tight">
+                {totalFollowers}
+              </div>
+              <div className="text-xs text-slate-500 font-mono">
+                combined followers
+              </div>
+            </div>
+
+            <div className="relative w-40 h-40">
+              <Doughnut data={donutData} options={donutOptions} />
+            </div>
+          </div>
+
+          {/* On Mobile: Left total + Right Platform list side by side (matching mobile-03 screenshot) */}
+          <div className="flex md:hidden items-center justify-between gap-4">
             <div>
-              <h3 className="text-sm font-bold text-white">Audience growth</h3>
-              <p className="text-xs text-slate-500">Views and clicks by day</p>
-            </div>
-            {/* Legend */}
-            <div className="flex items-center gap-4 text-xs font-mono">
-              <div className="flex items-center gap-1.5 text-slate-400">
-                <span className="w-2.5 h-0.5 bg-[#c6f035] rounded-full" />
-                <span>Views</span>
+              <div className="text-3xl font-black text-white font-mono tracking-tight">
+                {totalFollowers}
               </div>
-              <div className="flex items-center gap-1.5 text-slate-400">
-                <span className="w-2.5 h-0.5 bg-[#00d2ff] rounded-full" />
-                <span>Clicks</span>
+              <div className="text-xs text-slate-500 font-mono">
+                combined followers
               </div>
             </div>
-          </div>
 
-          <div className="h-64 w-full pt-2">
-            <Line data={lineChartData} options={lineChartOptions} />
-          </div>
-        </div>
-
-        {/* Audience Mix Donut (1 col) */}
-        <div className="p-6 rounded-2xl bg-[#13120D] border border-white/5 flex flex-col justify-between space-y-4">
-          <div>
-            <h3 className="text-sm font-bold text-white">Audience mix</h3>
-            <p className="text-xs text-slate-500">Sessions by device</p>
-          </div>
-
-          <div className="relative h-48 w-full flex items-center justify-center">
-            <Doughnut data={doughnutData} options={doughnutOptions} />
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-xl font-mono font-black text-white">
-                {formatCompactNumber(uniqueVisitors)}
-              </span>
-              <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">
-                visitors
-              </span>
-            </div>
-          </div>
-
-          {/* Breakdown Rows */}
-          <div className="space-y-2 pt-2 text-xs font-mono">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-slate-400">
-                <span className="w-2 h-2 rounded-full bg-[#c6f035]" />
-                <span>Mobile</span>
-              </div>
-              <span className="text-slate-300 font-bold">{deviceMix.mobile}%</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-slate-400">
-                <span className="w-2 h-2 rounded-full bg-[#00d2ff]" />
-                <span>Desktop</span>
-              </div>
-              <span className="text-slate-300 font-bold">{deviceMix.desktop}%</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-slate-400">
-                <span className="w-2 h-2 rounded-full bg-[#ff8c42]" />
-                <span>Tablet</span>
-              </div>
-              <span className="text-slate-300 font-bold">{deviceMix.tablet}%</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Table: Destination Performance */}
-      <div className="p-6 rounded-2xl bg-[#13120D] border border-white/5 space-y-4">
-        <div>
-          <h3 className="text-sm font-bold text-white">Destination performance</h3>
-          <p className="text-xs text-slate-500">Ranked by total clicks</p>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left font-mono text-xs">
-            <thead>
-              <tr className="border-b border-white/5 text-[10px] text-slate-500 uppercase tracking-wider">
-                <th className="pb-3 font-medium">Destination</th>
-                <th className="pb-3 font-medium text-right">Clicks</th>
-                <th className="pb-3 font-medium text-right">CTR</th>
-                <th className="pb-3 font-medium text-right">Avg. Time</th>
-                <th className="pb-3 font-medium text-right">Change</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/5">
-              {topLinks.map((row, idx) => (
-                <tr key={idx} className="group hover:bg-white/[0.02] transition-colors">
-                  <td className="py-4 pr-4 font-sans font-medium text-white group-hover:text-[#c6f035] transition-colors">
-                    {row.title}
-                  </td>
-                  <td className="py-4 text-right text-slate-300 font-bold">
-                    {(Number(row.clicks) || 0).toLocaleString()}
-                  </td>
-                  <td className="py-4 text-right text-slate-400">
-                    {row.conversionRate || "0.0%"}
-                  </td>
-                  <td className="py-4 text-right text-slate-400">
-                    {row.avgTime || "01:42"}
-                  </td>
-                  <td className="py-4 text-right text-[#c6f035] font-bold">
-                    {row.change || "+12.4%"}
-                  </td>
-                </tr>
+            <div className="space-y-2.5 text-xs font-mono min-w-[130px]">
+              {audienceBreakdown.map((item) => (
+                <div key={item.platform} className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 text-slate-400">
+                    <span
+                      className="w-2 h-2 rounded-full shrink-0"
+                      style={{ backgroundColor: item.color }}
+                    />
+                    <span>{item.platform}</span>
+                  </div>
+                  <span className="text-white font-bold">{item.count}</span>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+          </div>
+
+          {/* Tablet & Desktop Platform list at bottom */}
+          <div className="hidden md:grid grid-cols-2 gap-3 pt-2 text-xs font-mono">
+            {audienceBreakdown.map((item) => (
+              <div key={item.platform} className="flex items-center justify-between p-2 rounded-lg bg-[#161510] border border-white/5">
+                <div className="flex items-center gap-2 text-slate-400">
+                  <span
+                    className="w-2 h-2 rounded-full shrink-0"
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <span>{item.platform}</span>
+                </div>
+                <span className="text-white font-bold">{item.count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Top Destinations Card (Matching tablet-03 and desktop) */}
+        <div className="p-5 sm:p-6 rounded-2xl bg-[#13120D] border border-white/5 space-y-4">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">
+            Top Destinations
+          </span>
+
+          <div className="divide-y divide-white/5 pt-1">
+            {topLinks.map((link, idx) => (
+              <div key={idx} className="py-3.5 flex items-center justify-between gap-4 first:pt-0 last:pb-0">
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-xs sm:text-sm font-bold text-white truncate">
+                    {link.title}
+                  </h4>
+                  <p className="text-[11px] font-mono text-slate-500 mt-0.5">
+                    {(Number(link.clicks) || 0).toLocaleString()} clicks
+                  </p>
+                </div>
+                <span className="font-mono text-xs sm:text-sm font-bold text-[#c6f035] shrink-0">
+                  {link.conversionRate || "0.0%"}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
