@@ -1,216 +1,232 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { User, Mail, Lock, Phone, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { API_BASE_URL } from "../api/config.js";
+import { AuthContext } from "../context/AuthContext";
+import LinkHubLogo from "./common/LinkHubLogo";
+import { Check } from "lucide-react";
+import { FaGoogle, FaApple } from "react-icons/fa";
 
-const MotionDiv = motion.div;
-const MotionButton = motion.button;
-
-const Register = () => {
+export default function Register() {
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
     phone: "",
   });
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { login } = useContext(AuthContext);
   const navigate = useNavigate();
+
+  const updateField = (field, value) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!form.name || !form.email || !form.password) {
+      toast.error("Please fill in your name, email, and password.");
+      return;
+    }
+
     setLoading(true);
 
     try {
+      // 1. Register user
       await axios.post(`${API_BASE_URL}/register`, form);
+
+      // 2. Automatically log in to get session token
+      try {
+        const loginRes = await axios.post(`${API_BASE_URL}/login`, {
+          email: form.email,
+          password: form.password,
+        });
+
+        if (loginRes.data?.token) {
+          login(loginRes.data.token, {
+            id: loginRes.data.userId,
+            name: form.name,
+            username: loginRes.data.username || "",
+          });
+          toast.success("Account created! Let's set up your profile.");
+          navigate("/create-profile");
+          return;
+        }
+      } catch {
+        // If auto-login fails, send to login page
+      }
+
       toast.success("Account created successfully! Please sign in.");
       navigate("/login");
     } catch (err) {
       const msg =
         err.response?.data?.message ||
         err.response?.data?.error ||
-        (err.code === "ERR_NETWORK"
-          ? "Cannot connect to server. Please verify the backend is running."
-          : "Registration failed. Please check your inputs.");
+        "Registration failed. Please check your inputs.";
       toast.error(msg);
     } finally {
       setLoading(false);
     }
   };
 
-  const updateField = (field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  };
-
   return (
-    <div className="app-auth-shell min-h-screen px-4 py-12 relative overflow-hidden bg-[var(--saas-bg-main)]">
-      {/* Cinematic Background Elements */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-[var(--saas-accent-primary)] opacity-10 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_80%)]" />
-      </div>
+    <div className="min-h-screen bg-[#07080a] text-white selection:bg-[#c6f035] selection:text-black font-sans flex flex-col justify-between">
+      {/* ──── Header ──── */}
+      <header className="w-full border-b border-white/[0.07] px-6 sm:px-10 lg:px-16 py-4.5 flex items-center justify-between">
+        <LinkHubLogo showPro={true} />
 
-      <MotionDiv
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="relative z-10 w-full max-w-[460px] mx-auto"
-      >
-        <div className="flex flex-col items-center mb-10">
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="flex h-12 w-12 items-center justify-center rounded-[1.25rem] bg-[image:var(--saas-accent-gradient)] font-black text-[var(--saas-bg-main)] text-xl shadow-[0_0_30px_var(--saas-accent-glow)] group-hover:scale-105 transition-transform">
-              LH
+        <div className="text-xs font-mono font-medium tracking-widest text-zinc-400 uppercase">
+          <span className="hidden sm:inline">STEP 01 / 03</span>
+          <span className="sm:hidden text-[#c6f035] font-bold">01 / 03</span>
+        </div>
+      </header>
+
+      {/* ──── Main Content ──── */}
+      <main className="flex-1 max-w-[1280px] w-full mx-auto px-6 sm:px-10 lg:px-16 py-8 sm:py-12 flex items-center justify-center">
+        <div className="w-full max-w-md mx-auto">
+          {/* Top Header Row with Kicker & Desktop Stepper */}
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div className="text-[10px] font-mono font-medium tracking-[0.2em] text-[#c6f035] uppercase">
+              CREATE YOUR IDENTITY
             </div>
-          </Link>
-          <h1 className="mt-8 text-3xl font-black tracking-tight text-[var(--saas-text-primary)] font-display">
+
+            {/* Stepper Timeline (Desktop) */}
+            <div className="hidden sm:flex items-center">
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-[#c6f035] text-[#07080a] flex items-center justify-center text-[10px] font-bold font-mono">
+                  01
+                </div>
+                <span className="text-[9px] font-mono font-bold tracking-widest text-white uppercase">
+                  ACCOUNT
+                </span>
+              </div>
+              <div className="w-8 h-[1px] bg-zinc-800 mx-3" />
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-[#121316] border border-white/10 text-zinc-500 flex items-center justify-center text-[10px] font-bold font-mono">
+                  02
+                </div>
+                <span className="text-[9px] font-mono font-medium tracking-widest text-zinc-500 uppercase">
+                  PROFILE
+                </span>
+              </div>
+              <div className="w-8 h-[1px] bg-zinc-800 mx-3" />
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-[#121316] border border-white/10 text-zinc-500 flex items-center justify-center text-[10px] font-bold font-mono">
+                  03
+                </div>
+                <span className="text-[9px] font-mono font-medium tracking-widest text-zinc-500 uppercase">
+                  PUBLISH
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Heading */}
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-2">
             Start your journey.
           </h1>
-          <p className="mt-2 text-[14px] font-medium text-[var(--saas-text-secondary)]">
-            Create your premium creator identity
+          <p className="text-xs sm:text-sm text-zinc-400 mb-8">
+            Create your account to claim your unique signal and dashboard.
           </p>
-        </div>
 
-        <div className="app-auth-panel rounded-[2.5rem] p-8 md:p-10 border border-[var(--saas-border)] bg-[var(--saas-bg-surface)] shadow-2xl backdrop-blur-3xl overflow-hidden relative">
-          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-              <div className="col-span-2 sm:col-span-1">
-                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-[var(--saas-text-secondary)] mb-2 px-1">
-                  Full Name
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--saas-text-secondary)] group-focus-within:text-[var(--saas-accent-primary)] transition-colors">
-                    <User className="w-4 h-4" />
-                  </div>
-                  <input
-                    type="text"
-                    value={form.name}
-                    onChange={(e) => updateField("name", e.target.value)}
-                    placeholder="Signature"
-                    required
-                    className="w-full bg-[var(--saas-bg-elevated)] border border-[var(--saas-border)] focus:border-[var(--saas-accent-primary)] focus:ring-4 focus:ring-[var(--saas-accent-glow)]/10 rounded-2xl py-3.5 pl-11 pr-4 text-sm font-semibold text-[var(--saas-text-primary)] transition-all outline-none placeholder:text-[var(--saas-text-secondary)]/30"
-                  />
-                </div>
-              </div>
-
-              <div className="col-span-2 sm:col-span-1">
-                <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-[var(--saas-text-secondary)] mb-2 px-1">
-                  Mobile
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--saas-text-secondary)] group-focus-within:text-[var(--saas-accent-primary)] transition-colors">
-                    <Phone className="w-4 h-4" />
-                  </div>
-                  <input
-                    type="tel"
-                    value={form.phone}
-                    onChange={(e) => updateField("phone", e.target.value)}
-                    placeholder="Contact (Optional)"
-                    className="w-full bg-[var(--saas-bg-elevated)] border border-[var(--saas-border)] focus:border-[var(--saas-accent-primary)] focus:ring-4 focus:ring-[var(--saas-accent-glow)]/10 rounded-2xl py-3.5 pl-11 pr-4 text-sm font-semibold text-[var(--saas-text-primary)] transition-all outline-none placeholder:text-[var(--saas-text-secondary)]/30"
-                  />
-                </div>
-              </div>
-            </div>
-
+          {/* Registration Form */}
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+            {/* Full Name */}
             <div>
-              <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-[var(--saas-text-secondary)] mb-2 px-1">
-                Identity Profile
+              <label className="block text-[10px] font-mono font-medium tracking-widest text-zinc-400 uppercase mb-2">
+                FULL NAME
               </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--saas-text-secondary)] group-focus-within:text-[var(--saas-accent-primary)] transition-colors">
-                  <Mail className="w-4.5 h-4.5" />
-                </div>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => updateField("email", e.target.value)}
-                  placeholder="name@ecosystem.com"
-                  required
-                  className="w-full bg-[var(--saas-bg-elevated)] border border-[var(--saas-border)] focus:border-[var(--saas-accent-primary)] focus:ring-4 focus:ring-[var(--saas-accent-glow)]/10 rounded-2xl py-3.5 pl-11 pr-4 text-sm font-semibold text-[var(--saas-text-primary)] transition-all outline-none placeholder:text-[var(--saas-text-secondary)]/30"
-                />
-              </div>
+              <input
+                type="text"
+                value={form.name}
+                onChange={(e) => updateField("name", e.target.value)}
+                placeholder="Maya Kim"
+                required
+                className="w-full bg-[#121316] border border-white/10 rounded-lg px-4 py-3 sm:py-3.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#c6f035] transition-all"
+              />
             </div>
 
+            {/* Email */}
             <div>
-              <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-[var(--saas-text-secondary)] mb-2 px-1">
-                Security Key
+              <label className="block text-[10px] font-mono font-medium tracking-widest text-zinc-400 uppercase mb-2">
+                EMAIL ADDRESS
               </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--saas-text-secondary)] group-focus-within:text-[var(--saas-accent-primary)] transition-colors">
-                  <Lock className="w-4.5 h-4.5" />
-                </div>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={form.password}
-                  onChange={(e) => updateField("password", e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  minLength={8}
-                  className="w-full bg-[var(--saas-bg-elevated)] border border-[var(--saas-border)] focus:border-[var(--saas-accent-primary)] focus:ring-4 focus:ring-[var(--saas-accent-glow)]/10 rounded-2xl py-3.5 pl-11 pr-11 text-sm font-semibold text-[var(--saas-text-primary)] transition-all outline-none placeholder:text-[var(--saas-text-secondary)]/30"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--saas-text-secondary)]/40 hover:text-[var(--saas-text-primary)] transition-colors"
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-4.5 h-4.5" />
-                  ) : (
-                    <Eye className="w-4.5 h-4.5" />
-                  )}
-                </button>
-              </div>
-              <div className="mt-2 px-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-mono">
-                <span className={form.password.length >= 8 ? "text-[#c6f035]" : "text-slate-500"}>
-                  {form.password.length >= 8 ? "✓" : "○"} 8+ chars
-                </span>
-                <span className={/[A-Z]/.test(form.password) ? "text-[#c6f035]" : "text-slate-500"}>
-                  {/[A-Z]/.test(form.password) ? "✓" : "○"} 1 uppercase
-                </span>
-                <span className={/[0-9]/.test(form.password) ? "text-[#c6f035]" : "text-slate-500"}>
-                  {/[0-9]/.test(form.password) ? "✓" : "○"} 1 number
-                </span>
-              </div>
+              <input
+                type="email"
+                value={form.email}
+                onChange={(e) => updateField("email", e.target.value)}
+                placeholder="maya@studio.dev"
+                required
+                className="w-full bg-[#121316] border border-white/10 rounded-lg px-4 py-3 sm:py-3.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#c6f035] transition-all"
+              />
             </div>
 
-            <MotionButton
+            {/* Password */}
+            <div>
+              <label className="block text-[10px] font-mono font-medium tracking-widest text-zinc-400 uppercase mb-2">
+                PASSWORD
+              </label>
+              <input
+                type="password"
+                value={form.password}
+                onChange={(e) => updateField("password", e.target.value)}
+                placeholder="Create a strong password"
+                required
+                className="w-full bg-[#121316] border border-white/10 rounded-lg px-4 py-3 sm:py-3.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#c6f035] transition-all"
+              />
+            </div>
+
+            {/* Submit Button */}
+            <button
               type="submit"
               disabled={loading}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl py-4 text-sm font-black uppercase tracking-widest text-[var(--saas-bg-main)] bg-[image:var(--saas-accent-gradient)] shadow-lg shadow-[var(--saas-accent-glow)] hover:brightness-110 transition-all disabled:opacity-50"
+              className="w-full py-3.5 bg-[#c6f035] text-[#07080a] font-bold text-sm rounded-lg hover:brightness-105 transition-all shadow-[0_2px_12px_rgba(198,240,53,0.15)] disabled:opacity-50 mt-2"
             >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-[var(--saas-bg-main)]/30 border-t-[var(--saas-bg-main)] rounded-full animate-spin" />
-              ) : (
-                <>
-                  Register Identity
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </>
-              )}
-            </MotionButton>
+              {loading ? "Creating account..." : "Continue to profile setup &rarr;"}
+            </button>
           </form>
 
-          <div className="mt-8 pt-8 border-t border-[var(--saas-border)]">
-            <p className="text-center text-[var(--saas-text-secondary)] text-sm font-medium">
-              Already part of the ecosystem?{" "}
-              <Link
-                to="/login"
-                className="text-[var(--saas-accent-primary)] font-black hover:underline ml-1"
-              >
-                Established Access
-              </Link>
-            </p>
+          {/* Already have an account */}
+          <div className="text-center mt-6 text-xs text-zinc-400">
+            Already have an account?{" "}
+            <Link to="/login" className="text-[#c6f035] font-semibold hover:underline">
+              Sign in
+            </Link>
+          </div>
+
+          {/* Bottom Security Note */}
+          <div className="mt-8 border border-white/[0.08] bg-[#0c0d10] rounded-xl p-4 flex items-start gap-3">
+            <span className="w-2 h-2 rounded-full bg-[#c6f035] mt-1 shrink-0" />
+            <div>
+              <span className="text-xs font-bold text-white tracking-tight block">
+                Zero spam policy
+              </span>
+              <span className="text-[11px] text-zinc-400 mt-0.5 block">
+                Your data is protected. We will never share or sell your details.
+              </span>
+            </div>
           </div>
         </div>
-      </MotionDiv>
+      </main>
+
+      {/* ──── Footer ──── */}
+      <footer className="w-full border-t border-white/[0.07] px-6 sm:px-10 lg:px-16 py-5 flex items-center justify-between text-[10px] font-mono tracking-widest text-zinc-500 uppercase">
+        <div>
+          LINKHUB / 2026
+        </div>
+        <div className="flex items-center gap-6">
+          <Link to="/" className="hover:text-zinc-300 transition-colors">
+            HOME
+          </Link>
+          <a href="#privacy" className="hover:text-zinc-300 transition-colors">
+            PRIVACY
+          </a>
+          <a href="#terms" className="hover:text-zinc-300 transition-colors">
+            TERMS
+          </a>
+        </div>
+      </footer>
     </div>
   );
-};
-
-export default Register;
+}

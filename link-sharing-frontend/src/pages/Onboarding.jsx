@@ -1,72 +1,55 @@
 import React, { useState, useRef, useContext, useEffect, useCallback } from "react";
-import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { AuthContext } from "../context/AuthContext";
-import { Camera, Check, AlertCircle, ArrowRight, Loader2 } from "lucide-react";
-import { API_BASE_URL } from "../api/config.js";
+import { API_BASE_URL, assetUrl } from "../api/config.js";
+import LinkHubLogo from "../Components/common/LinkHubLogo";
+import { Check } from "lucide-react";
 
-const THEMES = [
-  { id: "dark-pro", name: "Dark Pro", color: "#1a1a1a", border: "#333" },
-  { id: "minimal", name: "Minimal Light", color: "#f8f9fa", border: "#e5e7eb" },
-  {
-    id: "neon-glow",
-    name: "Neon Creator",
-    color: "#0B0B1A",
-    border: "#8B5CF6",
-  },
-  {
-    id: "creator-mode",
-    name: "Gradient Studio",
-    color: "linear-gradient(135deg, #1e3a8a 0%, #701a75 100%)",
-    border: "transparent",
-  },
-];
+const CREATE_ROLES = ["Creator", "Developer", "Brand", "Other"];
 
-const Onboarding = () => {
+export default function Onboarding() {
   const { user, login } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const [username, setUsername] = useState("");
-  const [usernameStatus, setUsernameStatus] = useState(null);
-  const [bio, setBio] = useState("");
-  const [theme, setTheme] = useState("dark-pro");
+  const [displayName, setDisplayName] = useState(user?.name || "Maya Kim");
+  const [address, setAddress] = useState(user?.username || "maya");
+  const [bio, setBio] = useState("Creator, developer, systems thinker.");
+  const [selectedRole, setSelectedRole] = useState("Creator");
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [addressStatus, setAddressStatus] = useState("available");
 
   const fileInputRef = useRef(null);
+  const debounceRef = useRef(null);
   const token = localStorage.getItem("token");
 
-  // Debounced username check — waits 300ms after last keystroke
-  const debounceRef = useRef(null);
-
+  // Check username availability
   const checkUsernameApi = useCallback(async (clean) => {
-    setUsernameStatus("checking");
+    if (!clean || clean.length < 3) {
+      setAddressStatus(null);
+      return;
+    }
     try {
       const res = await axios.get(`${API_BASE_URL}/api/profile/check/${clean}`);
-      setUsernameStatus(res.data.available ? "available" : "taken");
+      setAddressStatus(res.data.available ? "available" : "taken");
     } catch {
-      setUsernameStatus(null);
+      setAddressStatus("available");
     }
   }, []);
 
-  const checkUsername = (value) => {
-    const clean = value.toLowerCase().replace(/[^a-z0-9_-]/g, "");
-    setUsername(clean);
+  const handleAddressChange = (value) => {
+    // Strip linkhub.io/ prefix if user types/pastes it
+    const cleanPrefix = value.replace(/^https?:\/\//, "").replace(/^linkhub\.io\/?/, "");
+    const clean = cleanPrefix.toLowerCase().replace(/[^a-z0-9_-]/g, "");
+    setAddress(clean);
 
-    if (clean.length < 3) {
-      setUsernameStatus(null);
-      return;
-    }
-
-    // Debounce: clear previous timer, set new one
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => checkUsernameApi(clean), 300);
   };
 
-  // Cleanup debounce on unmount
   useEffect(() => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -76,6 +59,10 @@ const Onboarding = () => {
   const handleAvatarSelect = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File exceeds 5 MB limit.");
+      return;
+    }
     setAvatarFile(file);
 
     const reader = new FileReader();
@@ -84,8 +71,14 @@ const Onboarding = () => {
   };
 
   const handleComplete = async () => {
-    if (!username || usernameStatus !== "available") {
-      toast.error("Resource unavailable: unique username required.");
+    const cleanUser = (address || "maya").trim();
+    if (!cleanUser) {
+      toast.error("LinkHub address is required.");
+      return;
+    }
+
+    if (addressStatus === "taken") {
+      toast.error("That LinkHub address is already taken. Please pick another.");
       return;
     }
 
@@ -93,18 +86,18 @@ const Onboarding = () => {
     const headers = { Authorization: `Bearer ${token}` };
 
     try {
-      // 1. Set Username
+      // 1. Update Display Name and Username
       await axios.put(
         `${API_BASE_URL}/api/profile/username`,
-        { username },
-        { headers },
+        { username: cleanUser },
+        { headers }
       );
 
-      // 2. Set Bio and Theme
+      // 2. Set Bio, Theme, and Category
       await axios.put(
         `${API_BASE_URL}/api/profile`,
-        { bio, theme },
-        { headers },
+        { bio, theme: "dark-pro", category: selectedRole, name: displayName },
+        { headers }
       );
 
       // 3. Upload Avatar if selected
@@ -116,203 +109,364 @@ const Onboarding = () => {
         });
       }
 
-      // 4. Update local user context
-      const updatedUser = { ...user, username };
-      login(token, updatedUser);
+      // Update local storage & auth context
+      const updatedUser = {
+        ...user,
+        name: displayName,
+        username: cleanUser,
+      };
+      if (token) login(token, updatedUser);
 
-      toast.success("Operational matrix configured.");
-
-      // 5. Redirect to owner view
-      setTimeout(() => navigate("/dashboard"), 1000);
+      toast.success("Profile initialized! Welcome to your command center.");
+      navigate("/dashboard");
     } catch (err) {
-      console.error(err);
-      toast.error("Synchronization failed. Check system logs.");
+      toast.error(err.response?.data?.message || "Failed to initialize profile.");
+    } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-[#020202] flex items-center justify-center p-6 relative overflow-hidden">
-      {/* Cinematic atmospheric background */}
-      <div className="fixed inset-0 pointer-events-none select-none">
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(112,0,255,0.08),transparent_70%)]" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-[140px]" />
-        {/* Subtle moving grid */}
-        <div className="absolute inset-0 opacity-[0.03] invert transition-opacity duration-1000" style={{ backgroundImage: 'radial-gradient(#fff 1px, transparent 0)', backgroundSize: '40px 40px' }} />
-      </div>
+  const initials = (displayName || "Maya Kim")
+    .split(" ")
+    .filter(Boolean)
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase() || "MK";
 
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, ease: "circOut" }}
-        className="w-full max-w-2xl bg-black/40 border border-white/10 rounded-[48px] p-10 md:p-16 backdrop-blur-3xl relative z-10 shadow-[0_50px_100px_-20px_rgba(0,0,0,1)] flex flex-col items-center"
-      >
-        <div className="mb-14 text-center">
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400 to-purple-600 p-[1.5px] mb-8 shadow-[0_0_30px_rgba(34,211,238,0.2)]">
-             <div className="w-full h-full rounded-[14px] bg-black flex items-center justify-center font-black text-white text-2xl italic tracking-tighter">
-                LH
-             </div>
+  return (
+    <div className="min-h-screen bg-[#07080a] text-white selection:bg-[#c6f035] selection:text-black font-sans flex flex-col justify-between">
+      {/* ──── Header ──── */}
+      <header className="w-full border-b border-white/[0.07] px-6 sm:px-10 lg:px-16 py-4.5 flex items-center justify-between">
+        <LinkHubLogo showPro={true} />
+
+        {/* Stepper Label in Header */}
+        <div className="text-xs font-mono font-medium tracking-widest text-zinc-400 uppercase">
+          <span className="hidden sm:inline">STEP 02 / 03</span>
+          <span className="sm:hidden text-[#c6f035] font-bold">02 / 03</span>
+        </div>
+      </header>
+
+      {/* ──── Main Content ──── */}
+      <main className="flex-1 max-w-[1360px] w-full mx-auto px-6 sm:px-10 lg:px-16 py-8 sm:py-12">
+        {/* Top Header Row with Kicker & Stepper Timeline */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <div className="text-[10px] font-mono font-medium tracking-[0.2em] text-[#c6f035] uppercase">
+            CREATE YOUR IDENTITY
           </div>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4 tracking-tighter italic">
-            CLAIM YOUR FREQUENCY
+
+          {/* Stepper Timeline (Desktop) */}
+          <div className="hidden sm:flex items-center">
+            {/* Step 1: Account (Done) */}
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-[#c6f035] text-[#07080a] flex items-center justify-center text-[10px] font-bold">
+                <Check className="w-3 h-3 stroke-[3]" />
+              </div>
+              <span className="text-[9px] font-mono font-medium tracking-widest text-zinc-400 uppercase">
+                ACCOUNT
+              </span>
+            </div>
+
+            <div className="w-8 h-[1px] bg-[#c6f035] mx-3" />
+
+            {/* Step 2: Profile (Active) */}
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-[#c6f035] text-[#07080a] flex items-center justify-center text-[10px] font-bold font-mono">
+                02
+              </div>
+              <span className="text-[9px] font-mono font-bold tracking-widest text-white uppercase">
+                PROFILE
+              </span>
+            </div>
+
+            <div className="w-8 h-[1px] bg-zinc-800 mx-3" />
+
+            {/* Step 3: Publish */}
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-[#121316] border border-white/10 text-zinc-500 flex items-center justify-center text-[10px] font-bold font-mono">
+                03
+              </div>
+              <span className="text-[9px] font-mono font-medium tracking-widest text-zinc-500 uppercase">
+                PUBLISH
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Page Title & Subtitle */}
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight mb-2">
+            <span className="sm:hidden">Make it yours.</span>
+            <span className="hidden sm:inline">Make the first impression yours.</span>
           </h1>
-          <p className="text-white/30 text-xs font-black uppercase tracking-[0.4em]">
-            Initializing identity matrix v2.0
+          <p className="text-xs sm:text-sm text-zinc-400 font-normal">
+            <span className="sm:hidden">Choose the essentials. Fine-tune later.</span>
+            <span className="hidden sm:inline">Choose the essentials now. Fine-tune everything later.</span>
           </p>
         </div>
 
-        <div className="w-full space-y-12">
-          {/* Avatar Upload */}
-          <div className="flex flex-col items-center group">
-            <div
-              className="relative cursor-pointer"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <div className="w-28 h-28 rounded-[40px] overflow-hidden border border-white/10 group-hover:border-cyan-500 group-hover:rotate-6 transition-all duration-700 bg-white/5 flex items-center justify-center p-1">
-                 <div className="w-full h-full rounded-[34px] overflow-hidden bg-black/50 flex items-center justify-center">
-                    {avatarPreview ? (
-                      <img
-                        src={avatarPreview}
-                        alt="Avatar Preview"
-                        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                      />
-                    ) : (
-                      <div className="flex flex-col items-center">
-                        <Camera className="w-8 h-8 text-white/10 group-hover:text-cyan-500/50 transition-colors" />
-                      </div>
-                    )}
-                 </div>
-              </div>
-              <div className="absolute -bottom-2 -right-2 w-10 h-10 rounded-full bg-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.5)] flex items-center justify-center text-black hover:scale-110 transition-transform">
-                 <Camera className="w-4 h-4" strokeWidth={3} />
-              </div>
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleAvatarSelect}
-              className="hidden"
-            />
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20 mt-6 group-hover:text-cyan-500/50 transition-colors">
-              Nodal Visualization
-            </p>
+        {/* Mobile Stepper Timeline Bar */}
+        <div className="sm:hidden flex items-center justify-between my-6">
+          <div className="w-6 h-6 rounded-full bg-[#c6f035] text-[#07080a] flex items-center justify-center text-xs font-bold shrink-0">
+            <Check className="w-3.5 h-3.5 stroke-[3]" />
           </div>
+          <div className="flex-1 h-[1px] bg-[#c6f035] mx-2" />
+          <div className="w-6 h-6 rounded-full bg-[#c6f035] text-[#07080a] flex items-center justify-center text-xs font-bold font-mono shrink-0">
+            2
+          </div>
+          <div className="flex-1 h-[1px] bg-zinc-800 mx-2" />
+          <div className="w-6 h-6 rounded-full bg-[#121316] border border-white/10 text-zinc-600 flex items-center justify-center text-xs font-medium font-mono shrink-0">
+            3
+          </div>
+        </div>
 
-          <div className="space-y-8">
-            {/* Username Input */}
-            <div>
-              <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-white/30 mb-4 ml-1">
-                Establish primary path
-              </label>
-              <div className="relative group">
-                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-white/20 text-sm font-black italic tracking-tighter transition-colors group-focus-within:text-cyan-500/30">
-                  linkhub.to/
-                </span>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => checkUsername(e.target.value)}
-                  placeholder="alias"
-                  className="w-full pl-32 pr-12 h-16 bg-white/5 border border-white/5 rounded-3xl text-white font-black italic tracking-tight focus:outline-none focus:border-cyan-500/50 focus:bg-white/10 transition-all placeholder:text-white/5"
-                />
-                <div className="absolute right-6 top-1/2 -translate-y-1/2">
-                  {usernameStatus === "checking" && (
-                    <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
-                  )}
-                  {usernameStatus === "available" && (
-                    <Check className="w-5 h-5 text-cyan-400" />
-                  )}
-                  {usernameStatus === "taken" && (
-                    <AlertCircle className="w-5 h-5 text-red-500/50" />
+        {/* Two-Column Grid: Form Essentials (Left) + Phone Preview (Right) */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
+          {/* Left Column: Profile Essentials Form */}
+          <div className="lg:col-span-8 flex flex-col justify-between">
+            <div className="space-y-6">
+              <div className="text-[10px] font-mono font-medium tracking-widest text-zinc-400 uppercase">
+                PROFILE ESSENTIALS
+              </div>
+
+              {/* Avatar Upload Block */}
+              <div className="flex items-center gap-5">
+                <div className="w-20 h-20 rounded-full border-2 border-[#c6f035] bg-[#121316] text-[#c6f035] font-extrabold text-xl flex items-center justify-center shrink-0 overflow-hidden shadow-sm">
+                  {avatarPreview ? (
+                    <img
+                      src={avatarPreview}
+                      alt="Avatar"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span>{initials}</span>
                   )}
                 </div>
+
+                <div>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleAvatarSelect}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="bg-[#141518] border border-white/10 hover:bg-white/5 text-white font-semibold text-xs px-5 py-3 rounded-lg transition-all"
+                  >
+                    Upload photo
+                  </button>
+                  <div className="text-[9px] font-mono text-zinc-500 uppercase tracking-wider mt-1.5">
+                    JPG or PNG · 5 MB max
+                  </div>
+                </div>
               </div>
-              {usernameStatus === "taken" && (
-                <p className="text-[10px] font-black uppercase tracking-widest text-red-500/60 mt-4 ml-6 italic">
-                  Critical Error: Path occupied
-                </p>
-              )}
-            </div>
 
-            {/* Bio Input */}
-            <div>
-              <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-white/30 mb-4 ml-1">
-                Archetype Signature
-              </label>
-              <input
-                type="text"
-                value={bio}
-                onChange={(e) => setBio(e.target.value)}
-                placeholder="Brief existence summary..."
-                maxLength={60}
-                className="w-full px-8 h-16 bg-white/5 border border-white/5 rounded-3xl text-white font-bold italic tracking-tight focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all placeholder:text-white/5"
-              />
-            </div>
+              {/* Input Fields Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Display Name */}
+                <div>
+                  <label className="block text-[10px] font-mono font-medium tracking-widest text-zinc-400 uppercase mb-2">
+                    DISPLAY NAME
+                  </label>
+                  <input
+                    type="text"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="Maya Kim"
+                    className="w-full bg-[#121316] border border-white/10 rounded-lg px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#c6f035] transition-all"
+                  />
+                </div>
 
-            {/* Theme Selector */}
-            <div>
-              <label className="block text-[10px] font-black uppercase tracking-[0.3em] text-white/30 mb-5 ml-1">
-                Visual Matrix Configuration
-              </label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {THEMES.map((t) => {
-                  const isSelected = theme === t.id;
-                  return (
-                    <button
-                      key={t.id}
-                      onClick={() => setTheme(t.id)}
-                      className={`relative h-20 rounded-2xl overflow-hidden transition-all duration-500 group/item ${
-                        isSelected
-                          ? "ring-2 ring-cyan-400 scale-[0.98] shadow-[0_0_20px_rgba(34,211,238,0.2)]"
-                          : "border border-white/5 hover:border-white/20"
-                      }`}
-                      style={{
-                        background: t.color,
-                      }}
-                    >
-                      <div className="absolute inset-0 bg-black/20 group-hover/item:bg-black/0 transition-colors" />
-                      <span className="absolute bottom-3 left-3 text-[9px] font-black uppercase tracking-widest mix-blend-difference text-white">
-                        {t.name}
+                {/* LinkHub Address */}
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-[10px] font-mono font-medium tracking-widest text-zinc-400 uppercase">
+                      LINKHUB ADDRESS
+                    </label>
+                    {address && (
+                      <span
+                        className={`text-[9px] font-mono uppercase ${
+                          addressStatus === "available"
+                            ? "text-[#c6f035]"
+                            : "text-red-400"
+                        }`}
+                      >
+                        {addressStatus === "available" ? "AVAILABLE" : "TAKEN"}
                       </span>
-                      {isSelected && (
-                         <div className="absolute top-2 right-2 h-4 w-4 rounded-full bg-cyan-500 flex items-center justify-center">
-                            <Check className="w-2.5 h-2.5 text-black" strokeWidth={4} />
-                         </div>
-                      )}
-                    </button>
-                  );
-                })}
+                    )}
+                  </div>
+                  <div className="relative flex items-center">
+                    <input
+                      type="text"
+                      value={address.startsWith("linkhub.io/") ? address : `linkhub.io/${address}`}
+                      onChange={(e) => handleAddressChange(e.target.value)}
+                      placeholder="linkhub.io/maya"
+                      className="w-full bg-[#121316] border border-white/10 rounded-lg px-4 py-3.5 text-sm font-mono text-white focus:outline-none focus:border-[#c6f035] transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Short Bio */}
+              <div>
+                <label className="block text-[10px] font-mono font-medium tracking-widest text-zinc-400 uppercase mb-2">
+                  SHORT BIO
+                </label>
+                <textarea
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="Creator, developer, systems thinker."
+                  rows={2}
+                  className="w-full bg-[#121316] border border-white/10 rounded-lg px-4 py-3.5 text-sm text-white focus:outline-none focus:border-[#c6f035] transition-all resize-none"
+                />
+              </div>
+
+              {/* I Create As */}
+              <div>
+                <label className="block text-[10px] font-mono font-medium tracking-widest text-zinc-400 uppercase mb-3">
+                  I CREATE AS
+                </label>
+                <div className="flex flex-wrap gap-2.5">
+                  {CREATE_ROLES.map((role) => {
+                    const isSelected = selectedRole === role;
+                    return (
+                      <button
+                        key={role}
+                        type="button"
+                        onClick={() => setSelectedRole(role)}
+                        className={`text-xs font-semibold px-6 py-2.5 rounded-full transition-all ${
+                          isSelected
+                            ? "bg-[#c6f035] text-[#07080a] shadow-sm font-bold"
+                            : "bg-[#141518] border border-white/10 text-zinc-300 hover:border-white/20"
+                        }`}
+                      >
+                        {role}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-[11px] text-zinc-500 mt-2.5">
+                  This helps tailor your starting dashboard. It never limits your profile.
+                </p>
+              </div>
+            </div>
+
+            {/* Action Buttons (Desktop) */}
+            <div className="hidden sm:flex items-center gap-4 mt-10">
+              <button
+                type="button"
+                onClick={handleComplete}
+                disabled={loading}
+                className="bg-[#c6f035] text-[#07080a] font-bold text-sm px-9 py-3.5 rounded-lg hover:brightness-105 transition-all shadow-[0_2px_12px_rgba(198,240,53,0.15)] disabled:opacity-50"
+              >
+                {loading ? "Saving..." : "Continue"}
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate("/dashboard")}
+                className="bg-[#141518] border border-white/10 text-white font-semibold text-sm px-9 py-3.5 rounded-lg hover:bg-white/5 transition-all"
+              >
+                Back
+              </button>
+            </div>
+
+            {/* Mobile Full-Width Continue Button */}
+            <div className="sm:hidden mt-8 w-full">
+              <button
+                type="button"
+                onClick={handleComplete}
+                disabled={loading}
+                className="w-full py-4 bg-[#c6f035] text-[#07080a] font-bold text-sm rounded-xl text-center shadow-lg disabled:opacity-50"
+              >
+                {loading ? "Saving..." : "Continue"}
+              </button>
+              <div className="text-[10px] font-mono tracking-wider text-zinc-500 uppercase text-center mt-4">
+                Saved securely · editable anytime
               </div>
             </div>
           </div>
 
-          {/* Submit Button */}
-          <motion.button
-            onClick={handleComplete}
-            disabled={loading || usernameStatus !== "available" || !username}
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full h-16 mt-8 flex items-center justify-center gap-4 bg-white text-black rounded-3xl font-black text-sm uppercase tracking-[0.3em] disabled:opacity-20 disabled:grayscale transition-all shadow-[0_20px_40px_-10px_rgba(255,255,255,0.2)]"
-          >
-            {loading ? (
-              <Loader2 className="w-6 h-6 animate-spin" />
-            ) : (
-              <>
-                Initialize Matrix <ArrowRight className="w-5 h-5" />
-              </>
-            )}
-          </motion.button>
-        </div>
+          {/* Right Column: Desktop Phone Live Preview Mockup */}
+          <div className="hidden lg:flex lg:col-span-4 justify-center">
+            <div className="w-full max-w-[340px] rounded-2xl border border-white/[0.08] bg-[#0c0d10]/95 backdrop-blur-xl p-4 shadow-2xl">
+              {/* Preview Header */}
+              <div className="flex items-center justify-between px-1 mb-3">
+                <span className="text-[9px] font-mono font-bold tracking-widest text-[#c6f035] uppercase">
+                  LIVE PREVIEW
+                </span>
+                <span className="text-[9px] font-mono font-medium tracking-widest text-zinc-500 uppercase">
+                  MOBILE
+                </span>
+              </div>
 
-        <div className="mt-14 flex items-center gap-3">
-           <div className="w-8 h-px bg-white/5" />
-           <span className="text-[10px] font-black text-white/10 uppercase tracking-[0.5em]">Phase 1 Complete</span>
-           <div className="w-8 h-px bg-white/5" />
+              {/* Inner Phone Frame Canvas */}
+              <div className="border border-white/[0.06] rounded-[22px] bg-[#07080a] p-6 flex flex-col items-center min-h-[440px]">
+                {/* Preview Avatar */}
+                <div className="w-16 h-16 rounded-full border-2 border-[#c6f035] bg-[#121316] text-[#c6f035] font-extrabold text-lg flex items-center justify-center overflow-hidden shadow-sm">
+                  {avatarPreview ? (
+                    <img
+                      src={avatarPreview}
+                      alt="Avatar Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span>{initials}</span>
+                  )}
+                </div>
+
+                {/* Name */}
+                <h3 className="text-base font-bold text-white tracking-tight mt-3.5 text-center">
+                  {displayName || "Maya Kim"}
+                </h3>
+
+                {/* Handle */}
+                <div className="text-[10px] font-mono text-zinc-500 mt-0.5 text-center">
+                  @{address || "maya"}
+                </div>
+
+                {/* Bio */}
+                <p className="text-[11px] text-zinc-400 text-center mt-2 leading-relaxed px-2 font-normal">
+                  {bio || "Creator, developer, systems thinker."}
+                </p>
+
+                {/* Simulated Link Buttons */}
+                <div className="w-full mt-6 space-y-2.5">
+                  <div className="w-full py-3 bg-[#121316] border border-white/[0.06] rounded-xl text-xs font-medium text-white text-center">
+                    My work
+                  </div>
+                  <div className="w-full py-3 bg-[#121316] border border-white/[0.06] rounded-xl text-xs font-medium text-white text-center">
+                    Latest video
+                  </div>
+                  <div className="w-full py-3 bg-[#121316] border border-white/[0.06] rounded-xl text-xs font-medium text-white text-center">
+                    Say hello
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </motion.div>
+      </main>
+
+      {/* ──── Footer ──── */}
+      <footer className="w-full border-t border-white/[0.07] px-6 sm:px-10 lg:px-16 py-5 flex items-center justify-between text-[10px] font-mono tracking-widest text-zinc-500 uppercase">
+        <div>
+          LINKHUB / 2026
+        </div>
+        <div className="flex items-center gap-6">
+          <Link to="/" className="hover:text-zinc-300 transition-colors">
+            HOME
+          </Link>
+          <a href="#privacy" className="hover:text-zinc-300 transition-colors">
+            PRIVACY
+          </a>
+          <a href="#terms" className="hover:text-zinc-300 transition-colors">
+            TERMS
+          </a>
+        </div>
+      </footer>
     </div>
   );
-};
-
-export default Onboarding;
+}
