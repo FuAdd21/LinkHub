@@ -29,7 +29,8 @@ export const getLinks = async (req, res) => {
     const totalViews = Number(viewsRes[0]?.total) || 0;
 
     const [results] = await db.query(
-      `SELECT l.id, l.title, l.url, l.platform, l.username, l.profileData, l.avatar_url, l.icon, l.position, l.is_visible, l.scheduled_at,
+      `SELECT l.id, l.title, l.url, l.platform, l.username, l.profileData, l.avatar_url, l.icon,
+              COALESCE(l.display_mode, 'link') as display_mode, l.position, l.is_visible, l.scheduled_at,
               COUNT(c.id) as clicks
        FROM links l
        LEFT JOIN clicks c ON c.link_id = l.id
@@ -63,10 +64,37 @@ export const getLinks = async (req, res) => {
   }
 };
 
+export async function syncLinkToSocialProfile(userId, platform, username) {
+  if (!userId || !platform) return;
+  const p = platform.toLowerCase();
+  const cleanUsername = (username || "").replace(/^@/, "").trim();
+  if (!cleanUsername) return;
+
+  const fieldMap = {
+    linkedin: "linkedin",
+    github: "githubUser",
+    youtube: "youtubeId",
+    twitter: "twitter",
+    x: "twitter",
+    instagram: "instagram",
+    tiktok: "tiktok",
+    telegram: "telegramUser",
+  };
+
+  const dbField = fieldMap[p];
+  if (dbField) {
+    try {
+      await db.query(`UPDATE clients SET ${dbField} = ? WHERE id = ?`, [cleanUsername, userId]);
+    } catch (err) {
+      console.warn(`Failed to sync ${p} handle to clients:`, err.message);
+    }
+  }
+}
+
 export const createLink = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { title, url, icon, scheduled_at } = req.body;
+    const { title, url, icon, scheduled_at, display_mode } = req.body;
 
     if (!title || !url) {
       return res.status(400).json({ message: "Title and URL are required" });
@@ -123,6 +151,11 @@ export const createLink = async (req, res) => {
     // Auto-detect icon from platform if not provided
     const linkIcon = icon || platformInfo.platform || null;
 
+    const validDisplayModes = ["link", "header_pill", "rich_card"];
+    const effectiveDisplayMode = validDisplayModes.includes(display_mode)
+      ? display_mode
+      : "link";
+
     let connection;
     try {
       connection = await db.getConnection();
@@ -136,8 +169,8 @@ export const createLink = async (req, res) => {
       const nextPosition = maxPos[0].maxPos + 1;
 
       const [result] = await connection.query(
-        `INSERT INTO links (user_id, title, url, platform, username, profileData, avatar_url, icon, position, is_visible, scheduled_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)`,
+        `INSERT INTO links (user_id, title, url, platform, username, profileData, avatar_url, icon, display_mode, position, is_visible, scheduled_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)`,
         [
           userId,
           title,
@@ -147,6 +180,7 @@ export const createLink = async (req, res) => {
           profileData ? JSON.stringify(profileData) : null,
           avatar_url,
           linkIcon,
+          effectiveDisplayMode,
           nextPosition,
           scheduled_at || null,
         ]
@@ -157,6 +191,11 @@ export const createLink = async (req, res) => {
       ]);
 
       await connection.commit();
+
+      // Synchronize social handle to user profile in background
+      if (platformInfo.platform && username) {
+        syncLinkToSocialProfile(userId, platformInfo.platform, username);
+      }
 
       res.status(201).json({
         message: "Link created",
@@ -184,7 +223,7 @@ export const updateLink = async (req, res) => {
   try {
     const userId = req.user.id;
     const { linkId } = req.params;
-    const { title, url, icon, scheduled_at } = req.body;
+    const { title, url, icon, scheduled_at, display_mode } = req.body;
 
     if (!title || !url) {
       return res.status(400).json({ message: "Title and URL are required" });
@@ -224,25 +263,39 @@ export const updateLink = async (req, res) => {
 
     const linkIcon = icon || platformInfo.platform || null;
 
+    const validDisplayModes = ["link", "header_pill", "rich_card"];
+    let displayModeClause = "";
+    const updateParams = [
+      title,
+      url,
+      platformInfo.platform,
+      username,
+      profileData ? JSON.stringify(profileData) : null,
+      avatar_url,
+      linkIcon,
+      scheduled_at || null,
+    ];
+
+    if (display_mode && validDisplayModes.includes(display_mode)) {
+      displayModeClause = ", display_mode = ?";
+      updateParams.push(display_mode);
+    }
+
+    updateParams.push(linkId, userId);
+
     const [result] = await db.query(
-      `UPDATE links SET title = ?, url = ?, platform = ?, username = ?, profileData = ?, avatar_url = ?, icon = ?, scheduled_at = ?
+      `UPDATE links SET title = ?, url = ?, platform = ?, username = ?, profileData = ?, avatar_url = ?, icon = ?, scheduled_at = ?${displayModeClause}
        WHERE id = ? AND user_id = ?`,
-      [
-        title,
-        url,
-        platformInfo.platform,
-        username,
-        profileData ? JSON.stringify(profileData) : null,
-        avatar_url,
-        linkIcon,
-        scheduled_at || null,
-        linkId,
-        userId,
-      ]
+      updateParams
     );
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Link not found or not yours" });
+    }
+
+    // Synchronize social handle to user profile in background
+    if (platformInfo.platform && username) {
+      syncLinkToSocialProfile(userId, platformInfo.platform, username);
     }
 
     const [updatedLink] = await db.query("SELECT * FROM links WHERE id = ?", [
@@ -262,6 +315,33 @@ export const updateLink = async (req, res) => {
   } catch (err) {
     console.error("updateLink error:", err);
     res.status(500).json({ message: "Failed to update link" });
+  }
+};
+
+export const updateDisplayMode = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { linkId } = req.params;
+    const { display_mode } = req.body;
+
+    const validDisplayModes = ["link", "header_pill", "rich_card"];
+    if (!display_mode || !validDisplayModes.includes(display_mode)) {
+      return res.status(400).json({ message: "Invalid display_mode. Must be link, header_pill, or rich_card" });
+    }
+
+    const [result] = await db.query(
+      "UPDATE links SET display_mode = ? WHERE id = ? AND user_id = ?",
+      [display_mode, linkId, userId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Link not found or not yours" });
+    }
+
+    res.json({ success: true, message: "Display mode updated", display_mode });
+  } catch (err) {
+    console.error("updateDisplayMode error:", err);
+    res.status(500).json({ message: "Failed to update display mode" });
   }
 };
 

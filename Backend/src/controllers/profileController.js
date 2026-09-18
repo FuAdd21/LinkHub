@@ -34,7 +34,8 @@ export const getPublicProfile = async (req, res) => {
 
     // Fetch visible links ordered by position
     const [links] = await db.query(
-      `SELECT id, title, url, platform, username, profileData, avatar_url, icon, position, scheduled_at
+      `SELECT id, title, url, platform, username, profileData, avatar_url, icon,
+              COALESCE(display_mode, 'link') as display_mode, position, scheduled_at
        FROM links
        WHERE user_id = ? AND is_visible = 1
          AND (scheduled_at IS NULL OR scheduled_at <= NOW())

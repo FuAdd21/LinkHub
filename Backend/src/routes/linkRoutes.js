@@ -7,6 +7,7 @@ import {
   deleteLink,
   reorderLinks,
   toggleVisibility,
+  updateDisplayMode,
 } from "../controllers/linkController.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
 import { validate } from "../middleware/validator.js";
@@ -23,6 +24,7 @@ router.get("/mylinks", authenticateToken, getLinks);
 router.post("/mylinks", authenticateToken, validate(linkRules), createLink);
 router.put("/mylinks/:linkId", authenticateToken, validate(linkRules), updateLink);
 router.put("/mylinks/:linkId/visibility", authenticateToken, toggleVisibility);
+router.put("/mylinks/:linkId/display-mode", authenticateToken, updateDisplayMode);
 router.delete("/mylinks/:linkId", authenticateToken, deleteLink);
 
 export default router;
