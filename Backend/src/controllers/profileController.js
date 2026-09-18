@@ -188,33 +188,50 @@ export const updateProfile = async (req, res) => {
     const updates = [];
     const values = [];
 
+    const HEX_COLOR_REGEX = /^#[0-9a-fA-F]{3,8}$/;
+    const ALLOWED_BG_TYPES = ["gradient", "solid", "image", "mesh", "default"];
+
     if (name !== undefined) {
+      const cleanName = String(name).trim();
+      if (cleanName.length < 2 || cleanName.length > 80) {
+        return res.status(400).json({ message: "Name must be between 2 and 80 characters" });
+      }
       updates.push("name = ?");
-      values.push(name.trim());
+      values.push(cleanName);
     }
     if (bio !== undefined) {
+      const cleanBio = String(bio || "").trim();
+      if (cleanBio.length > 500) {
+        return res.status(400).json({ message: "Bio cannot exceed 500 characters" });
+      }
       updates.push("bio = ?");
-      values.push(bio);
+      values.push(cleanBio || null);
     }
     if (theme !== undefined) {
       updates.push("theme = ?");
-      values.push(theme);
+      values.push(String(theme).slice(0, 50));
     }
     if (accent_color !== undefined) {
+      if (accent_color && !HEX_COLOR_REGEX.test(accent_color)) {
+        return res.status(400).json({ message: "Invalid accent color format. Expected hex color (e.g. #c6f035)" });
+      }
       updates.push("accent_color = ?");
-      values.push(accent_color);
+      values.push(accent_color || null);
     }
     if (surface_color !== undefined) {
+      if (surface_color && !HEX_COLOR_REGEX.test(surface_color)) {
+        return res.status(400).json({ message: "Invalid surface color format. Expected hex color (e.g. #11120F)" });
+      }
       updates.push("surface_color = ?");
-      values.push(surface_color);
+      values.push(surface_color || null);
     }
     if (font_heading !== undefined) {
       updates.push("font_heading = ?");
-      values.push(font_heading);
+      values.push(String(font_heading).slice(0, 50));
     }
     if (font_labels !== undefined) {
       updates.push("font_labels = ?");
-      values.push(font_labels);
+      values.push(String(font_labels).slice(0, 50));
     }
     if (show_verified_badge !== undefined) {
       updates.push("show_verified_badge = ?");
@@ -225,16 +242,19 @@ export const updateProfile = async (req, res) => {
       values.push(show_social_row ? 1 : 0);
     }
     if (background_type !== undefined) {
+      if (background_type && !ALLOWED_BG_TYPES.includes(background_type)) {
+        return res.status(400).json({ message: `Invalid background_type. Allowed: ${ALLOWED_BG_TYPES.join(", ")}` });
+      }
       updates.push("background_type = ?");
-      values.push(background_type);
+      values.push(background_type || "gradient");
     }
     if (background_value !== undefined) {
       updates.push("background_value = ?");
-      values.push(background_value);
+      values.push(background_value ? String(background_value).slice(0, 255) : null);
     }
     if (req.body.banner_url !== undefined) {
       updates.push("banner_url = ?");
-      values.push(req.body.banner_url);
+      values.push(req.body.banner_url ? String(req.body.banner_url).slice(0, 512) : null);
     }
 
     if (updates.length === 0) {

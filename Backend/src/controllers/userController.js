@@ -162,8 +162,12 @@ export const updateProfileDetails = async (req, res) => {
     const values = [];
 
     if (name !== undefined) {
+      const cleanName = String(name).trim();
+      if (cleanName.length < 2 || cleanName.length > 80) {
+        return res.status(400).json({ message: "Name must be between 2 and 80 characters" });
+      }
       updates.push("name = ?");
-      values.push(name.trim());
+      values.push(cleanName);
     }
 
     if (username !== undefined) {
@@ -188,8 +192,12 @@ export const updateProfileDetails = async (req, res) => {
     }
 
     if (bio !== undefined) {
+      const cleanBio = String(bio || "").trim();
+      if (cleanBio.length > 500) {
+        return res.status(400).json({ message: "Bio cannot exceed 500 characters" });
+      }
       updates.push("bio = ?");
-      values.push(bio);
+      values.push(cleanBio || null);
     }
 
     if (show_in_search !== undefined) {
