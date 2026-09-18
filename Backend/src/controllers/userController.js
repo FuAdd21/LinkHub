@@ -2,6 +2,7 @@ import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
+import crypto from "crypto";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { db } from "../config/db.js";
@@ -21,6 +22,20 @@ const SAFE_IMAGE_MIME_TYPES = {
   "image/gif": ".gif",
 };
 
+const deleteOldFile = (relativePath) => {
+  if (!relativePath || typeof relativePath !== "string") return;
+  // Ensure path stays within /uploads/ to prevent path traversal
+  if (!relativePath.startsWith("/uploads/")) return;
+  try {
+    const fullPath = path.join(__dirname, "../../", relativePath.replace(/^\//, ""));
+    if (fs.existsSync(fullPath)) {
+      fs.unlinkSync(fullPath);
+    }
+  } catch (err) {
+    console.warn("Failed to delete old file:", err.message);
+  }
+};
+
 const imageOnlyFileFilter = (req, file, cb) => {
   const mime = file.mimetype?.toLowerCase();
   // Strictly whitelist safe raster image formats; reject SVG to prevent stored XSS
@@ -35,7 +50,7 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, avatarUploadDir),
   filename: (req, file, cb) => {
     const ext = SAFE_IMAGE_MIME_TYPES[file.mimetype?.toLowerCase()] || ".png";
-    cb(null, `avatar_${req.user.id}_${Date.now()}${ext}`);
+    cb(null, `avatar_${crypto.randomUUID()}${ext}`);
   },
 });
 
@@ -49,7 +64,7 @@ const bannerStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, bannerUploadDir),
   filename: (req, file, cb) => {
     const ext = SAFE_IMAGE_MIME_TYPES[file.mimetype?.toLowerCase()] || ".png";
-    cb(null, `banner_${req.user.id}_${Date.now()}${ext}`);
+    cb(null, `banner_${crypto.randomUUID()}${ext}`);
   },
 });
 
@@ -66,12 +81,19 @@ export const updateAvatar = async (req, res) => {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
+    const [existing] = await db.query("SELECT avatar FROM clients WHERE id = ?", [req.user.id]);
+    const oldAvatar = existing[0]?.avatar;
+
     const avatarPath = `/uploads/avatars/${req.file.filename}`;
 
     await db.query("UPDATE clients SET avatar = ? WHERE id = ?", [
       avatarPath,
       req.user.id,
     ]);
+
+    if (oldAvatar && oldAvatar !== avatarPath) {
+      deleteOldFile(oldAvatar);
+    }
 
     res.json({ avatar: avatarPath });
   } catch (err) {
@@ -82,9 +104,17 @@ export const updateAvatar = async (req, res) => {
 
 export const removeAvatar = async (req, res) => {
   try {
+    const [existing] = await db.query("SELECT avatar FROM clients WHERE id = ?", [req.user.id]);
+    const oldAvatar = existing[0]?.avatar;
+
     await db.query("UPDATE clients SET avatar = NULL WHERE id = ?", [
       req.user.id,
     ]);
+
+    if (oldAvatar) {
+      deleteOldFile(oldAvatar);
+    }
+
     res.json({ message: "Avatar removed", avatar: null });
   } catch (err) {
     console.error("removeAvatar error:", err);
@@ -98,12 +128,19 @@ export const updateBanner = async (req, res) => {
       return res.status(400).json({ message: "No file uploaded" });
     }
 
+    const [existing] = await db.query("SELECT banner_url FROM clients WHERE id = ?", [req.user.id]);
+    const oldBanner = existing[0]?.banner_url;
+
     const bannerPath = `/uploads/banners/${req.file.filename}`;
 
     await db.query("UPDATE clients SET banner_url = ? WHERE id = ?", [
       bannerPath,
       req.user.id,
     ]);
+
+    if (oldBanner && oldBanner !== bannerPath) {
+      deleteOldFile(oldBanner);
+    }
 
     res.json({ banner_url: bannerPath });
   } catch (err) {
