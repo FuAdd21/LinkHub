@@ -195,6 +195,22 @@ export const getAnalytics = async (req, res) => {
       "SELECT COUNT(*) as c FROM profile_views WHERE user_id = ? AND timestamp >= DATE_SUB(NOW(), INTERVAL 60 DAY) AND timestamp < DATE_SUB(NOW(), INTERVAL 30 DAY)",
       [userId]
     );
+    const [currVisitorsRes] = await db.query(
+      `SELECT COUNT(DISTINCT ip) as total FROM (
+        SELECT ip FROM clicks WHERE user_id = ? AND ip IS NOT NULL AND timestamp >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        UNION
+        SELECT ip FROM profile_views WHERE user_id = ? AND ip IS NOT NULL AND timestamp >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+      ) as v`,
+      [userId, userId]
+    );
+    const [prevVisitorsRes] = await db.query(
+      `SELECT COUNT(DISTINCT ip) as total FROM (
+        SELECT ip FROM clicks WHERE user_id = ? AND ip IS NOT NULL AND timestamp >= DATE_SUB(NOW(), INTERVAL 60 DAY) AND timestamp < DATE_SUB(NOW(), INTERVAL 30 DAY)
+        UNION
+        SELECT ip FROM profile_views WHERE user_id = ? AND ip IS NOT NULL AND timestamp >= DATE_SUB(NOW(), INTERVAL 60 DAY) AND timestamp < DATE_SUB(NOW(), INTERVAL 30 DAY)
+      ) as v`,
+      [userId, userId]
+    );
 
     const calcDelta = (curr, prev) => {
       if (prev === 0) return curr > 0 ? "+100%" : "+0.0%";
@@ -206,6 +222,8 @@ export const getAnalytics = async (req, res) => {
     const prevViewsCount = prevViewsRes[0]?.c || 0;
     const currClicksCount = currClicksRes[0]?.c || 0;
     const prevClicksCount = prevClicksRes[0]?.c || 0;
+    const currVisitorsCount = currVisitorsRes[0]?.total || 0;
+    const prevVisitorsCount = prevVisitorsRes[0]?.total || 0;
 
     const currRateVal = currViewsCount > 0 ? (currClicksCount / currViewsCount) * 100 : 0;
     const prevRateVal = prevViewsCount > 0 ? (prevClicksCount / prevViewsCount) * 100 : 0;
@@ -214,7 +232,7 @@ export const getAnalytics = async (req, res) => {
       views: calcDelta(currViewsCount, prevViewsCount),
       clicks: calcDelta(currClicksCount, prevClicksCount),
       rate: calcDelta(currRateVal, prevRateVal),
-      visitors: calcDelta(currViewsCount, prevViewsCount),
+      visitors: calcDelta(currVisitorsCount, prevVisitorsCount),
     };
 
     // Top links by clicks with conversion rate
