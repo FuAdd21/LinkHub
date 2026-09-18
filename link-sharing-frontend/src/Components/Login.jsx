@@ -1,25 +1,26 @@
 import React, { useState, useContext } from "react";
-import { motion } from "framer-motion";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { API_BASE_URL } from "../api/config.js";
+import LinkHubLogo from "./common/LinkHubLogo";
+import { FaGoogle, FaApple } from "react-icons/fa";
 
-const MotionDiv = motion.div;
-const MotionButton = motion.button;
-
-const Login = () => {
+export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!email || !password) {
+      toast.error("Please provide both email and password.");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -41,137 +42,269 @@ const Login = () => {
         navigate("/create-profile");
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || "Verification failed");
+      toast.error(err.response?.data?.message || "Verification failed. Please check credentials.");
     } finally {
       setLoading(false);
     }
   };
 
+  const handleSocialMock = (provider) => {
+    toast(`Connecting with ${provider} (Sandbox mode)`);
+  };
+
   return (
-    <div className="app-auth-shell min-h-screen px-4 py-12 relative overflow-hidden bg-[var(--saas-bg-main)]">
-      {/* Cinematic Background Elements */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[var(--saas-accent-primary)] opacity-10 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_80%)]" />
-      </div>
+    <div className="min-h-screen bg-[#07080a] text-white selection:bg-[#c6f035] selection:text-black font-sans flex flex-col justify-between">
+      {/* ──── Header Navigation ──── */}
+      <header className="w-full border-b border-white/[0.07] px-6 sm:px-10 lg:px-16 py-4.5 flex items-center justify-between">
+        {/* Brand */}
+        <LinkHubLogo showPro={true} />
 
-      <MotionDiv
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="relative z-10 w-full max-w-[440px] mx-auto"
-      >
-        <div className="flex flex-col items-center mb-10">
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="flex h-12 w-12 items-center justify-center rounded-[1.25rem] bg-[image:var(--saas-accent-gradient)] font-black text-[var(--saas-bg-main)] text-xl shadow-[0_0_30px_var(--saas-accent-glow)] group-hover:scale-105 transition-transform">
-              LH
-            </div>
-          </Link>
-          <h1 className="mt-8 text-3xl font-black tracking-tight text-[var(--saas-text-primary)] font-display">
-            Welcome back.
-          </h1>
-          <p className="mt-2 text-[14px] font-medium text-[var(--saas-text-secondary)]">
-            Access your creator dashboard
-          </p>
-        </div>
+        {/* Mobile Top Right Action */}
+        <Link
+          to="/register"
+          className="md:hidden text-xs font-bold tracking-wider font-mono text-[#c6f035] uppercase hover:underline"
+        >
+          CREATE PROFILE
+        </Link>
+      </header>
 
-        <div className="app-auth-panel rounded-[2.5rem] p-8 md:p-10 border border-[var(--saas-border)] bg-[var(--saas-bg-surface)] shadow-2xl backdrop-blur-3xl overflow-hidden relative">
-          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-[11px] font-black uppercase tracking-[0.2em] text-[var(--saas-text-secondary)] mb-2.5 px-1">
-                Identity Profile
-              </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--saas-text-secondary)] group-focus-within:text-[var(--saas-accent-primary)] transition-colors">
-                  <Mail className="w-4.5 h-4.5" />
+      {/* ──── Main Content Section ──── */}
+      <main className="flex-1 max-w-[1280px] w-full mx-auto px-6 sm:px-10 lg:px-16 py-8 sm:py-12 lg:py-16 flex items-center">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-center">
+          {/* Left Column: Live Identity Preview Frame (Desktop only) */}
+          <div className="hidden lg:block lg:col-span-6">
+            <div className="rounded-2xl border border-white/[0.08] bg-[#0c0d10]/95 backdrop-blur-xl p-8 shadow-2xl relative flex flex-col justify-between min-h-[580px]">
+              <div>
+                {/* Monospace Kicker */}
+                <div className="text-[10px] font-mono font-medium tracking-[0.2em] text-[#c6f035] uppercase mb-4">
+                  IDENTITY, CONTINUED
                 </div>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  required
-                  className="w-full bg-[var(--saas-bg-elevated)] border border-[var(--saas-border)] focus:border-[var(--saas-accent-primary)] focus:ring-4 focus:ring-[var(--saas-accent-glow)]/10 rounded-2xl py-4 pl-12 pr-4 text-sm font-semibold text-[var(--saas-text-primary)] transition-all outline-none placeholder:text-[var(--saas-text-secondary)]/30"
-                />
+
+                <h2 className="text-4xl font-extrabold text-white tracking-tight leading-[1.1] mb-3">
+                  Welcome back<br />
+                  to your signal.
+                </h2>
+
+                <p className="text-xs text-zinc-400 font-normal leading-relaxed max-w-sm mb-8">
+                  Your links, reach, and proof are waiting—exactly where you left them.
+                </p>
+
+                {/* Inner Live Snapshot Card */}
+                <div className="border border-white/[0.06] bg-[#121316] rounded-xl p-6 shadow-md">
+                  <div className="text-[9px] font-mono font-medium tracking-[0.2em] text-zinc-500 uppercase mb-5">
+                    LIVE SNAPSHOT
+                  </div>
+
+                  {/* Profile Summary */}
+                  <div className="flex items-center gap-3.5 mb-5">
+                    <div className="w-12 h-12 rounded-full border-2 border-[#c6f035] bg-[#0c0d10] text-[#c6f035] font-extrabold text-base flex items-center justify-center shrink-0">
+                      MK
+                    </div>
+                    <div>
+                      <div className="text-base font-bold text-white tracking-tight">
+                        Maya Kim
+                      </div>
+                      <div className="text-[11px] font-mono text-zinc-400 font-normal">
+                        linkhub.io/maya
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-white/[0.06] my-5" />
+
+                  {/* Quick Metric Signals */}
+                  <div className="flex items-center gap-12 mb-6">
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-2xl font-extrabold text-white tracking-tight">
+                          24.8K
+                        </span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#c6f035]" />
+                      </div>
+                      <div className="text-[8px] font-mono font-medium text-zinc-500 uppercase tracking-widest mt-0.5">
+                        VIEWS
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-2xl font-extrabold text-white tracking-tight">
+                          10.4K
+                        </span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#22d3ee]" />
+                      </div>
+                      <div className="text-[8px] font-mono font-medium text-zinc-500 uppercase tracking-widest mt-0.5">
+                        CLICKS
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Active Destination Status Bar */}
+                  <div className="bg-[#0b0c0e] border border-white/[0.04] rounded-lg p-3.5 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-[#c6f035] animate-pulse" />
+                      <span className="text-xs font-semibold text-white tracking-tight">
+                        All six destinations are live
+                      </span>
+                    </div>
+                    <span className="text-[9px] font-mono font-medium text-zinc-500 uppercase tracking-wider">
+                      NOW
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Secure Session Footnote */}
+              <div className="text-[9px] font-mono tracking-widest text-zinc-500 uppercase pt-6">
+                SECURE SESSION &nbsp;·&nbsp; ENCRYPTED
               </div>
             </div>
+          </div>
 
-            <div>
-              <label className="block text-[11px] font-black uppercase tracking-[0.2em] text-[var(--saas-text-secondary)] mb-2.5 px-1">
-                Security Key
-              </label>
-              <div className="relative group">
-                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--saas-text-secondary)] group-focus-within:text-[var(--saas-accent-primary)] transition-colors">
-                  <Lock className="w-4.5 h-4.5" />
+          {/* Right Column: Sign In Form (Desktop & Mobile) */}
+          <div className="lg:col-span-6 flex justify-center lg:justify-end">
+            <div className="w-full max-w-[440px]">
+              {/* Kicker */}
+              <div className="text-[10px] font-mono font-medium tracking-[0.2em] text-[#c6f035] uppercase mb-2">
+                SIGN IN
+              </div>
+
+              {/* Headline - Responsive (Desktop & Mobile) */}
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight mb-2">
+                <span className="sm:hidden">Welcome back.</span>
+                <span className="hidden sm:inline">Return to your command center.</span>
+              </h1>
+
+              {/* Mobile Subtitle */}
+              <p className="sm:hidden text-xs text-zinc-400 mb-6">
+                Return to your command center.
+              </p>
+
+              {/* Desktop Subtitle with Link */}
+              <div className="hidden sm:flex items-center gap-1.5 text-xs text-zinc-400 mb-8">
+                <span>New to LinkHub?</span>
+                <Link
+                  to="/register"
+                  className="text-[#c6f035] font-semibold hover:underline inline-flex items-center gap-1"
+                >
+                  Create a profile &rarr;
+                </Link>
+              </div>
+
+              {/* Sign In Form */}
+              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+                {/* Email Field */}
+                <div>
+                  <label className="block text-[10px] font-mono font-medium tracking-widest text-zinc-400 uppercase mb-2">
+                    EMAIL
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="maya@studio.dev"
+                    required
+                    className="w-full bg-[#121316] border border-white/10 rounded-lg px-4 py-3 sm:py-3.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#c6f035] transition-all"
+                  />
                 </div>
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  className="w-full bg-[var(--saas-bg-elevated)] border border-[var(--saas-border)] focus:border-[var(--saas-accent-primary)] focus:ring-4 focus:ring-[var(--saas-accent-glow)]/10 rounded-2xl py-4 pl-12 pr-12 text-sm font-semibold text-[var(--saas-text-primary)] transition-all outline-none placeholder:text-[var(--saas-text-secondary)]/30"
-                />
+
+                {/* Password Field */}
+                <div>
+                  <label className="block text-[10px] font-mono font-medium tracking-widest text-zinc-400 uppercase mb-2">
+                    PASSWORD
+                  </label>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    required
+                    className="w-full bg-[#121316] border border-white/10 rounded-lg px-4 py-3 sm:py-3.5 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#c6f035] transition-all"
+                  />
+                  <div className="flex justify-end mt-2">
+                    <Link
+                      to="/forgot-password"
+                      className="text-xs font-semibold text-[#c6f035] hover:underline"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
+                </div>
+
+                {/* Primary Button */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3.5 bg-[#c6f035] text-[#07080a] font-bold text-sm rounded-lg hover:brightness-105 transition-all shadow-[0_2px_12px_rgba(198,240,53,0.15)] disabled:opacity-50 mt-2"
+                >
+                  {loading ? "Verifying..." : "Continue to LinkHub"}
+                </button>
+              </form>
+
+              {/* OR Divider */}
+              <div className="relative my-6 flex items-center justify-center">
+                <div className="w-full border-t border-white/[0.08]" />
+                <span className="px-3 text-[9px] font-mono uppercase tracking-widest text-zinc-500 bg-[#07080a] absolute">
+                  OR
+                </span>
+              </div>
+
+              {/* Social Login Buttons */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--saas-text-secondary)]/40 hover:text-[var(--saas-text-primary)] transition-colors"
+                  onClick={() => handleSocialMock("Google")}
+                  className="w-full py-3 px-4 bg-[#121316] border border-white/10 hover:bg-white/5 rounded-lg text-xs font-semibold text-white flex items-center justify-center gap-2.5 transition-all"
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-4.5 h-4.5" />
-                  ) : (
-                    <Eye className="w-4.5 h-4.5" />
-                  )}
+                  <FaGoogle className="w-3.5 h-3.5 text-zinc-400" />
+                  <span>Continue with Google</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleSocialMock("Apple")}
+                  className="w-full py-3 px-4 bg-[#121316] border border-white/10 hover:bg-white/5 rounded-lg text-xs font-semibold text-white flex items-center justify-center gap-2.5 transition-all"
+                >
+                  <FaApple className="w-4 h-4 text-zinc-300" />
+                  <span>Continue with Apple</span>
                 </button>
               </div>
+
+              {/* Security Banner Card */}
+              <div className="mt-6 border border-white/[0.08] bg-[#0c0d10] rounded-xl p-4 flex items-start gap-3">
+                <span className="w-2 h-2 rounded-full bg-[#c6f035] mt-1 shrink-0" />
+                <div>
+                  <span className="text-xs font-bold text-white tracking-tight block">
+                    Private by default
+                  </span>
+                  <span className="text-[11px] text-zinc-400 mt-0.5 block">
+                    <span className="sm:hidden">Nothing publishes without consent.</span>
+                    <span className="hidden sm:inline">We never publish or connect accounts without consent.</span>
+                  </span>
+                </div>
+              </div>
             </div>
-
-            <div className="flex justify-end px-1">
-              <Link
-                to="/forgot-password"
-                title="Standard recovery flow"
-                className="text-[11px] font-black uppercase tracking-widest text-[var(--saas-accent-primary)] hover:underline"
-              >
-                Recovery Needed?
-              </Link>
-            </div>
-
-            <MotionButton
-              type="submit"
-              disabled={loading}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
-              className="w-full flex items-center justify-center gap-2 rounded-2xl py-4 text-sm font-black uppercase tracking-widest text-[var(--saas-bg-main)] bg-[image:var(--saas-accent-gradient)] shadow-lg shadow-[var(--saas-accent-glow)] hover:brightness-110 transition-all disabled:opacity-50"
-            >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-[var(--saas-bg-main)]/30 border-t-[var(--saas-bg-main)] rounded-full animate-spin" />
-              ) : (
-                <>
-                  Establish Access
-                  <ArrowRight className="w-4 h-4 ml-1" />
-                </>
-              )}
-            </MotionButton>
-          </form>
-
-          <div className="mt-8 pt-8 border-t border-[var(--saas-border)]">
-            <p className="text-center text-[var(--saas-text-secondary)] text-sm font-medium">
-              New to the platform?{" "}
-              <Link
-                to="/register"
-                className="text-[var(--saas-accent-primary)] font-black hover:underline ml-1"
-              >
-                Create Identity
-              </Link>
-            </p>
           </div>
         </div>
-      </MotionDiv>
+      </main>
+
+      {/* ──── Footer ──── */}
+      <footer className="w-full border-t border-white/[0.07] px-6 sm:px-10 lg:px-16 py-5 flex items-center justify-between text-[10px] font-mono tracking-widest text-zinc-500 uppercase">
+        <div>
+          LINKHUB / 2026
+        </div>
+        <div className="flex items-center gap-6">
+          <Link to="/" className="hover:text-zinc-300 transition-colors">
+            HOME
+          </Link>
+          <a href="#privacy" className="hover:text-zinc-300 transition-colors">
+            PRIVACY
+          </a>
+          <a href="#terms" className="hover:text-zinc-300 transition-colors">
+            TERMS
+          </a>
+        </div>
+      </footer>
     </div>
   );
-};
-
-export default Login;
+}
