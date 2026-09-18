@@ -49,8 +49,15 @@ export default function LiveCanvasPreview({ user, links = [], integrations }) {
   const avatarUrl = getAvatarUrl(user?.avatar || user);
 
   const visibleLinks = getVisibleLinks(links);
-  const displayLinks = visibleLinks.length > 0
-    ? visibleLinks.slice(0, 4)
+  const destinationLinks = visibleLinks.filter(
+    (l) => (l.display_mode || "link") === "link"
+  );
+  const headerPillsFromLinks = visibleLinks.filter(
+    (l) => l.display_mode === "header_pill"
+  );
+
+  const displayLinks = destinationLinks.length > 0
+    ? destinationLinks.slice(0, 4)
     : [
         { id: 1, title: "Explore my open-source toolkit", url: "https://github.com/maya", platform: "github" },
         { id: 2, title: "Build in public — weekly", url: "https://youtube.com/@maya", platform: "youtube" },
@@ -70,6 +77,24 @@ export default function LiveCanvasPreview({ user, links = [], integrations }) {
   const connectedList = Array.isArray(integrations)
     ? integrations
     : integrations?.connected || [];
+
+  // Aggregate socials for live preview with deduplication
+  const socialsMap = new Map();
+  if (user?.githubUser) socialsMap.set("github", { url: `https://github.com/${user.githubUser}`, icon: FaGithub, label: "GitHub" });
+  if (user?.linkedin) socialsMap.set("linkedin", { url: `https://linkedin.com/in/${user.linkedin}`, icon: FaLinkedin, label: "LinkedIn" });
+  if (user?.twitter) socialsMap.set("twitter", { url: `https://twitter.com/${user.twitter}`, icon: FaTwitter, label: "Twitter" });
+  if (user?.instagram) socialsMap.set("instagram", { url: `https://instagram.com/${user.instagram}`, icon: FaInstagram, label: "Instagram" });
+  if (user?.youtubeId) socialsMap.set("youtube", { url: `https://youtube.com/${user.youtubeId}`, icon: FaYoutube, label: "YouTube" });
+  if (user?.tiktok) socialsMap.set("tiktok", { url: `https://tiktok.com/@${user.tiktok}`, icon: FaTiktok, label: "TikTok" });
+  if (user?.spotify) socialsMap.set("spotify", { url: `https://open.spotify.com/artist/${user.spotify}`, icon: FaSpotify, label: "Spotify" });
+
+  headerPillsFromLinks.forEach((pill) => {
+    const platKey = (pill.platform || extractDomain(pill.url) || "link").toLowerCase();
+    const PillIcon = getPlatformIcon(pill.platform, pill.url);
+    socialsMap.set(platKey, { url: pill.url, icon: PillIcon, label: pill.title });
+  });
+
+  const previewSocials = Array.from(socialsMap.entries());
 
   return (
     <div className="canvas-rail-container">
@@ -114,42 +139,31 @@ export default function LiveCanvasPreview({ user, links = [], integrations }) {
         <p className="canvas-bio">{bio}</p>
 
         {/* Social Icons Pill Row */}
-        <div className="canvas-socials-row">
-          <a
-            href={user?.githubUser ? `https://github.com/${user.githubUser}` : "#"}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="canvas-social-btn"
-            aria-label="GitHub"
-          >
-            <FaGithub className="w-3.5 h-3.5" />
-          </a>
-          <a
-            href={user?.instagram ? `https://instagram.com/${user.instagram}` : "#"}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="canvas-social-btn"
-            aria-label="Instagram"
-          >
-            <FaInstagram className="w-3.5 h-3.5" />
-          </a>
-          <a
-            href={user?.youtubeId ? `https://youtube.com/${user.youtubeId}` : "#"}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="canvas-social-btn"
-            aria-label="YouTube"
-          >
-            <FaYoutube className="w-3.5 h-3.5" />
-          </a>
-          <a
-            href="#"
-            className="canvas-social-btn"
-            aria-label="Website"
-          >
-            <Globe className="w-3.5 h-3.5" />
-          </a>
-        </div>
+        {previewSocials.length > 0 ? (
+          <div className="canvas-socials-row">
+            {previewSocials.map(([key, item]) => {
+              const IconComp = item.icon;
+              return (
+                <a
+                  key={key}
+                  href={item.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="canvas-social-btn"
+                  aria-label={item.label}
+                >
+                  <IconComp className="w-3.5 h-3.5" />
+                </a>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="canvas-socials-row">
+            <span className="canvas-social-btn opacity-40">
+              <Globe className="w-3.5 h-3.5" />
+            </span>
+          </div>
+        )}
 
         {/* Rich Connected Social Channel Cards */}
         {connectedList.length > 0 && (

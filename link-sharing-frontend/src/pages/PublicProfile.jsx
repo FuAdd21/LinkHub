@@ -243,7 +243,20 @@ export default function PublicProfile() {
     });
   }
 
+  // Include any links explicitly configured with display_mode === 'header_pill'
+  visibleLinks.forEach((l) => {
+    if (l.display_mode === "header_pill") {
+      const pKey = (l.platform || extractDomain(l.url) || "link").toLowerCase();
+      socialsMap.set(pKey, l.url);
+    }
+  });
+
   const activeSocials = Array.from(socialsMap.entries());
+
+  // Destination links to render in canvas-links-list:
+  // ONLY links with display_mode === 'link' (or unset/null)
+  // Guarantees links in header_pill or rich_card mode are never duplicated in the destination list!
+  const destinationLinks = visibleLinks.filter((l) => (l.display_mode || "link") === "link");
 
   return (
     <div className="min-h-screen bg-[#070705] preview-grid flex flex-col items-center justify-center p-4 sm:p-8 relative selection:bg-[#c6f035] selection:text-[#0d0f0d] overflow-x-hidden">
@@ -435,7 +448,7 @@ export default function PublicProfile() {
 
         {/* ─── Destination Links List (Clean Instrumented Identity style) ─── */}
         <div className="canvas-links-list w-full space-y-2.5">
-          {visibleLinks.map((link) => {
+          {destinationLinks.map((link) => {
             const Icon = getPlatformIcon(link.platform, link.url);
             return (
               <a

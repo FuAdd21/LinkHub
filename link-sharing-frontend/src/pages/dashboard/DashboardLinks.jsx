@@ -743,10 +743,31 @@ export default function DashboardLinks({
               </p>
             </div>
 
+            {/* Header Icons in preview */}
+            {localLinks.some((l) => l.display_mode === "header_pill" && l.is_visible !== 0 && l.is_visible !== false) && (
+              <div className="flex items-center justify-center gap-1.5 pt-1">
+                {localLinks
+                  .filter((l) => l.display_mode === "header_pill" && l.is_visible !== 0 && l.is_visible !== false)
+                  .slice(0, 5)
+                  .map((pill) => {
+                    const IconComp = getPlatformIcon(pill.url, pill.platform);
+                    return (
+                      <div
+                        key={pill.id}
+                        className="w-7 h-7 rounded-lg bg-[#1a1914] border border-white/5 flex items-center justify-center text-slate-400"
+                        title={pill.title}
+                      >
+                        <IconComp className="w-3.5 h-3.5" />
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
+
             {/* Links Stack in preview */}
-            <div className="w-full space-y-2.5 pt-4">
+            <div className="w-full space-y-2.5 pt-2">
               {localLinks
-                .filter((l) => l.is_visible !== 0 && l.is_visible !== false)
+                .filter((l) => l.is_visible !== 0 && l.is_visible !== false && (l.display_mode || "link") === "link")
                 .slice(0, 4)
                 .map((link) => (
                   <div
