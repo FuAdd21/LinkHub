@@ -1,7 +1,6 @@
-import https from "https";
-import http from "http";
+import axios from "axios";
 
-// Simple cache for profile data (5 minutes TTL)
+// In-memory cache for profile data (5 minutes TTL)
 const profileCache = new Map();
 const CACHE_TTL = 5 * 60 * 1000;
 
@@ -12,11 +11,9 @@ function getCacheKey(platform, username) {
 function getFromCache(platform, username) {
   const key = getCacheKey(platform, username);
   const cached = profileCache.get(key);
-
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     return cached.data;
   }
-
   profileCache.delete(key);
   return null;
 }
@@ -26,37 +23,180 @@ function setCache(platform, username, data) {
   profileCache.set(key, { data, timestamp: Date.now() });
 }
 
-function httpsGet(url) {
-  return new Promise((resolve, reject) => {
-    const protocol = url.startsWith("https") ? https : http;
-
-    protocol
-      .get(url, (res) => {
-        let data = "";
-        res.on("data", (chunk) => (data += chunk));
-        res.on("end", () => {
-          try {
-            resolve(JSON.parse(data));
-          } catch {
-            resolve(data);
-          }
-        });
-      })
-      .on("error", reject);
-  });
+/**
+ * SSRF Safety Guard
+ * Prevents requests to internal localhost, RFC1918 private subnets, or metadata services.
+ */
+export function isSafeUrl(urlString) {
+  try {
+    const parsed = new URL(urlString);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      return false;
+    }
+    const host = parsed.hostname.toLowerCase();
+    if (
+      host === "localhost" ||
+      host.endsWith(".local") ||
+      host === "127.0.0.1" ||
+      host === "::1" ||
+      host === "0.0.0.0" ||
+      host.startsWith("10.") ||
+      host.startsWith("192.168.") ||
+      host.startsWith("169.254.") || // Cloud metadata endpoint
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(host)
+    ) {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
 }
 
+/**
+ * Safe HTTP GET with timeout, headers, and SSRF prevention
+ */
+async function safeHttpGet(url, headers = {}) {
+  if (!isSafeUrl(url)) {
+    throw new Error(`SSRF blocked: Attempted request to private/unsafe URL: ${url}`);
+  }
+
+  const response = await axios.get(url, {
+    timeout: 5000,
+    headers: {
+      "User-Agent": "LinkHub/2.0 (Identity Platform)",
+      Accept: "application/json, text/html, */*",
+      ...headers,
+    },
+  });
+
+  return response.data;
+}
+
+export const PLATFORM_PATTERNS = {
+  youtube: [
+    /youtube\.com\/@([a-zA-Z0-9_-]+)/,
+    /youtube\.com\/channel\/([a-zA-Z0-9_-]+)/,
+    /youtube\.com\/c\/([a-zA-Z0-9_-]+)/,
+    /youtu\.be\/@([a-zA-Z0-9_-]+)/,
+  ],
+  github: [
+    /github\.com\/([a-zA-Z0-9_-]+)\/?$/,
+    /github\.com\/([a-zA-Z0-9_-]+)\/[a-zA-Z0-9_-]+/,
+  ],
+  instagram: [
+    /instagram\.com\/([a-zA-Z0-9_.]+)\/?$/,
+    /instagram\.com\/([a-zA-Z0-9_.]+)\/.*/,
+  ],
+  tiktok: [/tiktok\.com\/@([a-zA-Z0-9_.]+)/],
+  twitter: [/twitter\.com\/([a-zA-Z0-9_]+)\/?$/, /x\.com\/([a-zA-Z0-9_]+)\/?$/],
+  linkedin: [
+    /linkedin\.com\/in\/([a-zA-Z0-9_-]+)/,
+    /linkedin\.com\/company\/([a-zA-Z0-9_-]+)/,
+  ],
+  facebook: [
+    /facebook\.com\/([a-zA-Z0-9.]+)\/?$/,
+    /facebook\.com\/pages\/([a-zA-Z0-9-]+)/,
+  ],
+  telegram: [/t\.me\/([a-zA-Z0-9_]+)/, /telegram\.me\/([a-zA-Z0-9_]+)/],
+};
+
+/**
+ * Unified platform and username detector from URL
+ */
+export function detectPlatform(url) {
+  try {
+    const urlObj = new URL(url);
+    const hostname = urlObj.hostname.toLowerCase();
+
+    // YouTube
+    if (hostname.includes("youtube.com") || hostname.includes("youtu.be")) {
+      for (const pattern of PLATFORM_PATTERNS.youtube) {
+        const match = url.match(pattern);
+        if (match) return { platform: "youtube", username: match[1], url };
+      }
+      return { platform: "youtube", username: null, url };
+    }
+
+    // GitHub
+    if (hostname.includes("github.com")) {
+      for (const pattern of PLATFORM_PATTERNS.github) {
+        const match = url.match(pattern);
+        if (match) return { platform: "github", username: match[1], url };
+      }
+      return { platform: "github", username: null, url };
+    }
+
+    // Instagram
+    if (hostname.includes("instagram.com")) {
+      for (const pattern of PLATFORM_PATTERNS.instagram) {
+        const match = url.match(pattern);
+        if (match) return { platform: "instagram", username: match[1], url };
+      }
+      return { platform: "instagram", username: null, url };
+    }
+
+    // TikTok
+    if (hostname.includes("tiktok.com")) {
+      for (const pattern of PLATFORM_PATTERNS.tiktok) {
+        const match = url.match(pattern);
+        if (match) return { platform: "tiktok", username: match[1], url };
+      }
+      return { platform: "tiktok", username: null, url };
+    }
+
+    // Twitter / X
+    if (hostname.includes("twitter.com") || hostname.includes("x.com")) {
+      for (const pattern of PLATFORM_PATTERNS.twitter) {
+        const match = url.match(pattern);
+        if (match) return { platform: "twitter", username: match[1], url };
+      }
+      return { platform: "twitter", username: null, url };
+    }
+
+    // LinkedIn
+    if (hostname.includes("linkedin.com")) {
+      for (const pattern of PLATFORM_PATTERNS.linkedin) {
+        const match = url.match(pattern);
+        if (match) return { platform: "linkedin", username: match[1], url };
+      }
+      return { platform: "linkedin", username: null, url };
+    }
+
+    // Facebook
+    if (hostname.includes("facebook.com")) {
+      for (const pattern of PLATFORM_PATTERNS.facebook) {
+        const match = url.match(pattern);
+        if (match) return { platform: "facebook", username: match[1], url };
+      }
+      return { platform: "facebook", username: null, url };
+    }
+
+    // Telegram
+    if (hostname.includes("t.me") || hostname.includes("telegram.me")) {
+      for (const pattern of PLATFORM_PATTERNS.telegram) {
+        const match = url.match(pattern);
+        if (match) return { platform: "telegram", username: match[1], url };
+      }
+      return { platform: "telegram", username: null, url };
+    }
+
+    return { platform: null, username: null, url };
+  } catch {
+    return { platform: null, username: null, url };
+  }
+}
+
+/**
+ * Platform Specific Fetchers
+ */
 async function fetchGithub(username) {
-  // Check cache first
   const cached = getFromCache("github", username);
   if (cached) return cached;
 
   try {
-    const data = await httpsGet(`https://api.github.com/users/${username}`);
-
-    if (data.message === "Not Found") {
-      return null;
-    }
+    const data = await safeHttpGet(`https://api.github.com/users/${username}`);
+    if (data.message === "Not Found") return null;
 
     const profile = {
       name: data.name || data.login,
@@ -83,206 +223,73 @@ async function fetchYoutube(channelIdOrUsername) {
   if (cached) return cached;
 
   const apiKey = process.env.YOUTUBE_API_KEY;
-
   if (!apiKey) {
-    // Fallback: try to get channel info from RSS
-    try {
-      const rssUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelIdOrUsername}`;
-      const data = await httpsGet(rssUrl);
-
-      // Basic parsing fallback - return minimal data
-      return {
-        name: channelIdOrUsername,
-        avatar: null,
-        platform: "youtube",
-        profileUrl: `https://youtube.com/channel/${channelIdOrUsername}`,
-      };
-    } catch {
-      return null;
-    }
+    return {
+      name: channelIdOrUsername,
+      avatar: null,
+      platform: "youtube",
+      profileUrl: `https://youtube.com/@${channelIdOrUsername}`,
+    };
   }
 
   try {
-    // Check if it's a username or channel ID
-    let searchEndpoint = "";
-    if (channelIdOrUsername.startsWith("UC")) {
-      searchEndpoint = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${channelIdOrUsername}&key=${apiKey}`;
-    } else {
-      searchEndpoint = `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&forHandle=${channelIdOrUsername}&key=${apiKey}`;
-    }
+    const searchEndpoint = channelIdOrUsername.startsWith("UC")
+      ? `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${channelIdOrUsername}&key=${apiKey}`
+      : `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&forHandle=${channelIdOrUsername}&key=${apiKey}`;
 
-    const data = await httpsGet(searchEndpoint);
+    const data = await safeHttpGet(searchEndpoint);
 
-    if (!data.items || data.items.length === 0) {
-      // Try search by username
-      const searchData = await httpsGet(
-        `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${channelIdOrUsername}&type=channel&maxResults=1&key=${apiKey}`,
-      );
-
-      if (!searchData.items || searchData.items.length === 0) {
-        return null;
-      }
-
-      const channelId = searchData.items[0].id.channelId;
-      const channelData = await httpsGet(
-        `https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&id=${channelId}&key=${apiKey}`,
-      );
-
+    if (data.items && data.items.length > 0) {
+      const channelData = data.items[0];
       const profile = {
-        name: channelData.items[0].snippet.title,
+        name: channelData.snippet.title,
         avatar:
-          channelData.items[0].snippet.thumbnails?.high?.url ||
-          channelData.items[0].snippet.thumbnails?.default?.url,
-        description: channelData.items[0].snippet.description,
-        subscribers:
-          parseInt(channelData.items[0].statistics.subscriberCount) || 0,
-        videos: parseInt(channelData.items[0].statistics.videoCount) || 0,
-        verified: channelData.items[0].status?.longUploadsStatus === "allowed",
-        profileUrl: `https://youtube.com/channel/${channelId}`,
+          channelData.snippet.thumbnails?.high?.url ||
+          channelData.snippet.thumbnails?.default?.url,
+        description: channelData.snippet.description,
+        subscribers: parseInt(channelData.statistics?.subscriberCount) || 0,
+        videos: parseInt(channelData.statistics?.videoCount) || 0,
+        verified: channelData.status?.longUploadsStatus === "allowed",
+        profileUrl: `https://youtube.com/channel/${channelData.id}`,
         platform: "youtube",
       };
-
       setCache("youtube", channelIdOrUsername, profile);
       return profile;
     }
 
-    const profile = {
-      name: data.items[0].snippet.title,
-      avatar:
-        data.items[0].snippet.thumbnails?.high?.url ||
-        data.items[0].snippet.thumbnails?.default?.url,
-      description: data.items[0].snippet.description,
-      subscribers: parseInt(data.items[0].statistics.subscriberCount) || 0,
-      videos: parseInt(data.items[0].statistics.videoCount) || 0,
-      verified: data.items[0].status?.longUploadsStatus === "allowed",
-      profileUrl: `https://youtube.com/channel/${data.items[0].id}`,
-      platform: "youtube",
-    };
-
-    setCache("youtube", channelIdOrUsername, profile);
-    return profile;
+    return null;
   } catch (err) {
     console.log("YouTube fetch error:", err.message);
     return null;
   }
 }
 
-async function fetchTelegram(username) {
-  const cached = getFromCache("telegram", username);
-  if (cached) return cached;
+export async function fetchSocialProfile(url) {
+  try {
+    const { platform, username } = detectPlatform(url);
+    if (!platform || !username) {
+      return { success: false, message: "Could not detect platform or username" };
+    }
 
-  // Telegram doesn't have a public API for profile info
-  // We'll return basic info and let the frontend handle the display
-  // In production, you might want to use a Telegram bot API or scraping service
+    const data = await fetchProfileData(platform, username);
+    if (!data) {
+      return { success: false, platform, username, avatar: null, displayName: username };
+    }
 
-  const profile = {
-    username: username,
-    name: username,
-    avatar: null,
-    profileUrl: `https://t.me/${username}`,
-    platform: "telegram",
-    note: "Telegram profile data requires additional setup",
-  };
-
-  setCache("telegram", username, profile);
-  return profile;
-}
-
-async function fetchInstagram(username) {
-  const cached = getFromCache("instagram", username);
-  if (cached) return cached;
-
-  // Instagram doesn't have a public API
-  // Return basic info - in production use scraping service
-
-  const profile = {
-    username: username,
-    name: username,
-    avatar: null,
-    profileUrl: `https://instagram.com/${username}`,
-    platform: "instagram",
-    note: "Instagram profile data requires additional setup",
-  };
-
-  setCache("instagram", username, profile);
-  return profile;
-}
-
-async function fetchTwitter(username) {
-  const cached = getFromCache("twitter", username);
-  if (cached) return cached;
-
-  // Twitter/X API requires authentication
-  // Return basic info - in production use their API
-
-  const profile = {
-    username: username,
-    name: username,
-    avatar: null,
-    profileUrl: `https://twitter.com/${username}`,
-    platform: "twitter",
-    note: "Twitter profile data requires API access",
-  };
-
-  setCache("twitter", username, profile);
-  return profile;
-}
-
-async function fetchLinkedIn(username) {
-  const cached = getFromCache("linkedin", username);
-  if (cached) return cached;
-
-  const profile = {
-    username: username,
-    name: username,
-    avatar: null,
-    profileUrl: `https://linkedin.com/in/${username}`,
-    platform: "linkedin",
-    note: "LinkedIn profile data requires API access",
-  };
-
-  setCache("linkedin", username, profile);
-  return profile;
-}
-
-async function fetchFacebook(username) {
-  const cached = getFromCache("facebook", username);
-  if (cached) return cached;
-
-  const profile = {
-    username: username,
-    name: username,
-    avatar: null,
-    profileUrl: `https://facebook.com/${username}`,
-    platform: "facebook",
-    note: "Facebook profile data requires API access",
-  };
-
-  setCache("facebook", username, profile);
-  return profile;
-}
-
-async function fetchTikTok(username) {
-  const cached = getFromCache("tiktok", username);
-  if (cached) return cached;
-
-  const profile = {
-    username: username,
-    name: username,
-    avatar: null,
-    profileUrl: `https://tiktok.com/@${username}`,
-    platform: "tiktok",
-    note: "TikTok profile data requires API access",
-  };
-
-  setCache("tiktok", username, profile);
-  return profile;
+    return {
+      success: true,
+      platform,
+      username,
+      avatar: data.avatar || null,
+      displayName: data.name || username,
+    };
+  } catch (err) {
+    return { success: false, message: err.message };
+  }
 }
 
 export async function fetchProfileData(platform, username) {
-  if (!platform || !username) {
-    return null;
-  }
+  if (!platform || !username) return null;
 
   switch (platform.toLowerCase()) {
     case "github":
@@ -290,29 +297,47 @@ export async function fetchProfileData(platform, username) {
     case "youtube":
       return fetchYoutube(username);
     case "telegram":
-      return fetchTelegram(username);
+      return {
+        username,
+        name: username,
+        avatar: null,
+        profileUrl: `https://t.me/${username}`,
+        platform: "telegram",
+      };
     case "instagram":
-      return fetchInstagram(username);
+      return {
+        username,
+        name: username,
+        avatar: null,
+        profileUrl: `https://instagram.com/${username}`,
+        platform: "instagram",
+      };
     case "twitter":
-      return fetchTwitter(username);
+    case "x":
+      return {
+        username,
+        name: username,
+        avatar: null,
+        profileUrl: `https://x.com/${username}`,
+        platform: "twitter",
+      };
     case "linkedin":
-      return fetchLinkedIn(username);
-    case "facebook":
-      return fetchFacebook(username);
+      return {
+        username,
+        name: username,
+        avatar: null,
+        profileUrl: `https://linkedin.com/in/${username}`,
+        platform: "linkedin",
+      };
     case "tiktok":
-      return fetchTikTok(username);
+      return {
+        username,
+        name: username,
+        avatar: null,
+        profileUrl: `https://tiktok.com/@${username}`,
+        platform: "tiktok",
+      };
     default:
       return null;
   }
 }
-
-export {
-  fetchGithub,
-  fetchYoutube,
-  fetchTelegram,
-  fetchInstagram,
-  fetchTwitter,
-  fetchLinkedIn,
-  fetchFacebook,
-  fetchTikTok,
-};
