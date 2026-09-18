@@ -6,7 +6,7 @@ import {
 } from "../controllers/socialController.js";
 import { socialRateLimiter } from "../middleware/rateLimiter.js";
 
-router.post("/fetch", fetchSocialProfileData);
-router.get("/", socialRateLimiter, fetchSocialProfiles);
+router.post("/fetch", socialRateLimiter, fetchSocialProfileData);
+router.get("/", fetchSocialProfiles);
 
 export default router;

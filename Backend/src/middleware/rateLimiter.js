@@ -31,3 +31,17 @@ export const authRateLimiter = rateLimit({
   },
 });
 
+export const analyticsRateLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minute
+  max: 60, // Max 60 analytics events per IP per minute
+  message: {
+    message: "Too many tracking events. Please slow down.",
+    code: "RATE_LIMITED",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => {
+    return process.env.NODE_ENV === "development" && isLocalRequest(req);
+  },
+});
+

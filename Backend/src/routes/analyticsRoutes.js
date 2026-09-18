@@ -6,12 +6,13 @@ import {
   getAnalytics,
 } from "../controllers/analyticsController.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
+import { analyticsRateLimiter } from "../middleware/rateLimiter.js";
 
-// Public: track a link click
-router.post("/analytics/click/:linkId", trackClick);
+// Public: track a link click (rate limited)
+router.post("/analytics/click/:linkId", analyticsRateLimiter, trackClick);
 
-// Public: track a profile page view
-router.post("/analytics/view/:username", trackProfileView);
+// Public: track a profile page view (rate limited)
+router.post("/analytics/view/:username", analyticsRateLimiter, trackProfileView);
 
 // Authenticated: get user analytics
 router.get("/analytics", authenticateToken, getAnalytics);
