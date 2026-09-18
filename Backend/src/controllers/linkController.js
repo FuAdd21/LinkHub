@@ -120,47 +120,60 @@ export const createLink = async (req, res) => {
       }
     }
 
-    // Get max position for this user
-    const [maxPos] = await db.query(
-      "SELECT COALESCE(MAX(position), -1) as maxPos FROM links WHERE user_id = ?",
-      [userId]
-    );
-    const nextPosition = maxPos[0].maxPos + 1;
-
     // Auto-detect icon from platform if not provided
     const linkIcon = icon || platformInfo.platform || null;
 
-    const [result] = await db.query(
-      `INSERT INTO links (user_id, title, url, platform, username, profileData, avatar_url, icon, position, is_visible, scheduled_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)`,
-      [
-        userId,
-        title,
-        url,
-        platformInfo.platform,
-        username,
-        profileData ? JSON.stringify(profileData) : null,
-        avatar_url,
-        linkIcon,
-        nextPosition,
-        scheduled_at || null,
-      ]
-    );
+    let connection;
+    try {
+      connection = await db.getConnection();
+      await connection.beginTransaction();
 
-    const [newLink] = await db.query("SELECT * FROM links WHERE id = ?", [
-      result.insertId,
-    ]);
+      // Lock existing rows for this user to atomically allocate position
+      const [maxPos] = await connection.query(
+        "SELECT COALESCE(MAX(position), -1) as maxPos FROM links WHERE user_id = ? FOR UPDATE",
+        [userId]
+      );
+      const nextPosition = maxPos[0].maxPos + 1;
 
-    res.status(201).json({
-      message: "Link created",
-      link: {
-        ...newLink[0],
-        profileData:
-          typeof newLink[0].profileData === "string"
-            ? JSON.parse(newLink[0].profileData)
-            : newLink[0].profileData,
-      },
-    });
+      const [result] = await connection.query(
+        `INSERT INTO links (user_id, title, url, platform, username, profileData, avatar_url, icon, position, is_visible, scheduled_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)`,
+        [
+          userId,
+          title,
+          url,
+          platformInfo.platform,
+          username,
+          profileData ? JSON.stringify(profileData) : null,
+          avatar_url,
+          linkIcon,
+          nextPosition,
+          scheduled_at || null,
+        ]
+      );
+
+      const [newLink] = await connection.query("SELECT * FROM links WHERE id = ?", [
+        result.insertId,
+      ]);
+
+      await connection.commit();
+
+      res.status(201).json({
+        message: "Link created",
+        link: {
+          ...newLink[0],
+          profileData:
+            typeof newLink[0].profileData === "string"
+              ? JSON.parse(newLink[0].profileData)
+              : newLink[0].profileData,
+        },
+      });
+    } catch (txErr) {
+      if (connection) await connection.rollback();
+      throw txErr;
+    } finally {
+      if (connection) connection.release();
+    }
   } catch (err) {
     console.error("createLink error:", err);
     res.status(500).json({ message: "Failed to create link" });
@@ -279,8 +292,30 @@ export const reorderLinks = async (req, res) => {
     const userId = req.user.id;
     const { order } = req.body;
 
-    if (!order || !Array.isArray(order)) {
-      return res.status(400).json({ message: "Invalid order array" });
+    if (!order || !Array.isArray(order) || order.length === 0) {
+      return res.status(400).json({ message: "Order must be a non-empty array of link IDs" });
+    }
+
+    const allPositiveInts = order.every((id) => Number.isInteger(id) && id > 0);
+    if (!allPositiveInts) {
+      return res.status(400).json({ message: "Order must contain only valid positive integer link IDs" });
+    }
+
+    const uniqueIds = new Set(order);
+    if (uniqueIds.size !== order.length) {
+      return res.status(400).json({ message: "Duplicate link IDs found in reorder payload" });
+    }
+
+    // Verify all IDs belong to this user
+    const [userLinks] = await db.query(
+      "SELECT id FROM links WHERE user_id = ?",
+      [userId]
+    );
+    const userLinkIds = new Set(userLinks.map((l) => l.id));
+
+    const allBelongToUser = order.every((id) => userLinkIds.has(id));
+    if (!allBelongToUser) {
+      return res.status(403).json({ message: "One or more links do not belong to your account" });
     }
 
     connection = await db.getConnection();
