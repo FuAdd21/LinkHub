@@ -154,8 +154,9 @@ export default function DashboardLinks({
           url: normalizedUrl,
           platform: form.platform,
         });
+        const updatedLink = res.data?.link || res.data;
         const updated = localLinks.map((l) =>
-          l.id === editingLink.id ? { ...l, ...res.data } : l
+          l.id === editingLink.id ? { ...l, ...updatedLink } : l
         );
         setLocalLinks(updated);
         onLinksChange?.(updated);
@@ -166,7 +167,8 @@ export default function DashboardLinks({
           url: normalizedUrl,
           platform: form.platform,
         });
-        const updated = [res.data, ...localLinks];
+        const createdLink = res.data?.link || res.data;
+        const updated = [createdLink, ...localLinks];
         setLocalLinks(updated);
         onLinksChange?.(updated);
         toast.success("Link published");
