@@ -1,7 +1,6 @@
 import { useState, useEffect, useContext, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import axios from "axios";
 import toast from "react-hot-toast";
 import {
   ArrowUpRight,
@@ -25,7 +24,7 @@ import {
   FaSpotify,
 } from "react-icons/fa";
 import QRCodeGenerator from "../Components/QRCodeGenerator";
-import { API_BASE_URL, assetUrl } from "../api/config.js";
+import { api, API_BASE_URL, assetUrl } from "../api/config.js";
 import "../Components/dashboard/LiveCanvasPreview/LiveCanvasPreview.css";
 
 function getPlatformIcon(platform = "", url = "") {
@@ -94,7 +93,7 @@ export default function PublicProfile() {
     try {
       setLoading(true);
       setError(null);
-      const res = await axios.get(`${API_BASE_URL}/api/profile/${username}`);
+      const res = await api.get(`/api/profile/${username}`);
       setUserData(res.data);
     } catch (err) {
       setError(err.response?.data?.message || "User profile not found");
@@ -112,7 +111,7 @@ export default function PublicProfile() {
   // Track profile view analytics (if not the owner)
   useEffect(() => {
     if (userData && username && !isOwner) {
-      axios.post(`${API_BASE_URL}/api/analytics/view/${username}`).catch(() => {});
+      api.post(`/api/analytics/view/${username}`).catch(() => {});
     }
   }, [userData, username, isOwner]);
 
@@ -157,7 +156,7 @@ export default function PublicProfile() {
   const handleLinkClick = (linkId) => {
     if (!linkId) return;
     try {
-      axios.post(`${API_BASE_URL}/api/analytics/click/${linkId}`).catch(() => {});
+      api.post(`/api/analytics/click/${linkId}`).catch(() => {});
     } catch {}
   };
 
