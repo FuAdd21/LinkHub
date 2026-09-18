@@ -135,4 +135,39 @@ test("Links Integration Suite", async (t) => {
     assert.equal(links[0].id, link2Id);
     assert.equal(links[1].id, link1Id);
   });
+
+  await t.test("Display Mode & Social Sync: supports display_mode and syncs LinkedIn to profile", async () => {
+    // Create a LinkedIn link with display_mode 'header_pill'
+    const linkedinRes = await clientA.request("/api/mylinks", {
+      method: "POST",
+      body: {
+        title: "LinkedIn",
+        url: "https://www.linkedin.com/in/testengineer",
+        display_mode: "header_pill",
+      },
+    });
+    assert.ok([200, 201].includes(linkedinRes.status));
+    const createdLink = linkedinRes.data.link;
+    assert.equal(createdLink.display_mode, "header_pill");
+    assert.equal(createdLink.platform, "linkedin");
+
+    // Verify two-way synchronization into clients table
+    const [clientRows] = await db.query("SELECT linkedin FROM clients WHERE email = ?", [userA.email]);
+    assert.equal(clientRows[0].linkedin, "testengineer");
+
+    // Quick toggle display_mode via endpoint
+    const modeRes = await clientA.request(`/api/mylinks/${createdLink.id}/display-mode`, {
+      method: "PUT",
+      body: { display_mode: "rich_card" },
+    });
+    assert.equal(modeRes.status, 200);
+    assert.equal(modeRes.data.display_mode, "rich_card");
+
+    // Verify invalid display_mode rejected
+    const invalidModeRes = await clientA.request(`/api/mylinks/${createdLink.id}/display-mode`, {
+      method: "PUT",
+      body: { display_mode: "invalid_mode" },
+    });
+    assert.equal(invalidModeRes.status, 400);
+  });
 });

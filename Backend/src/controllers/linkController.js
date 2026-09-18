@@ -192,9 +192,9 @@ export const createLink = async (req, res) => {
 
       await connection.commit();
 
-      // Synchronize social handle to user profile in background
+      // Synchronize social handle to user profile
       if (platformInfo.platform && username) {
-        syncLinkToSocialProfile(userId, platformInfo.platform, username);
+        await syncLinkToSocialProfile(userId, platformInfo.platform, username);
       }
 
       res.status(201).json({
@@ -293,9 +293,9 @@ export const updateLink = async (req, res) => {
       return res.status(404).json({ message: "Link not found or not yours" });
     }
 
-    // Synchronize social handle to user profile in background
+    // Synchronize social handle to user profile
     if (platformInfo.platform && username) {
-      syncLinkToSocialProfile(userId, platformInfo.platform, username);
+      await syncLinkToSocialProfile(userId, platformInfo.platform, username);
     }
 
     const [updatedLink] = await db.query("SELECT * FROM links WHERE id = ?", [

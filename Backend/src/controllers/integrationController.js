@@ -339,6 +339,45 @@ export const connectIntegration = async (req, res) => {
     } else if (normalizedProvider === "tiktok") {
       const cleanUser = platformData.handle.replace(/^@/, "");
       await db.query("UPDATE clients SET tiktok = ? WHERE id = ?", [cleanUser, userId]);
+    } else if (normalizedProvider === "linkedin") {
+      const cleanUser = platformData.handle.replace(/^@/, "");
+      await db.query("UPDATE clients SET linkedin = ? WHERE id = ?", [cleanUser, userId]);
+    } else if (normalizedProvider === "twitter" || normalizedProvider === "x") {
+      const cleanUser = platformData.handle.replace(/^@/, "");
+      await db.query("UPDATE clients SET twitter = ? WHERE id = ?", [cleanUser, userId]);
+    }
+
+    // Two-way bridge to unified links table
+    try {
+      const [existingLinks] = await db.query(
+        "SELECT id FROM links WHERE user_id = ? AND (LOWER(platform) = ? OR LOWER(url) LIKE ?)",
+        [userId, normalizedProvider, `%${normalizedProvider}%`]
+      );
+
+      const targetUrl = platformData.profileUrl || (url?.startsWith("http") ? url : `https://${normalizedProvider}.com/${platformData.handle.replace(/^@/, "")}`);
+      const displayMode = ["youtube", "github"].includes(normalizedProvider) ? "rich_card" : "header_pill";
+
+      if (existingLinks.length > 0) {
+        await db.query(
+          "UPDATE links SET display_mode = ?, url = ?, username = ? WHERE id = ?",
+          [displayMode, targetUrl, platformData.handle, existingLinks[0].id]
+        );
+      } else {
+        const [maxPos] = await db.query(
+          "SELECT COALESCE(MAX(position), -1) as maxPos FROM links WHERE user_id = ?",
+          [userId]
+        );
+        const nextPos = (maxPos[0]?.maxPos ?? -1) + 1;
+        const linkTitle = PLATFORM_META[normalizedProvider]?.name || normalizedProvider.toUpperCase();
+
+        await db.query(
+          `INSERT INTO links (user_id, title, url, platform, username, display_mode, position, is_visible)
+           VALUES (?, ?, ?, ?, ?, ?, ?, 1)`,
+          [userId, linkTitle, targetUrl, normalizedProvider, platformData.handle, displayMode, nextPos]
+        );
+      }
+    } catch (linkSyncErr) {
+      console.warn("Unified link sync error during integration connect:", linkSyncErr.message);
     }
 
     res.json({
@@ -381,6 +420,10 @@ export const disconnectIntegration = async (req, res) => {
       await db.query("UPDATE clients SET instagram = NULL WHERE id = ?", [userId]);
     } else if (normalizedProvider === "tiktok") {
       await db.query("UPDATE clients SET tiktok = NULL WHERE id = ?", [userId]);
+    } else if (normalizedProvider === "linkedin") {
+      await db.query("UPDATE clients SET linkedin = NULL WHERE id = ?", [userId]);
+    } else if (normalizedProvider === "twitter" || normalizedProvider === "x") {
+      await db.query("UPDATE clients SET twitter = NULL WHERE id = ?", [userId]);
     }
 
     res.json({
