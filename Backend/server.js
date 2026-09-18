@@ -98,7 +98,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-const startServer = async () => {
+export const startServer = async () => {
   try {
     await initDatabase();
 
@@ -115,10 +115,19 @@ const startServer = async () => {
 
     process.on("SIGINT", () => shutdown("SIGINT"));
     process.on("SIGTERM", () => shutdown("SIGTERM"));
+    return server;
   } catch (error) {
     console.error("Failed to start server:", error);
     process.exit(1);
   }
 };
 
-startServer();
+export { app };
+
+const isMainModule =
+  process.argv[1] &&
+  (process.argv[1].endsWith("server.js") || process.argv[1].endsWith("server"));
+
+if (isMainModule) {
+  startServer();
+}
