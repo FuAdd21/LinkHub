@@ -35,6 +35,16 @@ async function addMissingColumns(connection, tableName, columns) {
   }
 }
 
+async function addMissingIndex(connection, tableName, indexName, indexDefinition) {
+  try {
+    await connection.query(`ALTER TABLE ${tableName} ADD INDEX ${indexName} ${indexDefinition}`);
+  } catch (error) {
+    if (error.code !== "ER_DUP_KEYNAME" && error.errno !== 1061) {
+      console.warn(`Note on index ${indexName}:`, error.message);
+    }
+  }
+}
+
 export const initDatabase = async () => {
   let connection;
 
@@ -42,7 +52,21 @@ export const initDatabase = async () => {
     connection = await db.getConnection();
     console.log("Connected to MySQL.");
 
-    // Create links table with all columns if not exists
+    // 1. Create clients table if not exists
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS clients (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        email VARCHAR(255) NOT NULL UNIQUE,
+        password VARCHAR(255) NOT NULL,
+        phone VARCHAR(50) DEFAULT NULL,
+        username VARCHAR(50) UNIQUE DEFAULT NULL,
+        session_version INT DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // 2. Create links table with all columns if not exists
     await connection.query(`
       CREATE TABLE IF NOT EXISTS links (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -150,6 +174,13 @@ export const initDatabase = async () => {
     ];
 
     await addMissingColumns(connection, "clients", clientColumns);
+
+    // ──── Performance Indexes for analytics and high-frequency queries ────
+    await addMissingIndex(connection, "clicks", "idx_clicks_user_timestamp", "(user_id, timestamp)");
+    await addMissingIndex(connection, "clicks", "idx_clicks_link_timestamp", "(link_id, timestamp)");
+    await addMissingIndex(connection, "profile_views", "idx_views_user_timestamp", "(user_id, timestamp)");
+    await addMissingIndex(connection, "links", "idx_links_user_position", "(user_id, position)");
+    await addMissingIndex(connection, "clients", "idx_clients_email", "(email)");
 
     console.log("Database tables ready.");
   } catch (err) {
