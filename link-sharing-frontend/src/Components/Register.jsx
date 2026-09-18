@@ -42,9 +42,8 @@ export default function Register() {
           password: form.password,
         });
 
-        if (loginRes.data?.token || loginRes.data?.userId) {
+        if (loginRes.data?.userId) {
           login(
-            loginRes.data.token,
             {
               id: loginRes.data.userId,
               name: form.name,

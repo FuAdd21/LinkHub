@@ -9,14 +9,8 @@ const dashboardCache = {
 };
 
 export function getDashboardAuthConfig() {
-  const token = localStorage.getItem("token");
   return {
     withCredentials: true,
-    headers: token
-      ? {
-          Authorization: `Bearer ${token}`,
-        }
-      : {},
   };
 }
 

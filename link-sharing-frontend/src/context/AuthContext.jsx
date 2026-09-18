@@ -6,14 +6,9 @@ import toast from "react-hot-toast";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
+  const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    const token = localStorage.getItem("token");
-    if (token && isTokenExpired(token)) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      return false;
-    }
-    return Boolean(token || localStorage.getItem("user"));
+    return Boolean(localStorage.getItem("user"));
   });
 
   const [user, setUser] = useState(() => {
@@ -42,11 +37,16 @@ export const AuthProvider = ({ children }) => {
         }
       })
       .catch(() => {
-        const token = localStorage.getItem("token");
-        if (!token && mounted) {
+        if (mounted) {
           setIsAuthenticated(false);
           setUser(null);
           localStorage.removeItem("user");
+          localStorage.removeItem("csrf_token");
+        }
+      })
+      .finally(() => {
+        if (mounted) {
+          setLoading(false);
         }
       });
 
@@ -55,8 +55,16 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  const login = useCallback((token, userData, csrfToken) => {
-    if (token) localStorage.setItem("token", token);
+  const login = useCallback((arg1, arg2, arg3) => {
+    let userData = null;
+    let csrfToken = null;
+    if (typeof arg1 === "string" && typeof arg2 === "object") {
+      userData = arg2;
+      csrfToken = arg3;
+    } else {
+      userData = arg1;
+      csrfToken = arg2;
+    }
     if (csrfToken) localStorage.setItem("csrf_token", csrfToken);
     if (userData) localStorage.setItem("user", JSON.stringify(userData));
     setIsAuthenticated(true);
@@ -82,7 +90,7 @@ export const AuthProvider = ({ children }) => {
   }, [logout]);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, loading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

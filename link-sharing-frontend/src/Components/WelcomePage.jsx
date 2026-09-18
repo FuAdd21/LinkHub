@@ -1,14 +1,15 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import LinkHubLogo from "./common/LinkHubLogo";
 import toast from "react-hot-toast";
+import { AuthContext } from "../context/AuthContext";
 
 export default function WelcomePage() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useContext(AuthContext);
 
   const handleStart = () => {
-    const token = localStorage.getItem("token");
-    if (token) {
+    if (isAuthenticated) {
       navigate("/dashboard");
     } else {
       navigate("/register");

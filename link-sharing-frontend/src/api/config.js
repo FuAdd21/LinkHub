@@ -30,17 +30,11 @@ function getCookie(name) {
 export const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
+  timeout: 10000,
 });
 
-// Attach token and CSRF token to requests
+// Attach CSRF token on state-modifying requests
 api.interceptors.request.use((config) => {
-  // 1. Bearer token fallback if present
-  const token = localStorage.getItem("token");
-  if (token && !config.headers.Authorization) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  // 2. Attach CSRF token on state-modifying requests
   const method = (config.method || "get").toLowerCase();
   if (["post", "put", "delete", "patch"].includes(method)) {
     const csrfToken = getCookie("csrf_token") || localStorage.getItem("csrf_token");

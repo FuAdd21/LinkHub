@@ -146,7 +146,6 @@ export const login = async (req, res) => {
       userId: user.id,
       name: user.name,
       username: user.username,
-      token,
       csrfToken,
     });
   } catch (err) {

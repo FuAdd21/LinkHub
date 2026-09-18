@@ -32,7 +32,7 @@ export default function Login() {
         name: res.data.name,
         username: res.data.username,
       };
-      login(res.data.token, userData, res.data.csrfToken);
+      login(userData, res.data.csrfToken);
       toast.success("Identity verified. Welcome back.");
 
 
