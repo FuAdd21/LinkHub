@@ -10,9 +10,9 @@ export const getPublicProfile = async (req, res) => {
       return res.status(400).json({ message: "Username is required" });
     }
 
-    // Fetch user by username
+    // Fetch user by username (public projection — never load email or credentials)
     const [users] = await db.query(
-      `SELECT id, name, username, email, bio, avatar, banner_url,
+      `SELECT id, name, username, bio, avatar, banner_url,
               COALESCE(theme, 'Obsidian') as theme,
               COALESCE(accent_color, '#c6f035') as accent_color,
               COALESCE(surface_color, '#11120F') as surface_color,
