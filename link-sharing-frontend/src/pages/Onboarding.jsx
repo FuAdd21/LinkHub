@@ -1,9 +1,6 @@
 import React, { useState, useRef, useContext, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
-import toast from "react-hot-toast";
-import { AuthContext } from "../context/AuthContext";
-import { API_BASE_URL, assetUrl } from "../api/config.js";
+import { api, assetUrl } from "../api/config.js";
 import LinkHubLogo from "../Components/common/LinkHubLogo";
 import { Check } from "lucide-react";
 
@@ -24,7 +21,6 @@ export default function Onboarding() {
 
   const fileInputRef = useRef(null);
   const debounceRef = useRef(null);
-  const token = localStorage.getItem("token");
 
   // Check username availability
   const checkUsernameApi = useCallback(async (clean) => {
@@ -33,7 +29,7 @@ export default function Onboarding() {
       return;
     }
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/profile/check/${clean}`);
+      const res = await api.get(`/api/profile/check/${clean}`);
       setAddressStatus(res.data.available ? "available" : "taken");
     } catch {
       setAddressStatus("available");
@@ -83,31 +79,28 @@ export default function Onboarding() {
     }
 
     setLoading(true);
-    const headers = { Authorization: `Bearer ${token}` };
 
     try {
       // 1. Update Display Name and Username
-      await axios.put(
-        `${API_BASE_URL}/api/profile/username`,
-        { username: cleanUser },
-        { headers }
-      );
+      await api.put("/api/profile/username", { username: cleanUser });
 
       // 2. Set Bio, Theme, and Category
-      await axios.put(
-        `${API_BASE_URL}/api/profile`,
-        { bio, theme: "dark-pro", category: selectedRole, name: displayName },
-        { headers }
-      );
+      await api.put("/api/profile", {
+        bio,
+        theme: "dark-pro",
+        category: selectedRole,
+        name: displayName,
+      });
 
       // 3. Upload Avatar if selected
       if (avatarFile) {
         const formData = new FormData();
         formData.append("avatar", avatarFile);
-        await axios.put(`${API_BASE_URL}/api/users/avatar`, formData, {
-          headers: { ...headers, "Content-Type": "multipart/form-data" },
+        await api.put("/api/users/avatar", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
         });
       }
+
 
       // Update local storage & auth context
       const updatedUser = {

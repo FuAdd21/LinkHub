@@ -1,9 +1,7 @@
 import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import axios from "axios";
-import toast from "react-hot-toast";
-import { API_BASE_URL } from "../api/config.js";
+import { api } from "../api/config.js";
 import LinkHubLogo from "./common/LinkHubLogo";
 import { FaGoogle, FaApple } from "react-icons/fa";
 
@@ -24,7 +22,7 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await axios.post(`${API_BASE_URL}/login`, {
+      const res = await api.post("/login", {
         email,
         password,
       });
@@ -33,8 +31,9 @@ export default function Login() {
         name: res.data.name,
         username: res.data.username,
       };
-      login(res.data.token, userData);
+      login(res.data.token, userData, res.data.csrfToken);
       toast.success("Identity verified. Welcome back.");
+
 
       if (res.data.username) {
         navigate("/dashboard");

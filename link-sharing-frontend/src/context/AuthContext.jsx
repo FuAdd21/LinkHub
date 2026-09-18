@@ -1,6 +1,6 @@
 // src/context/AuthContext.jsx
 import React, { createContext, useState, useEffect, useCallback } from "react";
-import { isTokenExpired, setLogoutHandler } from "../api/config.js";
+import { api, isTokenExpired, setLogoutHandler } from "../api/config.js";
 import toast from "react-hot-toast";
 
 export const AuthContext = createContext();
@@ -8,12 +8,12 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     const token = localStorage.getItem("token");
-    if (!token || isTokenExpired(token)) {
+    if (token && isTokenExpired(token)) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       return false;
     }
-    return true;
+    return Boolean(token || localStorage.getItem("user"));
   });
 
   const [user, setUser] = useState(() => {
@@ -29,19 +29,50 @@ export const AuthProvider = ({ children }) => {
     return null;
   });
 
-  const login = useCallback((token, userData) => {
-    localStorage.setItem("token", token);
-    localStorage.setItem("user", JSON.stringify(userData));
-    setIsAuthenticated(true);
-    setUser(userData);
+  // Verify / hydrate session with server on initial mount
+  useEffect(() => {
+    let mounted = true;
+    api
+      .get("/api/users/me")
+      .then((res) => {
+        if (mounted && res.data) {
+          setUser(res.data);
+          setIsAuthenticated(true);
+          localStorage.setItem("user", JSON.stringify(res.data));
+        }
+      })
+      .catch(() => {
+        const token = localStorage.getItem("token");
+        if (!token && mounted) {
+          setIsAuthenticated(false);
+          setUser(null);
+          localStorage.removeItem("user");
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const logout = useCallback(() => {
+  const login = useCallback((token, userData, csrfToken) => {
+    if (token) localStorage.setItem("token", token);
+    if (csrfToken) localStorage.setItem("csrf_token", csrfToken);
+    if (userData) localStorage.setItem("user", JSON.stringify(userData));
+    setIsAuthenticated(true);
+    setUser(userData || null);
+  }, []);
+
+  const logout = useCallback((notify = true) => {
+    api.post("/logout").catch(() => {});
     localStorage.removeItem("token");
+    localStorage.removeItem("csrf_token");
     localStorage.removeItem("user");
     setIsAuthenticated(false);
     setUser(null);
-    toast.error("Session expired. Please log in again.");
+    if (notify) {
+      toast.error("Session ended. Please log in again.");
+    }
   }, []);
 
   // Register the logout handler for the Axios interceptor
@@ -56,3 +87,4 @@ export const AuthProvider = ({ children }) => {
     </AuthContext.Provider>
   );
 };
+

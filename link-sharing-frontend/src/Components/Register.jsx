@@ -1,8 +1,6 @@
 import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import axios from "axios";
-import toast from "react-hot-toast";
-import { API_BASE_URL } from "../api/config.js";
+import { api } from "../api/config.js";
 import { AuthContext } from "../context/AuthContext";
 import LinkHubLogo from "./common/LinkHubLogo";
 import { Check } from "lucide-react";
@@ -34,21 +32,25 @@ export default function Register() {
 
     try {
       // 1. Register user
-      await axios.post(`${API_BASE_URL}/register`, form);
+      await api.post("/register", form);
 
       // 2. Automatically log in to get session token
       try {
-        const loginRes = await axios.post(`${API_BASE_URL}/login`, {
+        const loginRes = await api.post("/login", {
           email: form.email,
           password: form.password,
         });
 
-        if (loginRes.data?.token) {
-          login(loginRes.data.token, {
-            id: loginRes.data.userId,
-            name: form.name,
-            username: loginRes.data.username || "",
-          });
+        if (loginRes.data?.token || loginRes.data?.userId) {
+          login(
+            loginRes.data.token,
+            {
+              id: loginRes.data.userId,
+              name: form.name,
+              username: loginRes.data.username || "",
+            },
+            loginRes.data.csrfToken
+          );
           toast.success("Account created! Let's set up your profile.");
           navigate("/create-profile");
           return;
@@ -56,6 +58,7 @@ export default function Register() {
       } catch {
         // If auto-login fails, send to login page
       }
+
 
       toast.success("Account created successfully! Please sign in.");
       navigate("/login");

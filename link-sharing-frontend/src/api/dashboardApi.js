@@ -11,11 +11,15 @@ const dashboardCache = {
 export function getDashboardAuthConfig() {
   const token = localStorage.getItem("token");
   return {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    withCredentials: true,
+    headers: token
+      ? {
+          Authorization: `Bearer ${token}`,
+        }
+      : {},
   };
 }
+
 
 export function readDashboardSnapshot() {
   const hasFreshData =

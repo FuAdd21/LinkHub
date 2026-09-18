@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import axios from "axios";
 import toast from "react-hot-toast";
-import { API_BASE_URL, getDashboardAuthConfig } from "../../api/dashboardApi";
+import { api } from "../../api/config";
 import { getAvatarUrl, getBannerUrl } from "../../Components/dashboard/dashboardUtils";
 
 export default function DashboardProfile({ userData, onRefresh, onUserChange }) {
@@ -27,13 +26,9 @@ export default function DashboardProfile({ userData, onRefresh, onUserChange }) 
     setLoading(true);
     const loadingToast = toast.loading("Saving changes...");
     try {
-      const { data } = await axios.put(
-        `${API_BASE_URL}/api/profile`,
-        formData,
-        getDashboardAuthConfig()
-      );
-      onUserChange(data.user);
-      onRefresh();
+      const { data } = await api.put("/api/profile", formData);
+      if (onUserChange && data.user) onUserChange(data.user);
+      if (onRefresh) onRefresh();
       toast.success("Profile materialized successfully", { id: loadingToast });
     } catch (err) {
       toast.error(err.response?.data?.error || "Profile sync error", { id: loadingToast });
@@ -51,16 +46,11 @@ export default function DashboardProfile({ userData, onRefresh, onUserChange }) 
 
     const loadingToast = toast.loading(`Uploading ${type}...`);
     try {
-      const response = await axios.post(
-        `${API_BASE_URL}/api/profile/${type}`,
-        data,
-        {
-          ...getDashboardAuthConfig(),
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
-      onUserChange(response.data.user);
-      onRefresh();
+      const response = await api.put(`/api/users/${type}`, data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      if (onUserChange && response.data.user) onUserChange(response.data.user);
+      if (onRefresh) onRefresh();
       toast.success(`${type.charAt(0).toUpperCase() + type.slice(1)} uploaded`, { id: loadingToast });
     } catch (err) {
       toast.error(`Upload failed`, { id: loadingToast });

@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
 import toast from "react-hot-toast";
 import { Camera, Save, X, Check, AlertCircle, Loader2 } from "lucide-react";
-import { API_BASE_URL } from "../api/config.js";
+import { api, API_BASE_URL } from "../api/config.js";
 
 const THEMES = [
   { id: "dark-pro", name: "Dark Pro", color: "#1a1a1a" },
@@ -29,7 +28,6 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSaveSuccess }) => {
   const fileInputRef = useRef(null);
 
   const [saving, setSaving] = useState(false);
-  const token = localStorage.getItem("token");
 
   useEffect(() => {
     if (userData && isOpen) {
@@ -57,7 +55,7 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSaveSuccess }) => {
 
     setUsernameStatus("checking");
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/profile/check/${clean}`);
+      const res = await api.get(`/api/profile/check/${clean}`);
       setUsernameStatus(res.data.available ? "available" : "taken");
     } catch {
       setUsernameStatus(null);
@@ -87,33 +85,25 @@ const EditProfileModal = ({ isOpen, onClose, userData, onSaveSuccess }) => {
     }
 
     setSaving(true);
-    const headers = { Authorization: `Bearer ${token}` };
 
     try {
       // 1. Save Username (if changed)
       if (username !== userData?.username) {
-        await axios.put(
-          `${API_BASE_URL}/api/profile/username`,
-          { username },
-          { headers },
-        );
+        await api.put("/api/profile/username", { username });
       }
 
       // 2. Save Bio and Theme
-      await axios.put(
-        `${API_BASE_URL}/api/profile`,
-        { bio, theme },
-        { headers },
-      );
+      await api.put("/api/profile", { bio, theme });
 
       // 3. Upload Avatar
       if (avatarFile) {
         const formData = new FormData();
         formData.append("avatar", avatarFile);
-        await axios.put(`${API_BASE_URL}/api/users/avatar`, formData, {
-          headers: { ...headers, "Content-Type": "multipart/form-data" },
+        await api.put("/api/users/avatar", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
         });
       }
+
 
       toast.success("Profile updated successfully!");
       onSaveSuccess(username); // Pass back the potentially new username

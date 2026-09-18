@@ -17,22 +17,41 @@ export function assetUrl(path) {
   return `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
+function getCookie(name) {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
+  return match ? decodeURIComponent(match[2]) : null;
+}
+
 /**
- * Shared Axios instance with auth header and 401/403 interceptor.
- * Import this instead of raw axios for authenticated API calls.
+ * Shared Axios instance with auth header, cookies, CSRF, and 401/403 interceptor.
+ * Import this instead of raw axios for API calls.
  */
 export const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
 });
 
-// Attach token to every request
+// Attach token and CSRF token to requests
 api.interceptors.request.use((config) => {
+  // 1. Bearer token fallback if present
   const token = localStorage.getItem("token");
-  if (token) {
+  if (token && !config.headers.Authorization) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
+  // 2. Attach CSRF token on state-modifying requests
+  const method = (config.method || "get").toLowerCase();
+  if (["post", "put", "delete", "patch"].includes(method)) {
+    const csrfToken = getCookie("csrf_token") || localStorage.getItem("csrf_token");
+    if (csrfToken) {
+      config.headers["X-CSRF-Token"] = csrfToken;
+    }
+  }
+
   return config;
 });
+
 
 // Global 401/403 interceptor — auto-logout on expired/invalid token
 let logoutHandler = null;
