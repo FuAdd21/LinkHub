@@ -121,18 +121,47 @@ export const login = async (req, res) => {
       { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },
     );
 
+    // Set secure httpOnly cookie and readable CSRF token cookie
+    const isProd = process.env.NODE_ENV === "production";
+    const csrfToken = crypto.randomBytes(24).toString("hex");
+
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.cookie("csrf_token", csrfToken, {
+      httpOnly: false,
+      secure: isProd,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
     res.json({
       message: "Login successful",
       userId: user.id,
       name: user.name,
       username: user.username,
       token,
+      csrfToken,
     });
   } catch (err) {
     console.error("Login error:", err);
     res.status(500).json({ message: "Login failed. Please try again." });
   }
 };
+
+export const logout = async (req, res) => {
+  const isProd = process.env.NODE_ENV === "production";
+  res.clearCookie("token", { path: "/", httpOnly: true, secure: isProd, sameSite: "lax" });
+  res.clearCookie("csrf_token", { path: "/", httpOnly: false, secure: isProd, sameSite: "lax" });
+  res.json({ message: "Logged out successfully" });
+};
+
 
 export const forgotPassword = async (req, res) => {
   try {

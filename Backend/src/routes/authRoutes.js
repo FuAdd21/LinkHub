@@ -3,10 +3,12 @@ const router = express.Router();
 import {
   register,
   login,
+  logout,
   forgotPassword,
   resetPassword,
 } from "../controllers/authController.js";
 import { validate } from "../middleware/validator.js";
+import { authRateLimiter } from "../middleware/rateLimiter.js";
 
 const registerRules = {
   name: { required: true, minLength: 2, label: "Name" },
@@ -50,11 +52,11 @@ const resetPasswordRules = {
   },
 };
 
-router.post("/register", validate(registerRules), register);
-router.post("/login", validate(loginRules), login);
-router.post("/forgot-password", validate(forgotPasswordRules), forgotPassword);
-router.post("/reset-password", validate(resetPasswordRules), resetPassword);
-router.post("/api/forgot-password", validate(forgotPasswordRules), forgotPassword);
-router.post("/api/reset-password", validate(resetPasswordRules), resetPassword);
+router.post("/register", authRateLimiter, validate(registerRules), register);
+router.post("/login", authRateLimiter, validate(loginRules), login);
+router.post("/logout", logout);
+router.post("/forgot-password", authRateLimiter, validate(forgotPasswordRules), forgotPassword);
+router.post("/reset-password", authRateLimiter, validate(resetPasswordRules), resetPassword);
 
 export default router;
+

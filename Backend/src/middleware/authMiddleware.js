@@ -2,15 +2,34 @@ import jwt from "jsonwebtoken";
 import "dotenv/config";
 
 export const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  const [scheme, token] = authHeader?.split(" ") ?? [];
-
   if (!process.env.JWT_SECRET) {
     return res.status(500).json({ message: "JWT configuration is missing" });
   }
 
-  if (scheme !== "Bearer" || !token) {
+  // 1. Extract token from cookie (primary) or Bearer header (fallback)
+  const authHeader = req.headers.authorization;
+  const [scheme, headerToken] = authHeader?.split(" ") ?? [];
+
+  const cookieToken = req.cookies?.token;
+  const token = cookieToken || (scheme === "Bearer" ? headerToken : null);
+  const isCookieAuth = Boolean(cookieToken);
+
+  if (!token) {
     return res.status(401).json({ message: "No token provided", code: "NO_TOKEN" });
+  }
+
+  // 2. If authenticated via cookie on state-modifying requests, enforce CSRF
+  const isStateModifying = ["POST", "PUT", "DELETE", "PATCH"].includes(req.method);
+  if (isCookieAuth && isStateModifying) {
+    const clientCsrf = req.headers["x-csrf-token"];
+    const cookieCsrf = req.cookies?.csrf_token;
+
+    if (!clientCsrf || !cookieCsrf || clientCsrf !== cookieCsrf) {
+      return res.status(403).json({
+        message: "CSRF token validation failed",
+        code: "CSRF_INVALID",
+      });
+    }
   }
 
   jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
@@ -25,3 +44,4 @@ export const authenticateToken = (req, res, next) => {
     next();
   });
 };
+

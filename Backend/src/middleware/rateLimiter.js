@@ -10,10 +10,24 @@ export const socialRateLimiter = rateLimit({
   message: {
     error: "Too many requests. Please try again later.",
   },
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  standardHeaders: true,
+  legacyHeaders: false,
   skip: (req) => {
-    // Skip rate limiting for localhost during development
     return process.env.NODE_ENV === "development" && isLocalRequest(req);
   },
 });
+
+export const authRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // Max 20 authentication attempts per IP per window
+  message: {
+    message: "Too many authentication attempts. Please try again later.",
+    code: "RATE_LIMITED",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skip: (req) => {
+    return process.env.NODE_ENV === "development" && isLocalRequest(req);
+  },
+});
+

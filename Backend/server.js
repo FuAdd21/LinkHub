@@ -1,5 +1,7 @@
 import express, { json } from "express";
 import cors from "cors";
+import helmet from "helmet";
+import cookieParser from "cookie-parser";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import "dotenv/config";
@@ -22,18 +24,42 @@ const PORT = process.env.PORT || 3002;
 
 app.set("trust proxy", 1);
 
-// Middleware
+// Security HTTP Headers
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
+
+// Cookie Parser
+app.use(cookieParser());
+
+// CORS with credentials support
+const allowedOrigins = [
+  process.env.FRONTEND_URL || "http://localhost:5173",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+];
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  }),
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(null, true);
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-CSRF-Token"],
+  })
 );
 
 app.use(json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 app.use("/uploads", express.static(join(__dirname, "uploads")));
+
 
 // Routes
 app.use("/", authRoutes);
