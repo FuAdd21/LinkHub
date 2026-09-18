@@ -146,6 +146,7 @@ export const initDatabase = async () => {
       ["tiktok", "VARCHAR(100) DEFAULT NULL"],
       ["reset_token", "VARCHAR(255) DEFAULT NULL"],
       ["reset_token_expires", "DATETIME DEFAULT NULL"],
+      ["session_version", "INT DEFAULT 1"],
     ];
 
     await addMissingColumns(connection, "clients", clientColumns);

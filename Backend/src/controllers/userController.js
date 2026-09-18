@@ -3,6 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import { db } from "../config/db.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -306,7 +307,33 @@ export const changePassword = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await db.query("UPDATE clients SET password = ? WHERE id = ?", [hashedPassword, userId]);
+    await db.query(
+      "UPDATE clients SET password = ?, session_version = COALESCE(session_version, 1) + 1 WHERE id = ?",
+      [hashedPassword, userId]
+    );
+
+    const [updatedUsers] = await db.query(
+      "SELECT id, email, session_version FROM clients WHERE id = ?",
+      [userId]
+    );
+    const updatedUser = updatedUsers[0];
+    const token = jwt.sign(
+      {
+        id: updatedUser.id,
+        email: updatedUser.email,
+        sessionVersion: updatedUser.session_version || 1,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
+    );
+    const isProd = process.env.NODE_ENV === "production";
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
     res.json({ message: "Password updated successfully" });
   } catch (err) {

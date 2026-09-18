@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import "dotenv/config";
+import { db } from "../config/db.js";
 
 export const authenticateToken = (req, res, next) => {
   if (!process.env.JWT_SECRET) {
@@ -32,7 +33,7 @@ export const authenticateToken = (req, res, next) => {
     }
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+  jwt.verify(token, process.env.JWT_SECRET, async (err, user) => {
     if (err) {
       if (err.name === "TokenExpiredError") {
         return res.status(401).json({ message: "Session expired. Please log in again.", code: "TOKEN_EXPIRED" });
@@ -40,8 +41,28 @@ export const authenticateToken = (req, res, next) => {
       return res.status(403).json({ message: "Invalid token. Please log in again.", code: "TOKEN_INVALID" });
     }
 
-    req.user = user;
-    next();
+    try {
+      const [rows] = await db.query(
+        "SELECT session_version FROM clients WHERE id = ? LIMIT 1",
+        [user.id]
+      );
+      if (rows.length === 0) {
+        return res.status(401).json({ message: "User not found", code: "USER_NOT_FOUND" });
+      }
+      const currentVersion = rows[0].session_version || 1;
+      const tokenVersion = user.sessionVersion || 1;
+      if (tokenVersion !== currentVersion) {
+        return res.status(401).json({
+          message: "Session has been invalidated. Please log in again.",
+          code: "SESSION_REVOKED",
+        });
+      }
+      req.user = user;
+      next();
+    } catch (dbErr) {
+      console.error("Auth session verification error:", dbErr);
+      return res.status(500).json({ message: "Internal server error during authentication" });
+    }
   });
 };
 
