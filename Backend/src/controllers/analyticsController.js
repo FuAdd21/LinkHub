@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { db } from "../config/db.js";
 
-function hashIp(ip) {
+export function hashIp(ip) {
   if (!ip) return null;
   const salt = process.env.IP_SALT;
   if (!salt && process.env.NODE_ENV === "production") {
@@ -11,7 +11,7 @@ function hashIp(ip) {
   return crypto.createHash("sha256").update(ip + effectiveSalt).digest("hex").slice(0, 32);
 }
 
-function detectDevice(userAgent = "") {
+export function detectDevice(userAgent = "") {
   if (/tablet|ipad/i.test(userAgent)) {
     return "tablet";
   }

@@ -441,7 +441,7 @@ export default function PublicProfile() {
             return (
               <a
                 key={link.id}
-                href={link.url}
+                href={link.id ? `${API_BASE_URL}/r/${link.id}` : link.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => handleLinkClick(link.id)}

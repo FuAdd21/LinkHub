@@ -18,6 +18,7 @@ import socialRoutes from "./src/routes/socialRoutes.js";
 import profileRoutes from "./src/routes/profileRoutes.js";
 import analyticsRoutes from "./src/routes/analyticsRoutes.js";
 import integrationRoutes from "./src/routes/integrationRoutes.js";
+import { handleLinkRedirect } from "./src/controllers/redirectController.js";
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -70,6 +71,9 @@ app.use("/api/socials", socialRoutes);
 app.use("/api", profileRoutes);
 app.use("/api", analyticsRoutes);
 app.use("/api/integrations", integrationRoutes);
+
+// Server-side redirect & click tracker
+app.get("/r/:linkId", handleLinkRedirect);
 
 // Health check
 app.get("/health", (req, res) => {

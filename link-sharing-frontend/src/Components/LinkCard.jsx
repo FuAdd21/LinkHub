@@ -11,6 +11,7 @@ import {
   FaSpotify,
   FaFacebook,
 } from "react-icons/fa";
+import { API_BASE_URL } from "../api/config.js";
 
 const PLATFORM_CONFIG = {
   youtube: {
@@ -68,7 +69,7 @@ const LinkCard = ({ link, index, onTrackClick }) => {
 
   return (
     <motion.a
-      href={link.url}
+      href={link.id ? `${API_BASE_URL}/r/${link.id}` : link.url}
       target="_blank"
       rel="noopener noreferrer"
       onClick={handleClick}
