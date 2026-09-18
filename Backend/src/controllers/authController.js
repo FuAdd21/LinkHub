@@ -100,9 +100,10 @@ export const login = async (req, res) => {
       return res.status(500).json({ message: "Server configuration error" });
     }
 
-    const [results] = await db.query("SELECT * FROM clients WHERE email = ?", [
-      email?.trim().toLowerCase(),
-    ]);
+    const [results] = await db.query(
+      "SELECT id, name, username, email, password, session_version FROM clients WHERE email = ?",
+      [email?.trim().toLowerCase()]
+    );
 
     if (results.length === 0) {
       return res.status(401).json({ message: "Invalid email or password" });
