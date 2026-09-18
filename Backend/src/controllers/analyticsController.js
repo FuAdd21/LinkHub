@@ -3,8 +3,12 @@ import { db } from "../config/db.js";
 
 function hashIp(ip) {
   if (!ip) return null;
-  const salt = process.env.IP_SALT || "linkhub_privacy_salt";
-  return crypto.createHash("sha256").update(ip + salt).digest("hex").slice(0, 32);
+  const salt = process.env.IP_SALT;
+  if (!salt && process.env.NODE_ENV === "production") {
+    throw new Error("CRITICAL: IP_SALT environment variable is required in production");
+  }
+  const effectiveSalt = salt || "linkhub_dev_ip_salt_not_for_production";
+  return crypto.createHash("sha256").update(ip + effectiveSalt).digest("hex").slice(0, 32);
 }
 
 function detectDevice(userAgent = "") {
@@ -21,13 +25,12 @@ function detectDevice(userAgent = "") {
 export const trackClick = async (req, res) => {
   try {
     const { linkId } = req.params;
-    const rawIp =
-      req.headers["x-forwarded-for"] || req.connection?.remoteAddress || null;
+    const clientIp = req.ip || null;
     const userAgent = req.headers["user-agent"] || "";
     const referrer = req.headers["referer"] || null;
 
     const device = detectDevice(userAgent);
-    const ip = hashIp(rawIp);
+    const ip = hashIp(clientIp);
 
     // Verify the link exists
     const [links] = await db.query(
@@ -85,13 +88,13 @@ export const trackProfileView = async (req, res) => {
     }
 
     const userId = users[0].id;
-    const rawIp =
-      req.headers["x-forwarded-for"] || req.connection?.remoteAddress || null;
+    const clientIp = req.ip || null;
     const userAgent = req.headers["user-agent"] || "";
     const referrer = req.headers["referer"] || null;
 
     const device = detectDevice(userAgent);
-    const ip = hashIp(rawIp);
+    const ip = hashIp(clientIp);
+
 
     // Deduplicate view within 5 minutes
     if (ip) {
@@ -199,11 +202,19 @@ export const getAnalytics = async (req, res) => {
       return delta >= 0 ? `+${delta}%` : `${delta}%`;
     };
 
+    const currViewsCount = currViewsRes[0]?.c || 0;
+    const prevViewsCount = prevViewsRes[0]?.c || 0;
+    const currClicksCount = currClicksRes[0]?.c || 0;
+    const prevClicksCount = prevClicksRes[0]?.c || 0;
+
+    const currRateVal = currViewsCount > 0 ? (currClicksCount / currViewsCount) * 100 : 0;
+    const prevRateVal = prevViewsCount > 0 ? (prevClicksCount / prevViewsCount) * 100 : 0;
+
     const deltas = {
-      views: calcDelta(currViewsRes[0]?.c || 0, prevViewsRes[0]?.c || 0),
-      clicks: calcDelta(currClicksRes[0]?.c || 0, prevClicksRes[0]?.c || 0),
-      rate: "+2.4%",
-      visitors: calcDelta(currViewsRes[0]?.c || 0, prevViewsRes[0]?.c || 0),
+      views: calcDelta(currViewsCount, prevViewsCount),
+      clicks: calcDelta(currClicksCount, prevClicksCount),
+      rate: calcDelta(currRateVal, prevRateVal),
+      visitors: calcDelta(currViewsCount, prevViewsCount),
     };
 
     // Top links by clicks with conversion rate
@@ -225,7 +236,7 @@ export const getAnalytics = async (req, res) => {
         totalViews > 0
           ? ((Number(l.clicks) / totalViews) * 100).toFixed(1) + "%"
           : "0.0%",
-      change: "+12.4%",
+      change: "0.0%",
     }));
 
     // Clicks & views by device
@@ -253,10 +264,11 @@ export const getAnalytics = async (req, res) => {
     });
 
     const deviceMix = {
-      mobile: totalDeviceCount > 0 ? Math.round((deviceMap.mobile / totalDeviceCount) * 100) : 68,
-      desktop: totalDeviceCount > 0 ? Math.round((deviceMap.desktop / totalDeviceCount) * 100) : 23,
-      tablet: totalDeviceCount > 0 ? Math.round((deviceMap.tablet / totalDeviceCount) * 100) : 9,
+      mobile: totalDeviceCount > 0 ? Math.round((deviceMap.mobile / totalDeviceCount) * 100) : 0,
+      desktop: totalDeviceCount > 0 ? Math.round((deviceMap.desktop / totalDeviceCount) * 100) : 0,
+      tablet: totalDeviceCount > 0 ? Math.round((deviceMap.tablet / totalDeviceCount) * 100) : 0,
     };
+
 
     // Today's clicks & views
     const [todayClicksResult] = await db.query(

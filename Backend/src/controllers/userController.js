@@ -13,19 +13,29 @@ const bannerUploadDir = path.join(__dirname, "../../uploads/banners");
 fs.mkdirSync(avatarUploadDir, { recursive: true });
 fs.mkdirSync(bannerUploadDir, { recursive: true });
 
+const SAFE_IMAGE_MIME_TYPES = {
+  "image/jpeg": ".jpg",
+  "image/png": ".png",
+  "image/webp": ".webp",
+  "image/gif": ".gif",
+};
+
 const imageOnlyFileFilter = (req, file, cb) => {
-  if (!file.mimetype?.startsWith("image/")) {
-    cb(new Error("Only image files are allowed"));
+  const mime = file.mimetype?.toLowerCase();
+  // Strictly whitelist safe raster image formats; reject SVG to prevent stored XSS
+  if (!mime || !SAFE_IMAGE_MIME_TYPES[mime]) {
+    cb(new Error("Only JPEG, PNG, WEBP, and GIF images are allowed. SVGs are not permitted."));
     return;
   }
-
   cb(null, true);
 };
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, avatarUploadDir),
-  filename: (req, file, cb) =>
-    cb(null, `${req.user.id}${path.extname(file.originalname)}`),
+  filename: (req, file, cb) => {
+    const ext = SAFE_IMAGE_MIME_TYPES[file.mimetype?.toLowerCase()] || ".png";
+    cb(null, `avatar_${req.user.id}_${Date.now()}${ext}`);
+  },
 });
 
 export const upload = multer({
@@ -36,8 +46,10 @@ export const upload = multer({
 
 const bannerStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, bannerUploadDir),
-  filename: (req, file, cb) =>
-    cb(null, `${req.user.id}${path.extname(file.originalname)}`),
+  filename: (req, file, cb) => {
+    const ext = SAFE_IMAGE_MIME_TYPES[file.mimetype?.toLowerCase()] || ".png";
+    cb(null, `banner_${req.user.id}_${Date.now()}${ext}`);
+  },
 });
 
 export const uploadBanner = multer({
@@ -45,6 +57,7 @@ export const uploadBanner = multer({
   fileFilter: imageOnlyFileFilter,
   limits: { fileSize: 8 * 1024 * 1024 },
 });
+
 
 export const updateAvatar = async (req, res) => {
   try {
