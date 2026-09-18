@@ -291,44 +291,29 @@ export default function DashboardLinks({
     <div className="flex flex-col xl:flex-row gap-8 pb-12">
       {/* Center Column: Links Editor */}
       <div className="flex-1 min-w-0 space-y-5">
-        {/* Top Section */}
-        <div>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] uppercase font-mono tracking-widest text-[#c6f035]">
-                Command Center
-              </p>
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white mt-0.5">
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
                 Links
               </h1>
+              <span className="px-2.5 py-0.5 rounded-full bg-white/5 border border-white/10 text-[11px] font-mono font-semibold text-[#c6f035]">
+                {activeCount} active
+              </span>
             </div>
-            <div className="hidden sm:block text-xs font-mono text-slate-500">
-              linkhub.io/{userData?.username || "user"}
-            </div>
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
+              Add, reorder, and organize your destination links and social pills.
+            </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3">
-            <div>
-              <p className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">
-                Workspace
-              </p>
-              <h2 className="text-lg sm:text-xl font-bold text-white">
-                Your links
-              </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                <span className="sm:hidden text-slate-400 font-mono">{activeCount} active links · </span>
-                Reorder, edit, and publish destinations.
-              </p>
-            </div>
-
-            <button
-              onClick={handleOpenCreate}
-              className="px-4 py-2.5 rounded-lg bg-[#c6f035] text-[#0B0A07] font-bold text-xs hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-lg shadow-[#c6f035]/10"
-            >
-              <Plus className="w-4 h-4 stroke-[3]" />
-              Add link
-            </button>
-          </div>
+          <button
+            onClick={handleOpenCreate}
+            className="px-4 py-2.5 rounded-lg bg-[#c6f035] text-[#0B0A07] font-bold text-xs hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-lg shadow-[#c6f035]/10"
+          >
+            <Plus className="w-4 h-4 stroke-[3]" />
+            Add link
+          </button>
         </div>
 
         {/* Status Notification Banner */}

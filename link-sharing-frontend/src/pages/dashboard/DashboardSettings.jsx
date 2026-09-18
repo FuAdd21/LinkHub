@@ -184,32 +184,14 @@ export default function DashboardSettings({ userData, onRefresh, onUserChange, o
 
   return (
     <div className="space-y-6 sm:space-y-8 pb-12">
-      {/* Top Header */}
-      <div>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[10px] uppercase font-mono tracking-widest text-[#c6f035]">
-              Command Center
-            </p>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white mt-0.5">
-              Settings
-            </h1>
-          </div>
-
-          <div className="hidden sm:block text-xs font-mono text-slate-500">
-            linkhub.io/{username || "maya"}
-          </div>
-        </div>
-
-        <div className="hidden sm:block pt-3">
-          <p className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">
-            Workspace
-          </p>
-          <h2 className="text-lg sm:text-xl font-bold text-white">
-            Account settings
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Manage identity, publishing, and privacy.
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+            Settings
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            Manage your account credentials, security preferences, and data privacy.
           </p>
         </div>
       </div>

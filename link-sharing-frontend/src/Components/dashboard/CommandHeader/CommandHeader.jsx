@@ -5,6 +5,7 @@ import {
   Copy,
   Menu,
   Share2,
+  ExternalLink,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import "./CommandHeader.css";
@@ -53,7 +54,7 @@ export default function CommandHeader({
 
   return (
     <header className="command-header">
-      {/* Left: Subtitle & Title */}
+      {/* Left: Menu & Breadcrumb */}
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}
@@ -63,11 +64,10 @@ export default function CommandHeader({
           <Menu className="w-4 h-4" />
         </button>
 
-        <div>
-          <div className="command-subtitle">Command Center</div>
-          <h1 className="text-xl lg:text-2xl font-black tracking-tight text-white mt-0.5">
-            {title}
-          </h1>
+        <div className="flex items-center gap-2 text-xs font-mono">
+          <span className="text-slate-500 font-medium">LinkHub</span>
+          <span className="text-slate-700">/</span>
+          <span className="text-white font-semibold">{title}</span>
         </div>
       </div>
 
@@ -86,6 +86,18 @@ export default function CommandHeader({
           )}
           <span className="font-mono text-xs">{displayUrl}</span>
         </button>
+
+        {/* View Live Profile Button */}
+        <a
+          href={fullUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="command-icon-btn hidden sm:flex"
+          title="Open live public profile"
+          aria-label="Open live profile"
+        >
+          <ExternalLink className="w-3.5 h-3.5 text-slate-300" />
+        </a>
 
         {/* Notification Bell */}
         <button

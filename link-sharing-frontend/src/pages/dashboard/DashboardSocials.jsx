@@ -197,44 +197,25 @@ export default function DashboardSocials({
   return (
     <div className="space-y-6 sm:space-y-8 pb-12">
       {/* Top Header */}
-      <div>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[10px] uppercase font-mono tracking-widest text-[#c6f035]">
-              Command Center
-            </p>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white mt-0.5">
-              Integrations
-            </h1>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:block text-xs font-mono text-slate-500">
-              linkhub.io/{userData?.username || "profile"}
-            </div>
-
-            <button
-              onClick={handleSyncAll}
-              disabled={syncingAll || connectedList.length === 0}
-              className="px-4 py-2 rounded-lg border border-[#c6f035] text-[#c6f035] font-bold text-xs hover:bg-[#c6f035]/10 flex items-center gap-2 transition-colors disabled:opacity-40"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${syncingAll ? "animate-spin" : ""}`} />
-              <span>{syncingAll ? "Syncing..." : "Sync all"}</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="hidden sm:block pt-3">
-          <p className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">
-            Live Identity Graph
-          </p>
-          <h2 className="text-lg sm:text-xl font-bold text-white">
-            Connected audiences
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Real-time profile identity and follower totals fetched directly from platform APIs.
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+            Integrations
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            Connect external social platforms to stream live audience statistics directly into your profile.
           </p>
         </div>
+
+        <button
+          onClick={handleSyncAll}
+          disabled={syncingAll || connectedList.length === 0}
+          className="px-4 py-2.5 rounded-lg border border-[#c6f035] text-[#c6f035] font-bold text-xs hover:bg-[#c6f035]/10 flex items-center gap-2 transition-colors disabled:opacity-40 shrink-0 self-start sm:self-auto"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${syncingAll ? "animate-spin" : ""}`} />
+          <span>{syncingAll ? "Syncing..." : "Sync all"}</span>
+        </button>
       </div>
 
       {/* Combined Social Reach Banner */}

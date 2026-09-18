@@ -62,9 +62,16 @@ export default function DashboardProfile({ userData, onRefresh, onUserChange }) 
 
   return (
     <div className="space-y-12 animate-in fade-in duration-700">
-      <div>
-        <h1 className="text-4xl font-black tracking-tight text-white mb-2">Profile Management</h1>
-        <p className="text-on-surface-variant font-medium">Customize how your public profile looks to the world.</p>
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+            Profile
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            Customize how your public bio, avatar, and banner imagery appear to visitors.
+          </p>
+        </div>
       </div>
 
       <div className="space-y-10">

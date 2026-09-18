@@ -168,65 +168,45 @@ export default function DashboardAnalytics({ analytics, userData }) {
 
   return (
     <div className="space-y-6 sm:space-y-8 pb-12">
-      {/* Header */}
-      <div>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[10px] uppercase font-mono tracking-widest text-[#c6f035]">
-              Command Center
-            </p>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white mt-0.5">
-              Analytics
-            </h1>
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="hidden sm:block text-xs font-mono text-slate-500">
-              linkhub.io/{userData?.username || "maya"}
-            </div>
-
-            {/* Timeframe Button */}
-            <div className="relative">
-              <button
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-lg border border-[#c6f035] text-[#c6f035] font-bold text-xs hover:bg-[#c6f035]/10 flex items-center gap-1.5 transition-colors"
-              >
-                <span>Last {timeframe} days</span>
-                <ChevronDown className="w-3.5 h-3.5" />
-              </button>
-
-              {dropdownOpen && (
-                <div className="absolute right-0 top-10 w-36 rounded-xl bg-[#161510] border border-white/10 shadow-2xl py-1 z-30 animate-in fade-in zoom-in-95 duration-150">
-                  {["7", "30", "90"].map((days) => (
-                    <button
-                      key={days}
-                      onClick={() => {
-                        setTimeframe(days);
-                        setDropdownOpen(false);
-                      }}
-                      className={`w-full px-3.5 py-2 text-left text-xs font-medium hover:bg-white/5 ${
-                        timeframe === days ? "text-[#c6f035] font-bold" : "text-slate-300"
-                      }`}
-                    >
-                      Last {days} days
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+            Analytics
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            Understand your profile reach, visitor demographics, and destination traffic.
+          </p>
         </div>
 
-        <div className="hidden sm:block pt-3">
-          <p className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">
-            Performance
-          </p>
-          <h2 className="text-lg sm:text-xl font-bold text-white">
-            Audience intelligence
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Understand reach, traffic, and conversion.
-          </p>
+        {/* Timeframe Selector */}
+        <div className="relative self-start sm:self-auto">
+          <button
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className="px-3.5 py-2 rounded-lg bg-[#13120D] border border-white/10 text-[#c6f035] font-mono font-bold text-xs hover:border-[#c6f035]/40 flex items-center gap-2 transition-all shadow-sm"
+          >
+            <span>Last {timeframe} days</span>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+          </button>
+
+          {dropdownOpen && (
+            <div className="absolute right-0 top-10 w-36 rounded-xl bg-[#161510] border border-white/10 shadow-2xl py-1 z-30 animate-in fade-in zoom-in-95 duration-150">
+              {["7", "30", "90"].map((days) => (
+                <button
+                  key={days}
+                  onClick={() => {
+                    setTimeframe(days);
+                    setDropdownOpen(false);
+                  }}
+                  className={`w-full px-3.5 py-2 text-left text-xs font-medium hover:bg-white/5 ${
+                    timeframe === days ? "text-[#c6f035] font-bold" : "text-slate-300"
+                  }`}
+                >
+                  Last {days} days
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

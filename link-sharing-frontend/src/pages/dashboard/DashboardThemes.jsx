@@ -214,43 +214,24 @@ export default function DashboardThemes({ userData, links = [], onRefresh, onUse
     <div className="flex flex-col md:flex-row gap-8 pb-12">
       {/* Left Column: Customization Controls */}
       <div className="flex-1 min-w-0 space-y-5">
-        {/* Top Header */}
-        <div>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-[10px] uppercase font-mono tracking-widest text-[#c6f035]">
-                Command Center
-              </p>
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white mt-0.5">
-                Appearance
-              </h1>
-            </div>
-            <div className="hidden sm:block text-xs font-mono text-slate-500">
-              linkhub.io/{userData?.username || "user"}
-            </div>
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+              Appearance
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
+              Shape the visual system, themes, and styling behind your public identity.
+            </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3">
-            <div>
-              <p className="text-[10px] font-mono text-slate-500 uppercase tracking-wider">
-                Identity Studio
-              </p>
-              <h2 className="text-lg sm:text-xl font-bold text-white">
-                Appearance
-              </h2>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Shape the visual system behind your public identity.
-              </p>
-            </div>
-
-            <button
-              onClick={handlePublish}
-              disabled={saving}
-              className="px-6 py-2.5 rounded-lg bg-[#c6f035] text-[#0B0A07] font-bold text-xs hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-lg shadow-[#c6f035]/10 disabled:opacity-50"
-            >
-              {saving ? "Publishing..." : "Publish"}
-            </button>
-          </div>
+          <button
+            onClick={handlePublish}
+            disabled={saving}
+            className="px-6 py-2.5 rounded-lg bg-[#c6f035] text-[#0B0A07] font-bold text-xs hover:brightness-110 active:scale-95 transition-all flex items-center justify-center gap-1.5 shrink-0 shadow-lg shadow-[#c6f035]/10 disabled:opacity-50"
+          >
+            {saving ? "Publishing..." : "Publish changes"}
+          </button>
         </div>
 
         {/* Mobile Sub-tabs: Design | Profile | Preview */}
