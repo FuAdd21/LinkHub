@@ -1,5 +1,7 @@
 import React, { useState, useRef, useContext, useEffect, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import toast from "react-hot-toast";
+import { AuthContext } from "../context/AuthContext";
 import { api, assetUrl } from "../api/config.js";
 import LinkHubLogo from "../Components/common/LinkHubLogo";
 import { Check } from "lucide-react";

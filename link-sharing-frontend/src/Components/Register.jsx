@@ -1,5 +1,6 @@
 import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import toast from "react-hot-toast";
 import { api } from "../api/config.js";
 import { AuthContext } from "../context/AuthContext";
 import LinkHubLogo from "./common/LinkHubLogo";
