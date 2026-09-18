@@ -119,7 +119,7 @@ export async function getInstagramProfile(input) {
       name: username,
       avatar: PLACEHOLDER_AVATAR,
       bio: null,
-      followers: 0,
+      followers: null,
       profileUrl: `https://instagram.com/${username}`,
       error: "Unable to fetch Instagram data",
     };
@@ -132,7 +132,7 @@ export async function getInstagramProfile(input) {
       name: username || input,
       avatar: PLACEHOLDER_AVATAR,
       bio: null,
-      followers: 0,
+      followers: null,
       profileUrl: username ? `https://instagram.com/${username}` : null,
       error: "Failed to fetch Instagram profile",
     };

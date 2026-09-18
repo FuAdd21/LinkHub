@@ -129,7 +129,7 @@ export async function getTikTokProfile(input) {
       username,
       name: username,
       avatar: PLACEHOLDER_AVATAR,
-      followers: 0,
+      followers: null,
       bio: `@${username} on TikTok`,
       profileUrl: `https://tiktok.com/@${username}`,
       error: "Unable to sync live data - using limited profile"

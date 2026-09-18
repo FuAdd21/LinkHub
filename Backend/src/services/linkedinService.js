@@ -87,7 +87,7 @@ export async function getLinkedInProfile(input) {
       username,
       name: username,
       avatar: `https://unavatar.io/linkedin/${username}?fallback=${PLACEHOLDER_AVATAR}`,
-      connections: 0,
+      connections: null,
       bio: `@${username} on LinkedIn`,
       profileUrl: `https://linkedin.com/in/${username}`,
       error: "Live stats restricted"

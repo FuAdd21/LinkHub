@@ -95,7 +95,7 @@ export async function getTwitterProfile(input) {
       username,
       name: username,
       avatar: `https://unavatar.io/twitter/${username}?fallback=${PLACEHOLDER_AVATAR}`, // Use unavatar.io as a pro fallback
-      followers: 0,
+      followers: null,
       bio: `@${username} on Twitter`,
       profileUrl: `https://twitter.com/${username}`,
       error: "Live stats currently restricted"
