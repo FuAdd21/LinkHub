@@ -20,6 +20,9 @@ import {
   FileText,
   Calendar,
   X,
+  Sparkles,
+  Layers,
+  Tag,
 } from "lucide-react";
 import { api } from "../../api/config";
 import { getAvatarUrl } from "../../Components/dashboard/dashboardUtils";
@@ -49,7 +52,12 @@ export default function DashboardLinks({
   const [activeMenuId, setActiveMenuId] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingLink, setEditingLink] = useState(null);
-  const [form, setForm] = useState({ title: "", url: "", platform: "General" });
+  const [form, setForm] = useState({
+    title: "",
+    url: "",
+    platform: "General",
+    display_mode: "link",
+  });
   const [saving, setSaving] = useState(false);
   const [draggingIdx, setDraggingIdx] = useState(null);
 
@@ -118,7 +126,7 @@ export default function DashboardLinks({
   // Open modal for Create
   const handleOpenCreate = () => {
     setEditingLink(null);
-    setForm({ title: "", url: "", platform: "General" });
+    setForm({ title: "", url: "", platform: "General", display_mode: "link" });
     setModalOpen(true);
   };
 
@@ -129,8 +137,75 @@ export default function DashboardLinks({
       title: link.title || "",
       url: link.url || "",
       platform: link.platform || "General",
+      display_mode: link.display_mode || "link",
     });
     setModalOpen(true);
+  };
+
+  // Smart URL input handler — auto-detects platform and suggests display mode
+  const handleUrlChange = (e) => {
+    const val = e.target.value;
+    const lower = val.toLowerCase();
+    let detectedPlatform = form.platform;
+    let autoTitle = form.title;
+    let autoDisplayMode = form.display_mode;
+
+    if (lower.includes("linkedin.com")) {
+      detectedPlatform = "LinkedIn";
+      if (!form.title || form.title === "General" || form.title === "Link") autoTitle = "LinkedIn";
+      if ((!form.display_mode || form.display_mode === "link") && !editingLink) autoDisplayMode = "header_pill";
+    } else if (lower.includes("github.com")) {
+      detectedPlatform = "GitHub";
+      if (!form.title || form.title === "General" || form.title === "Link") autoTitle = "GitHub";
+    } else if (lower.includes("youtube.com") || lower.includes("youtu.be")) {
+      detectedPlatform = "YouTube";
+      if (!form.title || form.title === "General" || form.title === "Link") autoTitle = "YouTube Channel";
+    } else if (lower.includes("twitter.com") || lower.includes("x.com")) {
+      detectedPlatform = "Twitter";
+      if (!form.title || form.title === "General" || form.title === "Link") autoTitle = "X (Twitter)";
+      if ((!form.display_mode || form.display_mode === "link") && !editingLink) autoDisplayMode = "header_pill";
+    } else if (lower.includes("instagram.com")) {
+      detectedPlatform = "Instagram";
+      if (!form.title || form.title === "General" || form.title === "Link") autoTitle = "Instagram";
+      if ((!form.display_mode || form.display_mode === "link") && !editingLink) autoDisplayMode = "header_pill";
+    } else if (lower.includes("tiktok.com")) {
+      detectedPlatform = "TikTok";
+      if (!form.title || form.title === "General" || form.title === "Link") autoTitle = "TikTok";
+      if ((!form.display_mode || form.display_mode === "link") && !editingLink) autoDisplayMode = "header_pill";
+    } else if (lower.includes("spotify.com")) {
+      detectedPlatform = "Spotify";
+      if (!form.title || form.title === "General" || form.title === "Link") autoTitle = "Spotify";
+    } else if (lower.includes("t.me") || lower.includes("telegram.me")) {
+      detectedPlatform = "Telegram";
+      if (!form.title || form.title === "General" || form.title === "Link") autoTitle = "Telegram";
+      if ((!form.display_mode || form.display_mode === "link") && !editingLink) autoDisplayMode = "header_pill";
+    }
+
+    setForm((prev) => ({
+      ...prev,
+      url: val,
+      platform: detectedPlatform,
+      title: autoTitle || prev.title,
+      display_mode: autoDisplayMode,
+    }));
+  };
+
+  // Quick toggle display mode directly from card or dropdown
+  const handleToggleDisplayMode = async (link, newMode) => {
+    const updated = localLinks.map((l) =>
+      l.id === link.id ? { ...l, display_mode: newMode } : l
+    );
+    setLocalLinks(updated);
+    try {
+      await api.put(`/api/mylinks/${link.id}/display-mode`, { display_mode: newMode });
+      onLinksChange?.(updated);
+      const label = newMode === "header_pill" ? "Header Icon" : newMode === "rich_card" ? "Rich Live Card" : "Link Card";
+      toast.success(`Display mode set to ${label}`);
+      onRefresh?.();
+    } catch {
+      toast.error("Failed to update display mode");
+      onRefresh?.();
+    }
   };
 
   // Save Link (Create or Edit)
@@ -148,12 +223,15 @@ export default function DashboardLinks({
 
     setSaving(true);
     try {
+      const payload = {
+        title: form.title.trim(),
+        url: normalizedUrl,
+        platform: form.platform,
+        display_mode: form.display_mode || "link",
+      };
+
       if (editingLink) {
-        const res = await api.put(`/api/mylinks/${editingLink.id}`, {
-          title: form.title.trim(),
-          url: normalizedUrl,
-          platform: form.platform,
-        });
+        const res = await api.put(`/api/mylinks/${editingLink.id}`, payload);
         const updatedLink = res.data?.link || res.data;
         const updated = localLinks.map((l) =>
           l.id === editingLink.id ? { ...l, ...updatedLink } : l
@@ -162,11 +240,7 @@ export default function DashboardLinks({
         onLinksChange?.(updated);
         toast.success("Link updated");
       } else {
-        const res = await api.post("/api/mylinks", {
-          title: form.title.trim(),
-          url: normalizedUrl,
-          platform: form.platform,
-        });
+        const res = await api.post("/api/mylinks", payload);
         const createdLink = res.data?.link || res.data;
         const updated = [createdLink, ...localLinks];
         setLocalLinks(updated);
@@ -316,9 +390,21 @@ export default function DashboardLinks({
                         <GripVertical className="w-4 h-4" />
                       </button>
                       <div className="min-w-0 flex-1">
-                        <h4 className="text-sm font-bold text-white truncate">
-                          {link.title}
-                        </h4>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-bold text-white truncate">
+                            {link.title}
+                          </h4>
+                          {link.display_mode === "header_pill" && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20 shrink-0">
+                              Header Icon
+                            </span>
+                          )}
+                          {link.display_mode === "rich_card" && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
+                              Rich Card
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs font-mono text-slate-500 truncate mt-0.5">
                           {cleanUrl}
                         </p>
@@ -351,9 +437,21 @@ export default function DashboardLinks({
                         <GripVertical className="w-4 h-4" />
                       </button>
                       <div className="min-w-0 flex-1">
-                        <h4 className="text-sm font-bold text-white truncate group-hover:text-[#c6f035] transition-colors">
-                          {link.title}
-                        </h4>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-bold text-white truncate group-hover:text-[#c6f035] transition-colors">
+                            {link.title}
+                          </h4>
+                          {link.display_mode === "header_pill" && (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20 shrink-0">
+                              Header Icon
+                            </span>
+                          )}
+                          {link.display_mode === "rich_card" && (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20 shrink-0">
+                              Rich Card
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs font-mono text-slate-500 truncate mt-0.5">
                           {cleanUrl}
                         </p>
@@ -471,6 +569,27 @@ export default function DashboardLinks({
                           <button
                             onClick={() => {
                               setActiveMenuId(null);
+                              handleToggleDisplayMode(link, link.display_mode === "header_pill" ? "link" : "header_pill");
+                            }}
+                            className="w-full px-3.5 py-2 text-left text-xs text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
+                          >
+                            <Tag className="w-3.5 h-3.5 text-[#c6f035]" />
+                            {link.display_mode === "header_pill" ? "Convert to Link Card" : "Move to Header Icon"}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setActiveMenuId(null);
+                              handleToggleDisplayMode(link, link.display_mode === "rich_card" ? "link" : "rich_card");
+                            }}
+                            className="w-full px-3.5 py-2 text-left text-xs text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
+                          >
+                            <Sparkles className="w-3.5 h-3.5 text-[#c6f035]" />
+                            {link.display_mode === "rich_card" ? "Convert to Link Card" : "Move to Rich Card"}
+                          </button>
+                          <div className="my-1 border-t border-white/5" />
+                          <button
+                            onClick={() => {
+                              setActiveMenuId(null);
                               handleDeleteLink(link.id);
                             }}
                             className="w-full px-3.5 py-2 text-left text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10 flex items-center gap-2"
@@ -510,7 +629,7 @@ export default function DashboardLinks({
                       {activeMenuId === link.id && (
                         <div
                           onClick={(e) => e.stopPropagation()}
-                          className="absolute right-0 top-10 w-44 rounded-xl bg-[#1a1914] border border-white/10 shadow-2xl py-1 z-30 animate-in fade-in zoom-in-95 duration-150"
+                          className="absolute right-0 top-10 w-48 rounded-xl bg-[#1a1914] border border-white/10 shadow-2xl py-1 z-30 animate-in fade-in zoom-in-95 duration-150"
                         >
                           <button
                             onClick={() => {
@@ -542,6 +661,27 @@ export default function DashboardLinks({
                             <ExternalLink className="w-3.5 h-3.5" />
                             Open in new tab
                           </a>
+                          <div className="my-1 border-t border-white/5" />
+                          <button
+                            onClick={() => {
+                              setActiveMenuId(null);
+                              handleToggleDisplayMode(link, link.display_mode === "header_pill" ? "link" : "header_pill");
+                            }}
+                            className="w-full px-3.5 py-2 text-left text-xs text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
+                          >
+                            <Tag className="w-3.5 h-3.5 text-[#c6f035]" />
+                            {link.display_mode === "header_pill" ? "Convert to Link Card" : "Move to Header Icon"}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setActiveMenuId(null);
+                              handleToggleDisplayMode(link, link.display_mode === "rich_card" ? "link" : "rich_card");
+                            }}
+                            className="w-full px-3.5 py-2 text-left text-xs text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
+                          >
+                            <Sparkles className="w-3.5 h-3.5 text-[#c6f035]" />
+                            {link.display_mode === "rich_card" ? "Convert to Link Card" : "Move to Rich Card"}
+                          </button>
                           <div className="my-1 border-t border-white/5" />
                           <button
                             onClick={() => {
@@ -662,7 +802,7 @@ export default function DashboardLinks({
                   required
                   placeholder="https://github.com/..."
                   value={form.url}
-                  onChange={(e) => setForm({ ...form, url: e.target.value })}
+                  onChange={handleUrlChange}
                   className="w-full px-3.5 py-2.5 rounded-lg bg-[#11120F] border border-white/10 text-xs text-white placeholder:text-slate-600 focus:border-[#c6f035] focus:outline-none"
                 />
               </div>
@@ -684,6 +824,68 @@ export default function DashboardLinks({
                   <option value="Calendar">Calendar (Cal.com / Calendly)</option>
                   <option value="Newsletter">Newsletter / Substack</option>
                 </select>
+              </div>
+
+              <div className="space-y-1.5 pt-1">
+                <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
+                  <span>Display Mode</span>
+                  <span className="text-[10px] font-mono text-[#c6f035]">Unified Layout</span>
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, display_mode: "link" })}
+                    className={`p-2.5 rounded-lg border text-left flex flex-col gap-1 transition-all ${
+                      form.display_mode === "link"
+                        ? "bg-[#c6f035]/10 border-[#c6f035] text-white"
+                        : "bg-[#11120F] border-white/10 text-slate-400 hover:border-white/20"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 text-xs font-bold">
+                      <ArrowUpRight className="w-3.5 h-3.5 text-[#c6f035]" />
+                      Link Card
+                    </div>
+                    <span className="text-[10px] text-slate-500 leading-tight">
+                      Primary destination in link list
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, display_mode: "header_pill" })}
+                    className={`p-2.5 rounded-lg border text-left flex flex-col gap-1 transition-all ${
+                      form.display_mode === "header_pill"
+                        ? "bg-[#c6f035]/10 border-[#c6f035] text-white"
+                        : "bg-[#11120F] border-white/10 text-slate-400 hover:border-white/20"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 text-xs font-bold">
+                      <Tag className="w-3.5 h-3.5 text-[#c6f035]" />
+                      Header Icon
+                    </div>
+                    <span className="text-[10px] text-slate-500 leading-tight">
+                      Quick icon pill under profile bio
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, display_mode: "rich_card" })}
+                    className={`p-2.5 rounded-lg border text-left flex flex-col gap-1 transition-all ${
+                      form.display_mode === "rich_card"
+                        ? "bg-[#c6f035]/10 border-[#c6f035] text-white"
+                        : "bg-[#11120F] border-white/10 text-slate-400 hover:border-white/20"
+                    }`}
+                  >
+                    <div className="flex items-center gap-1.5 text-xs font-bold">
+                      <Sparkles className="w-3.5 h-3.5 text-[#c6f035]" />
+                      Rich Card
+                    </div>
+                    <span className="text-[10px] text-slate-500 leading-tight">
+                      Live metric / social bento card
+                    </span>
+                  </button>
+                </div>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/5">
