@@ -176,15 +176,14 @@ export const forgotPassword = async (req, res) => {
 
     if (users.length > 0) {
       const resetToken = crypto.randomBytes(32).toString("hex");
+      const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
       // Expire in 1 hour
       const expires = new Date(Date.now() + 3600000);
 
       await db.query(
         "UPDATE clients SET reset_token = ?, reset_token_expires = ? WHERE id = ?",
-        [resetToken, expires, users[0].id]
+        [hashedToken, expires, users[0].id]
       );
-
-      console.log(`[PASSWORD_RESET] Token for ${cleanEmail}: ${resetToken}`);
     }
 
     // Always respond with success to prevent email enumeration
@@ -213,9 +212,14 @@ export const resetPassword = async (req, res) => {
       return res.status(400).json({ message: passwordError });
     }
 
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(String(token).trim())
+      .digest("hex");
+
     const [users] = await db.query(
       "SELECT id FROM clients WHERE reset_token = ? AND reset_token_expires > NOW()",
-      [token]
+      [hashedToken]
     );
 
     if (users.length === 0) {
@@ -227,7 +231,7 @@ export const resetPassword = async (req, res) => {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     await db.query(
-      "UPDATE clients SET password = ?, reset_token = NULL, reset_token_expires = NULL WHERE id = ?",
+      "UPDATE clients SET password = ?, reset_token = NULL, reset_token_expires = NULL, session_version = COALESCE(session_version, 1) + 1 WHERE id = ?",
       [hashedPassword, users[0].id]
     );
 
