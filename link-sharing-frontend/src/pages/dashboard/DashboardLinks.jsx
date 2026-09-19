@@ -25,6 +25,8 @@ import {
   Tag,
 } from "lucide-react";
 import { api } from "../../api/config";
+import { linksApi } from "../../api/linksApi";
+import { getErrorMessage } from "../../api/responseHandler";
 import { getAvatarUrl } from "../../Components/dashboard/dashboardUtils";
 
 // Helper to pick platform icon
@@ -93,11 +95,12 @@ export default function DashboardLinks({
     setDraggingIdx(null);
     try {
       const order = localLinks.map((l) => l.id);
-      await api.put("/api/mylinks/order", { order });
+      await linksApi.reorderLinks(order);
       onLinksChange?.(localLinks);
       toast.success("Link order updated");
-    } catch {
-      toast.error("Failed to save link order");
+    } catch (err) {
+      setLocalLinks(links); // Rollback to authoritative links prop on failure
+      toast.error(getErrorMessage(err, "Failed to save link order"));
       onRefresh?.();
     }
   };
@@ -114,11 +117,12 @@ export default function DashboardLinks({
     setLocalLinks(updated);
 
     try {
-      await api.put(`/api/mylinks/${link.id}/visibility`, { is_visible: nextVal });
+      await linksApi.toggleVisibility(link.id, nextVal);
       onLinksChange?.(updated);
       toast.success(nextVal ? "Link is now visible" : "Link is hidden");
-    } catch {
-      toast.error("Failed to update link visibility");
+    } catch (err) {
+      setLocalLinks(localLinks); // Rollback
+      toast.error(getErrorMessage(err, "Failed to update link visibility"));
       onRefresh?.();
     }
   };
@@ -192,18 +196,20 @@ export default function DashboardLinks({
 
   // Quick toggle display mode directly from card or dropdown
   const handleToggleDisplayMode = async (link, newMode) => {
+    const previousLinks = [...localLinks];
     const updated = localLinks.map((l) =>
       l.id === link.id ? { ...l, display_mode: newMode } : l
     );
     setLocalLinks(updated);
     try {
-      await api.put(`/api/mylinks/${link.id}/display-mode`, { display_mode: newMode });
+      await linksApi.updateDisplayMode(link.id, newMode);
       onLinksChange?.(updated);
       const label = newMode === "header_pill" ? "Header Icon" : newMode === "rich_card" ? "Rich Live Card" : "Link Card";
       toast.success(`Display mode set to ${label}`);
       onRefresh?.();
-    } catch {
-      toast.error("Failed to update display mode");
+    } catch (err) {
+      setLocalLinks(previousLinks); // Rollback
+      toast.error(getErrorMessage(err, "Failed to update display mode"));
       onRefresh?.();
     }
   };
@@ -231,8 +237,8 @@ export default function DashboardLinks({
       };
 
       if (editingLink) {
-        const res = await api.put(`/api/mylinks/${editingLink.id}`, payload);
-        const updatedLink = res.data?.link || res.data;
+        const res = await linksApi.updateLink(editingLink.id, payload);
+        const updatedLink = res.link || res;
         const updated = localLinks.map((l) =>
           l.id === editingLink.id ? { ...l, ...updatedLink } : l
         );
@@ -240,8 +246,8 @@ export default function DashboardLinks({
         onLinksChange?.(updated);
         toast.success("Link updated");
       } else {
-        const res = await api.post("/api/mylinks", payload);
-        const createdLink = res.data?.link || res.data;
+        const res = await linksApi.createLink(payload);
+        const createdLink = res.link || res;
         const updated = [createdLink, ...localLinks];
         setLocalLinks(updated);
         onLinksChange?.(updated);
@@ -250,7 +256,7 @@ export default function DashboardLinks({
       setModalOpen(false);
       onRefresh?.();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to save link");
+      toast.error(getErrorMessage(err, "Failed to save link"));
     } finally {
       setSaving(false);
     }
@@ -260,14 +266,14 @@ export default function DashboardLinks({
   const handleDeleteLink = async (linkId) => {
     if (!window.confirm("Are you sure you want to delete this link?")) return;
     try {
-      await api.delete(`/api/mylinks/${linkId}`);
+      await linksApi.deleteLink(linkId);
       const updated = localLinks.filter((l) => l.id !== linkId);
       setLocalLinks(updated);
       onLinksChange?.(updated);
       toast.success("Link removed");
       onRefresh?.();
-    } catch {
-      toast.error("Failed to delete link");
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Failed to delete link"));
     }
   };
 

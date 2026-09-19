@@ -2,7 +2,8 @@ import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { AuthContext } from "../context/AuthContext";
-import { api } from "../api/config.js";
+import { authApi } from "../api/authApi.js";
+import { getErrorMessage } from "../api/responseHandler.js";
 import LinkHubLogo from "./common/LinkHubLogo";
 import { FaGoogle, FaApple } from "react-icons/fa";
 
@@ -23,33 +24,28 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await api.post("/login", {
+      const data = await authApi.login({
         email,
         password,
       });
       const userData = {
-        id: res.data.userId,
-        name: res.data.name,
-        username: res.data.username,
+        id: data.userId,
+        name: data.name,
+        username: data.username,
       };
-      login(userData, res.data.csrfToken);
+      login(userData, data.csrfToken);
       toast.success("Identity verified. Welcome back.");
 
-
-      if (res.data.username) {
+      if (data.username) {
         navigate("/dashboard");
       } else {
         navigate("/create-profile");
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || "Verification failed. Please check credentials.");
+      toast.error(getErrorMessage(err, "Verification failed. Please check credentials."));
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleSocialMock = (provider) => {
-    toast(`Connecting with ${provider} (Sandbox mode)`);
   };
 
   return (
@@ -251,23 +247,23 @@ export default function Login() {
 
               {/* Social Login Buttons */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => handleSocialMock("Google")}
-                  className="w-full py-3 px-4 bg-[#121316] border border-white/10 hover:bg-white/5 rounded-lg text-xs font-semibold text-white flex items-center justify-center gap-2.5 transition-all"
+                <div
+                  title="Google SSO coming soon"
+                  className="w-full py-3 px-4 bg-[#121316]/50 border border-white/5 rounded-lg text-xs font-semibold text-zinc-500 flex items-center justify-center gap-2 cursor-not-allowed select-none"
                 >
-                  <FaGoogle className="w-3.5 h-3.5 text-zinc-400" />
-                  <span>Continue with Google</span>
-                </button>
+                  <FaGoogle className="w-3.5 h-3.5 text-zinc-600" />
+                  <span>Google</span>
+                  <span className="text-[9px] font-mono uppercase bg-white/[0.05] text-zinc-400 px-1.5 py-0.5 rounded ml-1">Soon</span>
+                </div>
 
-                <button
-                  type="button"
-                  onClick={() => handleSocialMock("Apple")}
-                  className="w-full py-3 px-4 bg-[#121316] border border-white/10 hover:bg-white/5 rounded-lg text-xs font-semibold text-white flex items-center justify-center gap-2.5 transition-all"
+                <div
+                  title="Apple SSO coming soon"
+                  className="w-full py-3 px-4 bg-[#121316]/50 border border-white/5 rounded-lg text-xs font-semibold text-zinc-500 flex items-center justify-center gap-2 cursor-not-allowed select-none"
                 >
-                  <FaApple className="w-4 h-4 text-zinc-300" />
-                  <span>Continue with Apple</span>
-                </button>
+                  <FaApple className="w-4 h-4 text-zinc-600" />
+                  <span>Apple</span>
+                  <span className="text-[9px] font-mono uppercase bg-white/[0.05] text-zinc-400 px-1.5 py-0.5 rounded ml-1">Soon</span>
+                </div>
               </div>
 
               {/* Security Banner Card */}
