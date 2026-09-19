@@ -32,6 +32,18 @@ app.use(requestLogger);
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        imgSrc: ["'self'", "data:", "https:", "blob:"],
+        connectSrc: ["'self'", ...config.cors.allowedOrigins],
+      },
+    },
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+    frameguard: { action: "deny" },
   })
 );
 
@@ -75,9 +87,33 @@ app.use("/api/credentials", credentialRoutes);
 // Server-side redirect & click tracker
 app.get("/r/:linkId", handleLinkRedirect);
 
-// Health check
+// Health check (Liveness)
 app.get("/health", (req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
+  res.json({
+    status: "ok",
+    uptime: Math.floor(process.uptime()),
+    timestamp: new Date().toISOString(),
+  });
+});
+
+// Readiness check (Database connectivity)
+app.get("/health/ready", async (req, res) => {
+  try {
+    const { db } = await import("./config/db.js");
+    await db.query("SELECT 1");
+    res.json({
+      status: "ready",
+      database: "connected",
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err) {
+    res.status(503).json({
+      status: "unready",
+      database: "disconnected",
+      error: err.message,
+      timestamp: new Date().toISOString(),
+    });
+  }
 });
 
 app.use(notFoundHandler);

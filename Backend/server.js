@@ -1,8 +1,10 @@
 import "dotenv/config";
 import { app } from "./src/app.js";
-import { initDatabase } from "./src/config/db.js";
+import { initDatabase, db } from "./src/config/db.js";
+import { logger } from "./src/config/logger.js";
+import { config } from "./src/config/env.js";
 
-const PORT = process.env.PORT || 3002;
+const PORT = config.port || 3002;
 
 // Start server
 export const startServer = async () => {
@@ -10,12 +12,39 @@ export const startServer = async () => {
     await initDatabase();
 
     const server = app.listen(PORT, () => {
-      console.log(`Server running at http://localhost:${PORT}`);
+      logger.info(`Server running at http://localhost:${PORT} in ${config.nodeEnv} mode`);
     });
 
-    const shutdown = (signal) => {
-      console.log(`${signal} received. Shutting down server...`);
-      server.close(() => {
+    let isShuttingDown = false;
+
+    const shutdown = async (signal) => {
+      if (isShuttingDown) return;
+      isShuttingDown = true;
+      logger.info(`[Shutdown] ${signal} signal received. Initiating graceful shutdown...`);
+
+      // Set timeout for forcing termination if connections fail to drain
+      const forceExitTimer = setTimeout(() => {
+        logger.error("[Shutdown] Forcefully terminating process after 10s timeout.");
+        process.exit(1);
+      }, 10000);
+      forceExitTimer.unref();
+
+      server.close(async (err) => {
+        if (err) {
+          logger.error(`[Shutdown] Error closing HTTP server: ${err.message}`, err);
+        } else {
+          logger.info("[Shutdown] HTTP server closed to new connections.");
+        }
+
+        try {
+          await db.end();
+          logger.info("[Shutdown] MySQL connection pool successfully closed.");
+        } catch (dbErr) {
+          logger.error(`[Shutdown] Error closing MySQL pool: ${dbErr.message}`, dbErr);
+        }
+
+        clearTimeout(forceExitTimer);
+        logger.info("[Shutdown] Clean shutdown completed.");
         process.exit(0);
       });
     };
@@ -24,7 +53,7 @@ export const startServer = async () => {
     process.on("SIGTERM", () => shutdown("SIGTERM"));
     return server;
   } catch (error) {
-    console.error("Failed to start server:", error);
+    logger.error("Failed to start server:", error);
     process.exit(1);
   }
 };
