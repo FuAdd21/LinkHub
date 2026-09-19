@@ -76,14 +76,20 @@ export const getPublicProfile = async (req, res) => {
       };
     });
 
-    // Parse profileData JSON for each link
+    // Parse profileData JSON for each link and omit unneeded internal fields
     const parsedLinks = links.map((link) => ({
-      ...link,
+      id: link.id,
+      title: link.title,
+      url: link.url,
+      platform: link.platform,
+      display_mode: link.display_mode,
+      icon: link.icon,
+      avatar_url: link.avatar_url,
       profileData: typeof link.profileData === "string" ? JSON.parse(link.profileData) : link.profileData,
     }));
 
+    res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
     res.json({
-      id: user.id,
       name: user.name,
       username: user.username,
       bio: user.bio,

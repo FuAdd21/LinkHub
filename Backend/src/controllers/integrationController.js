@@ -84,3 +84,17 @@ export const syncAllIntegrations = async (req, res, next) => {
     next(err);
   }
 };
+
+// POST /api/integrations/toggle — Toggle connection status
+export const toggleIntegration = async (req, res, next) => {
+  try {
+    if (req.body.status === "available") {
+      req.params = { provider: req.body.provider };
+      return disconnectIntegration(req, res, next);
+    }
+    return connectIntegration(req, res, next);
+  } catch (err) {
+    next(err);
+  }
+};
+

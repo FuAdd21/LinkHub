@@ -12,6 +12,8 @@ import {
   LayoutDashboard,
   AlertCircle,
   ExternalLink,
+  Copy,
+  Check,
 } from "lucide-react";
 import {
   FaGithub,
@@ -115,22 +117,79 @@ export default function PublicProfile() {
     }
   }, [userData, username, isOwner]);
 
-  // Dynamic document title & meta description
-  useEffect(() => {
-    if (userData) {
-      const displayName = userData.name || `@${username}`;
-      const bioText = userData.bio || `Explore ${displayName}'s curated links on LinkHub.`;
-      document.title = `${displayName} (@${username}) | LinkHub`;
+  const [copied, setCopied] = useState(false);
 
-      let metaDesc = document.querySelector('meta[name="description"]');
-      if (!metaDesc) {
-        metaDesc = document.createElement("meta");
-        metaDesc.name = "description";
-        document.head.appendChild(metaDesc);
-      }
-      metaDesc.content = bioText;
+  // Dynamic document title, OpenGraph, Twitter, and canonical metadata
+  useEffect(() => {
+    if (!userData) return;
+
+    const displayName = userData.name || `@${username}`;
+    const bioText = userData.bio || `Explore ${displayName}'s curated links on LinkHub.`;
+    const avatarFull = userData.avatar ? assetUrl(userData.avatar) : null;
+    const currentUrl = window.location.href;
+
+    document.title = `${displayName} (@${username}) | LinkHub`;
+
+    const metaTags = [
+      { selector: 'meta[name="description"]', attr: "name", key: "description", content: bioText },
+      { selector: 'meta[property="og:title"]', attr: "property", key: "og:title", content: `${displayName} | LinkHub` },
+      { selector: 'meta[property="og:description"]', attr: "property", key: "og:description", content: bioText },
+      { selector: 'meta[property="og:url"]', attr: "property", key: "og:url", content: currentUrl },
+      { selector: 'meta[property="og:type"]', attr: "property", key: "og:type", content: "profile" },
+      { selector: 'meta[name="twitter:card"]', attr: "name", key: "twitter:card", content: "summary_large_image" },
+      { selector: 'meta[name="twitter:title"]', attr: "name", key: "twitter:title", content: `${displayName} | LinkHub` },
+      { selector: 'meta[name="twitter:description"]', attr: "name", key: "twitter:description", content: bioText },
+    ];
+
+    if (avatarFull) {
+      metaTags.push(
+        { selector: 'meta[property="og:image"]', attr: "property", key: "og:image", content: avatarFull },
+        { selector: 'meta[name="twitter:image"]', attr: "name", key: "twitter:image", content: avatarFull }
+      );
     }
+
+    const createdElements = [];
+
+    metaTags.forEach(({ selector, attr, key, content }) => {
+      let el = document.querySelector(selector);
+      if (!el) {
+        el = document.createElement("meta");
+        el.setAttribute(attr, key);
+        document.head.appendChild(el);
+        createdElements.push(el);
+      }
+      el.setAttribute("content", content);
+    });
+
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+      createdElements.push(canonical);
+    }
+    canonical.setAttribute("href", currentUrl);
+
+    return () => {
+      createdElements.forEach((el) => {
+        if (el && el.parentNode) {
+          el.parentNode.removeChild(el);
+        }
+      });
+    };
   }, [userData, username]);
+
+  const handleCopyLink = async () => {
+    const profileUrl = window.location.href;
+    try {
+      await navigator.clipboard.writeText(profileUrl);
+      setCopied(true);
+      toast.success("Profile link copied to clipboard!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy link");
+    }
+  };
 
   const handleShare = async () => {
     const profileUrl = window.location.href;
@@ -142,15 +201,11 @@ export default function PublicProfile() {
           url: profileUrl,
         });
         return;
-      } catch {}
+      } catch (err) {
+        if (err.name === "AbortError") return;
+      }
     }
-
-    try {
-      await navigator.clipboard.writeText(profileUrl);
-      toast.success("Profile link copied to clipboard!");
-    } catch {
-      toast.error("Failed to copy link");
-    }
+    await handleCopyLink();
   };
 
   const handleLinkClick = (linkId) => {
@@ -486,18 +541,39 @@ export default function PublicProfile() {
         </div>
       </div>
 
-      {/* Share Profile & QR Controls (Placed neatly outside the phone frame) */}
-      <div className="flex items-center justify-center gap-3 pt-6 relative z-10">
+      {/* Share Profile, Copy Link & QR Controls */}
+      <nav aria-label="Profile sharing actions" className="flex flex-wrap items-center justify-center gap-2.5 pt-6 relative z-10">
         <button
+          type="button"
+          onClick={handleCopyLink}
+          aria-label="Copy profile link to clipboard"
+          className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl bg-[#13120D] hover:bg-[#181711] border border-white/10 hover:border-white/20 text-slate-300 hover:text-white text-xs font-mono font-bold transition-all shadow-md focus-visible:ring-2 focus-visible:ring-[#c6f035] focus-visible:outline-none"
+        >
+          {copied ? (
+            <>
+              <Check className="w-3.5 h-3.5 text-[#c6f035]" />
+              <span className="text-[#c6f035]">Copied!</span>
+            </>
+          ) : (
+            <>
+              <Copy className="w-3.5 h-3.5 text-[#c6f035]" />
+              <span>Copy link</span>
+            </>
+          )}
+        </button>
+
+        <button
+          type="button"
           onClick={handleShare}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#13120D] hover:bg-[#181711] border border-white/10 hover:border-white/20 text-slate-300 hover:text-white text-xs font-mono font-bold transition-all shadow-md"
+          aria-label="Share profile"
+          className="flex items-center gap-2 px-4 py-2.5 min-h-[44px] rounded-xl bg-[#13120D] hover:bg-[#181711] border border-white/10 hover:border-white/20 text-slate-300 hover:text-white text-xs font-mono font-bold transition-all shadow-md focus-visible:ring-2 focus-visible:ring-[#c6f035] focus-visible:outline-none"
         >
           <Share2 className="w-3.5 h-3.5 text-[#c6f035]" />
-          <span>Share profile</span>
+          <span>Share</span>
         </button>
 
         <QRCodeGenerator username={username} />
-      </div>
+      </nav>
     </div>
   );
 }
