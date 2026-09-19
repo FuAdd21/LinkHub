@@ -6,6 +6,7 @@ import { AppError } from "../errors/AppError.js";
 import { ErrorCodes } from "../errors/errorCodes.js";
 import { config } from "../config/env.js";
 import { emailService } from "./emailService.js";
+import { isReservedUsername } from "../utils/reservedUsernames.js";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_MIN_LENGTH = 8;
@@ -33,7 +34,7 @@ export const authService = {
     let candidate = base;
     let counter = 1;
 
-    while (await userRepository.isUsernameTaken(candidate)) {
+    while (isReservedUsername(candidate) || (await userRepository.isUsernameTaken(candidate))) {
       candidate = `${base}${counter++}`.slice(0, 30);
     }
 

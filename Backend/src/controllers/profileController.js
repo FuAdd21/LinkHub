@@ -1,5 +1,6 @@
 import { db } from "../config/db.js";
 import { formatFollowerCount } from "../services/youtubeService.js";
+import { isReservedUsername } from "../utils/reservedUsernames.js";
 
 // GET /api/profile/:username — Public profile page data
 export const getPublicProfile = async (req, res) => {
@@ -139,6 +140,17 @@ export const setupUsername = async (req, res) => {
       return res.status(400).json({
         message:
           "Username must be 3-30 characters, lowercase, and contain only letters, numbers, underscores, or hyphens",
+      });
+    }
+
+    if (isReservedUsername(cleanUsername)) {
+      return res.status(400).json({
+        success: false,
+        message: "This username is reserved and cannot be claimed",
+        error: {
+          code: "RESERVED_USERNAME",
+          message: "This username is reserved and cannot be claimed",
+        },
       });
     }
 
