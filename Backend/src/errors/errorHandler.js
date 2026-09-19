@@ -1,6 +1,7 @@
 import { AppError } from "./AppError.js";
 import { ErrorCodes } from "./errorCodes.js";
 import { config } from "../config/env.js";
+import { logger } from "../config/logger.js";
 
 /**
  * 404 Route Not Found middleware
@@ -75,7 +76,7 @@ export function errorHandler(err, req, res, next) {
 
   // Log non-operational bugs or 500 server errors
   if (!isOperational || statusCode >= 500) {
-    console.error(`[Unhandled/500 Error] ${req.method} ${req.originalUrl}:`, err);
+    logger.error(`Unhandled server error on ${req.method} ${req.originalUrl}`, err);
   }
 
   const message =

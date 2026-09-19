@@ -6,6 +6,7 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { config } from "./config/env.js";
 import { notFoundHandler, errorHandler } from "./errors/errorHandler.js";
+import { requestLogger } from "./config/logger.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -23,6 +24,7 @@ import { handleLinkRedirect } from "./controllers/redirectController.js";
 const app = express();
 
 app.set("trust proxy", 1);
+app.use(requestLogger);
 
 // Security HTTP Headers
 app.use(
