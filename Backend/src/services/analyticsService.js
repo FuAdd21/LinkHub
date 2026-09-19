@@ -2,6 +2,7 @@ import crypto from "crypto";
 import { analyticsRepository } from "../repositories/analyticsRepository.js";
 import { linkRepository } from "../repositories/linkRepository.js";
 import { userRepository } from "../repositories/userRepository.js";
+import { projectRepository } from "../repositories/projectRepository.js";
 import { config } from "../config/env.js";
 import { AppError } from "../errors/AppError.js";
 import { ErrorCodes } from "../errors/errorCodes.js";
@@ -95,15 +96,46 @@ export const analyticsService = {
     return { recorded: true, message: "Profile view tracked" };
   },
 
+  async trackCtaClick(username, { ip, userAgent = "", referrer = null } = {}) {
+    if (!username) {
+      throw AppError.badRequest("Username required", ErrorCodes.VALIDATION_ERROR);
+    }
+
+    const user = await userRepository.findByUsername(username);
+    if (!user) {
+      throw AppError.notFound("User not found", ErrorCodes.USER_NOT_FOUND);
+    }
+
+    await analyticsRepository.recordCtaClick({ userId: user.id });
+    return { recorded: true, message: "CTA click tracked" };
+  },
+
+  async trackProjectClick(projectId, { ip, userAgent = "", referrer = null } = {}) {
+    const id = parseInt(projectId, 10);
+    if (!id || id <= 0) {
+      throw AppError.badRequest("Invalid project ID", ErrorCodes.VALIDATION_ERROR);
+    }
+
+    const project = await projectRepository.findById(id);
+    if (!project) {
+      throw AppError.notFound("Project not found", ErrorCodes.LINK_NOT_FOUND);
+    }
+
+    await analyticsRepository.recordProjectClick({ userId: project.user_id, projectId: id });
+    return { recorded: true, message: "Project click tracked" };
+  },
+
   async getDashboardAnalytics(userId, days = 30) {
     if (!userId) {
       throw AppError.unauthorized("Authentication required", ErrorCodes.UNAUTHORIZED);
     }
 
-    const [totalClicks, totalViews, uniqueVisitors] = await Promise.all([
+    const [totalClicks, totalViews, uniqueVisitors, ctaClicks, projectClicks] = await Promise.all([
       analyticsRepository.getTotalClicks(userId),
       analyticsRepository.getTotalViews(userId),
       analyticsRepository.getUniqueVisitors(userId),
+      analyticsRepository.getCtaClicks(userId),
+      analyticsRepository.getProjectClicks(userId),
     ]);
 
     const clickRate =
@@ -180,6 +212,14 @@ export const analyticsService = {
       tablet: totalDeviceCount > 0 ? Math.round((deviceMap.tablet / totalDeviceCount) * 100) : 0,
     };
 
+    const totalEngagement = totalClicks + ctaClicks + projectClicks;
+    const effectiveCtr =
+      totalViews > 0
+        ? ((totalEngagement / totalViews) * 100).toFixed(1)
+        : totalEngagement > 0
+        ? "100.0"
+        : "0.0";
+
     return {
       totalClicks,
       todayClicks,
@@ -187,6 +227,13 @@ export const analyticsService = {
       todayViews,
       uniqueVisitors,
       clickRate,
+      totalEngagement,
+      effectiveCtr,
+      breakdown: {
+        links: totalClicks,
+        cta: ctaClicks,
+        projects: projectClicks,
+      },
       deltas,
       clicksPerDay,
       viewsPerDay,

@@ -31,16 +31,26 @@ export default function DashboardAnalytics({ analytics, userData }) {
   const [timeframe, setTimeframe] = useState("30");
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const totalViews = analytics?.totalViews ?? 24892;
-  const totalClicks = analytics?.totalClicks ?? 10418;
-  const clickRate = analytics?.clickRate ?? "41.85";
-  const totalFollowers = analytics?.totalFollowers ?? "2.84M";
+  const totalViews = analytics?.totalViews ?? 0;
+  const totalClicks = analytics?.totalClicks ?? 0;
+  const clickRate = analytics?.effectiveCtr ?? analytics?.clickRate ?? "0.0";
+  const totalEngagement = analytics?.totalEngagement ?? totalClicks;
+  const breakdown = analytics?.breakdown || {
+    links: totalClicks,
+    cta: 0,
+    projects: 0,
+  };
+  const ctaClicks = breakdown.cta || 0;
+  const projectClicks = breakdown.projects || 0;
+  const linkClicks = breakdown.links || totalClicks;
+
+  const totalFollowers = analytics?.totalFollowers || (userData?.totalAudienceFormatted ? `${userData.totalAudienceFormatted}` : "0");
 
   const deltas = analytics?.deltas || {
-    views: "+12.8%",
-    clicks: "+18.3%",
-    rate: "+4.1%",
-    followers: "+3.8%",
+    views: "+0.0%",
+    clicks: "+0.0%",
+    rate: "+0.0%",
+    followers: "+0.0%",
   };
 
   // Audience platforms breakdown
@@ -215,52 +225,101 @@ export default function DashboardAnalytics({ analytics, userData }) {
         {/* Card 1: Views */}
         <div className="p-4 sm:p-5 rounded-xl bg-[#13120D] border border-white/5 flex flex-col justify-between space-y-2">
           <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-slate-400">
-            Views
+            Profile Views
           </span>
           <div className="text-xl sm:text-2xl lg:text-3xl font-mono font-bold text-white tracking-tight">
             {Number(totalViews).toLocaleString()}
           </div>
           <div className="text-right text-[11px] font-mono font-bold text-[#c6f035]">
-            {deltas.views || "+12.8%"}
+            {deltas.views || "+0.0%"}
           </div>
         </div>
 
-        {/* Card 2: Clicks */}
+        {/* Card 2: Total Engagement */}
         <div className="p-4 sm:p-5 rounded-xl bg-[#13120D] border border-white/5 flex flex-col justify-between space-y-2">
           <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-slate-400">
-            Clicks
+            Total Interactions
           </span>
           <div className="text-xl sm:text-2xl lg:text-3xl font-mono font-bold text-white tracking-tight">
-            {Number(totalClicks).toLocaleString()}
+            {Number(totalEngagement).toLocaleString()}
           </div>
-          <div className="text-right text-[11px] font-mono font-bold text-[#c6f035]">
-            {deltas.clicks || "+18.3%"}
+          <div className="text-right text-[11px] font-mono font-bold text-[#00d2ff]">
+            {deltas.clicks || "+0.0%"}
           </div>
         </div>
 
-        {/* Card 3: Click Rate */}
+        {/* Card 3: Effective CTR */}
         <div className="p-4 sm:p-5 rounded-xl bg-[#13120D] border border-white/5 flex flex-col justify-between space-y-2">
           <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-slate-400">
-            Click Rate
+            Effective CTR
           </span>
           <div className="text-xl sm:text-2xl lg:text-3xl font-mono font-bold text-white tracking-tight">
             {clickRate}%
           </div>
           <div className="text-right text-[11px] font-mono font-bold text-[#c6f035]">
-            {deltas.rate || "+4.1%"}
+            {deltas.rate || "+0.0%"}
           </div>
         </div>
 
-        {/* Card 4: Followers */}
+        {/* Card 4: Primary CTA Conversions */}
         <div className="p-4 sm:p-5 rounded-xl bg-[#13120D] border border-white/5 flex flex-col justify-between space-y-2">
           <span className="text-[9px] sm:text-[10px] font-mono uppercase tracking-wider text-slate-400">
-            Followers
+            Primary CTA Clicks
           </span>
-          <div className="text-xl sm:text-2xl lg:text-3xl font-mono font-bold text-white tracking-tight">
-            {totalFollowers}
+          <div className="text-xl sm:text-2xl lg:text-3xl font-mono font-bold text-white tracking-tight text-[#c6f035]">
+            {Number(ctaClicks).toLocaleString()}
           </div>
-          <div className="text-right text-[11px] font-mono font-bold text-[#c6f035]">
-            {deltas.followers || "+3.8%"}
+          <div className="text-right text-[11px] font-mono font-bold text-slate-500">
+            Goal action
+          </div>
+        </div>
+      </div>
+
+      {/* Engagement Channels Breakdown Bar */}
+      <div className="p-5 sm:p-6 rounded-2xl bg-[#13120D] border border-white/5 space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 font-bold">
+            Engagement Channels Breakdown
+          </span>
+          <span className="text-xs font-mono text-zinc-500">
+            {totalEngagement} total actions
+          </span>
+        </div>
+
+        {/* Multi-segment progress bar */}
+        <div className="w-full h-3 rounded-full bg-white/5 overflow-hidden flex">
+          <div
+            style={{ width: `${totalEngagement > 0 ? (linkClicks / totalEngagement) * 100 : 0}%` }}
+            className="h-full bg-[#00d2ff] transition-all"
+            title={`Links: ${linkClicks}`}
+          />
+          <div
+            style={{ width: `${totalEngagement > 0 ? (ctaClicks / totalEngagement) * 100 : 0}%` }}
+            className="h-full bg-[#c6f035] transition-all"
+            title={`Primary CTA: ${ctaClicks}`}
+          />
+          <div
+            style={{ width: `${totalEngagement > 0 ? (projectClicks / totalEngagement) * 100 : 0}%` }}
+            className="h-full bg-[#f43f5e] transition-all"
+            title={`Projects: ${projectClicks}`}
+          />
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 pt-1 text-xs font-mono">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-sm bg-[#00d2ff]" />
+            <span className="text-slate-400">Links:</span>
+            <span className="text-white font-bold">{linkClicks}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-sm bg-[#c6f035]" />
+            <span className="text-slate-400">Primary CTA:</span>
+            <span className="text-white font-bold">{ctaClicks}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-sm bg-[#f43f5e]" />
+            <span className="text-slate-400">Projects:</span>
+            <span className="text-white font-bold">{projectClicks}</span>
           </div>
         </div>
       </div>

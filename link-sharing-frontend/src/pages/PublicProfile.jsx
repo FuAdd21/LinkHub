@@ -398,6 +398,9 @@ export default function PublicProfile() {
             href={userData.primary_cta.url}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => {
+              api.post(`/api/analytics/cta/${username}`).catch(() => {});
+            }}
             className="w-full mt-3.5 py-3 px-4 rounded-xl font-mono font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-[0_2px_14px_rgba(198,240,53,0.2)] hover:brightness-110 active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
             style={{
               backgroundColor: accentColor,
@@ -563,6 +566,9 @@ export default function PublicProfile() {
                 href={proj.url || "#"}
                 target={proj.url ? "_blank" : "_self"}
                 rel="noopener noreferrer"
+                onClick={() => {
+                  api.post(`/api/analytics/project/${proj.id}`).catch(() => {});
+                }}
                 className="block p-3.5 rounded-xl bg-[#13120D]/90 hover:bg-[#181711] border border-white/10 hover:border-[#c6f035]/50 transition-all shadow-sm group focus-visible:ring-2 focus-visible:ring-[#c6f035] focus-visible:outline-none"
               >
                 <div className="flex items-start justify-between gap-2">

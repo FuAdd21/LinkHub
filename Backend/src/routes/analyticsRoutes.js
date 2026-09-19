@@ -3,6 +3,8 @@ const router = express.Router();
 import {
   trackClick,
   trackProfileView,
+  trackCtaClick,
+  trackProjectClick,
   getAnalytics,
 } from "../controllers/analyticsController.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
@@ -17,6 +19,12 @@ router.post("/analytics/click/:linkId", clickLimiter, trackClick);
 
 // Public: track a profile page view (rate limited to 30/min)
 router.post("/analytics/view/:username", viewLimiter, trackProfileView);
+
+// Public: track a primary CTA click (rate limited to 60/min)
+router.post("/analytics/cta/:username", clickLimiter, trackCtaClick);
+
+// Public: track a project click (rate limited to 60/min)
+router.post("/analytics/project/:projectId", clickLimiter, trackProjectClick);
 
 // Authenticated: get user analytics (rate limited to 30/min)
 router.get("/analytics", authenticateToken, analyticsQueryLimiter, getAnalytics);

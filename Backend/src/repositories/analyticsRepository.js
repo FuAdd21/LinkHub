@@ -264,4 +264,70 @@ export const analyticsRepository = {
     );
     return rows;
   },
+
+  /**
+   * Records a CTA click event in daily rollups
+   */
+  async recordCtaClick({ userId }) {
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      await db.query(
+        `INSERT INTO analytics_daily_rollups (user_id, event_date, event_type, target_id, count, unique_visitors)
+         VALUES (?, ?, 'cta', 0, 1, 1)
+         ON DUPLICATE KEY UPDATE count = count + 1`,
+        [userId, today]
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
+  /**
+   * Records a Project click event in daily rollups
+   */
+  async recordProjectClick({ userId, projectId }) {
+    try {
+      const today = new Date().toISOString().split("T")[0];
+      await db.query(
+        `INSERT INTO analytics_daily_rollups (user_id, event_date, event_type, target_id, count, unique_visitors)
+         VALUES (?, ?, 'click', ?, 1, 1)
+         ON DUPLICATE KEY UPDATE count = count + 1`,
+        [userId, today, projectId]
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  },
+
+  /**
+   * Total CTA clicks for a user
+   */
+  async getCtaClicks(userId) {
+    try {
+      const [rows] = await db.query(
+        `SELECT COALESCE(SUM(count), 0) as total FROM analytics_daily_rollups WHERE user_id = ? AND event_type = 'cta'`,
+        [userId]
+      );
+      return Number(rows[0]?.total) || 0;
+    } catch {
+      return 0;
+    }
+  },
+
+  /**
+   * Total project clicks for a user
+   */
+  async getProjectClicks(userId) {
+    try {
+      const [rows] = await db.query(
+        `SELECT COALESCE(SUM(count), 0) as total FROM analytics_daily_rollups WHERE user_id = ? AND event_type = 'click' AND target_id > 0`,
+        [userId]
+      );
+      return Number(rows[0]?.total) || 0;
+    } catch {
+      return 0;
+    }
+  },
 };
