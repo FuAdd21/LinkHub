@@ -4,7 +4,8 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import "dotenv/config";
+import { config } from "./config/env.js";
+import { notFoundHandler, errorHandler } from "./errors/errorHandler.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -34,11 +35,7 @@ app.use(
 app.use(cookieParser());
 
 // CORS with credentials support
-const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  "http://localhost:5173",
-  "http://127.0.0.1:5173",
-].filter(Boolean);
+const allowedOrigins = config.cors.allowedOrigins;
 
 app.use(
   cors({
@@ -78,21 +75,7 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-app.use((req, res) => {
-  res.status(404).json({ success: false, message: "Route not found" });
-});
-
-app.use((err, req, res, next) => {
-  console.error("Unhandled server error:", err);
-
-  if (res.headersSent) {
-    return next(err);
-  }
-
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || "Internal server error",
-  });
-});
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 export { app };
