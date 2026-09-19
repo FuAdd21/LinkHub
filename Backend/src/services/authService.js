@@ -5,6 +5,7 @@ import { userRepository } from "../repositories/userRepository.js";
 import { AppError } from "../errors/AppError.js";
 import { ErrorCodes } from "../errors/errorCodes.js";
 import { config } from "../config/env.js";
+import { emailService } from "./emailService.js";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_MIN_LENGTH = 8;
@@ -157,6 +158,10 @@ export const authService = {
     const expires = new Date(Date.now() + 3600000); // 1 hour
 
     await userRepository.setResetToken(user.id, hashedToken, expires);
+
+    const frontendBaseUrl = config.cors.frontendUrl || "http://localhost:5173";
+    const resetUrl = `${frontendBaseUrl}/reset-password?token=${resetToken}`;
+    await emailService.sendPasswordResetEmail({ to: user.email, resetUrl });
 
     return {
       userId: user.id,
