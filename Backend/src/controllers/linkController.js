@@ -1,9 +1,10 @@
 import { db } from "../config/db.js";
+import { config } from "../config/env.js";
 import { detectPlatform } from "../utils/detectPlatform.js";
 import { fetchProfileData } from "../services/profileFetcher.js";
 import { fetchSocialProfile } from "../services/socialFetchService.js";
 
-const MAX_LINKS_PER_USER = parseInt(process.env.MAX_LINKS_PER_USER, 10) || 50;
+const MAX_LINKS_PER_USER = config.links.maxPerUser;
 
 function isValidUrl(string) {
   try {

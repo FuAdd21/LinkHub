@@ -1,8 +1,8 @@
 import crypto from "crypto";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import "dotenv/config";
 import { db } from "../config/db.js";
+import { config } from "../config/env.js";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_MIN_LENGTH = 8;
@@ -95,10 +95,7 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Email and password are required" });
     }
 
-    if (!process.env.JWT_SECRET) {
-      console.error("CRITICAL: JWT_SECRET is not configured");
-      return res.status(500).json({ message: "Server configuration error" });
-    }
+    // JWT_SECRET is validated at startup by env.js — no runtime check needed here
 
     const [results] = await db.query(
       "SELECT id, name, username, email, password, session_version FROM clients WHERE email = ?",
@@ -122,12 +119,12 @@ export const login = async (req, res) => {
         email: user.email,
         sessionVersion: user.session_version || 1,
       },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || "7d" },
+      config.jwt.secret,
+      { expiresIn: config.jwt.expiresIn },
     );
 
     // Set secure httpOnly cookie and readable CSRF token cookie
-    const isProd = process.env.NODE_ENV === "production";
+    const isProd = config.isProd;
     const csrfToken = crypto.randomBytes(24).toString("hex");
 
     res.cookie("token", token, {
@@ -160,7 +157,7 @@ export const login = async (req, res) => {
 };
 
 export const logout = async (req, res) => {
-  const isProd = process.env.NODE_ENV === "production";
+  const isProd = config.isProd;
   res.clearCookie("token", { path: "/", httpOnly: true, secure: isProd, sameSite: "lax" });
   res.clearCookie("csrf_token", { path: "/", httpOnly: false, secure: isProd, sameSite: "lax" });
   res.json({ message: "Logged out successfully" });

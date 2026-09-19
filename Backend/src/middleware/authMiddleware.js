@@ -1,11 +1,9 @@
 import jwt from "jsonwebtoken";
-import "dotenv/config";
 import { db } from "../config/db.js";
+import { config } from "../config/env.js";
 
 export const authenticateToken = (req, res, next) => {
-  if (!process.env.JWT_SECRET) {
-    return res.status(500).json({ message: "JWT configuration is missing" });
-  }
+  // JWT_SECRET is validated at startup by env.js
 
   // 1. Extract token from cookie (primary) or Bearer header (fallback)
   const authHeader = req.headers.authorization;
@@ -33,7 +31,7 @@ export const authenticateToken = (req, res, next) => {
     }
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, async (err, user) => {
+  jwt.verify(token, config.jwt.secret, async (err, user) => {
     if (err) {
       if (err.name === "TokenExpiredError") {
         return res.status(401).json({ message: "Session expired. Please log in again.", code: "TOKEN_EXPIRED" });

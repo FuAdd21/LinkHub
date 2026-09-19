@@ -1,4 +1,5 @@
 import rateLimit from "express-rate-limit";
+import { config } from "../config/env.js";
 
 function isLocalRequest(req) {
   const ip = req.ip || req.connection?.remoteAddress || "";
@@ -14,7 +15,7 @@ export const socialRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => {
-    return process.env.NODE_ENV !== "production" && isLocalRequest(req);
+    return !config.isProd && isLocalRequest(req);
   },
 });
 
@@ -28,7 +29,7 @@ export const authRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => {
-    return process.env.NODE_ENV !== "production" && isLocalRequest(req);
+    return !config.isProd && isLocalRequest(req);
   },
 });
 
@@ -42,7 +43,7 @@ export const analyticsRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => {
-    return process.env.NODE_ENV !== "production" && isLocalRequest(req);
+    return !config.isProd && isLocalRequest(req);
   },
 });
 

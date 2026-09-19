@@ -1,10 +1,11 @@
 import crypto from "crypto";
 import { db } from "../config/db.js";
+import { config } from "../config/env.js";
 
 export function hashIp(ip) {
   if (!ip) return null;
-  const salt = process.env.IP_SALT;
-  if (!salt && process.env.NODE_ENV === "production") {
+  const salt = config.analytics.ipSalt;
+  if (!salt && config.isProd) {
     throw new Error("CRITICAL: IP_SALT environment variable is required in production");
   }
   const effectiveSalt = salt || "linkhub_dev_ip_salt_not_for_production";

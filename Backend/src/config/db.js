@@ -1,24 +1,15 @@
 import mysql from "mysql2/promise";
-import "dotenv/config";
+import { config } from "./env.js";
 
-const required = (name) => {
-  const value = process.env[name];
-  if (!value) throw new Error(`Missing required env var: ${name}`);
-  return value;
-};
-
-const DATABASE_CONFIG = {
-  host: process.env.DB_HOST || "localhost",
-  user: required("DB_USER"),
-  password: required("DB_PASSWORD"),
-  database: required("DB_NAME"),
+export const db = mysql.createPool({
+  host: config.db.host,
+  user: config.db.user,
+  password: config.db.password,
+  database: config.db.database,
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: config.db.connectionLimit,
   queueLimit: 0,
-};
-
-
-export const db = mysql.createPool(DATABASE_CONFIG);
+});
 
 async function addMissingColumns(connection, tableName, columns) {
   for (const [columnName, columnDefinition] of columns) {
