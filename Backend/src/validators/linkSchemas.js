@@ -59,14 +59,20 @@ export const updateLinkSchema = z.object({
     .or(z.literal("").transform(() => null)),
 });
 
-export const reorderLinksSchema = z.object({
-  linkIds: z
-    .array(z.number().int().positive("Link IDs must be positive integers"), {
-      required_error: "linkIds array is required",
-    })
-    .min(1, "At least one link ID is required")
-    .refine(
-      (ids) => new Set(ids).size === ids.length,
-      "Link IDs must not contain duplicates"
-    ),
-});
+export const reorderLinksSchema = z
+  .object({
+    linkIds: z.array(z.number().int().positive()).optional(),
+    order: z.array(z.number().int().positive()).optional(),
+  })
+  .refine(
+    (data) => (data.linkIds && data.linkIds.length > 0) || (data.order && data.order.length > 0),
+    "Either linkIds or order array is required"
+  )
+  .transform((data) => {
+    const ids = data.linkIds || data.order;
+    return { linkIds: ids, order: ids };
+  })
+  .refine(
+    (data) => new Set(data.linkIds).size === data.linkIds.length,
+    "Link IDs must not contain duplicates"
+  );

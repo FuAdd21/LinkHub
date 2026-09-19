@@ -170,4 +170,48 @@ test("Links Integration Suite", async (t) => {
     });
     assert.equal(invalidModeRes.status, 400);
   });
+
+  await t.test("POST /api/mylinks - rejects missing title or invalid URL with 400", async () => {
+    const missingTitle = await clientA.request("/api/mylinks", {
+      method: "POST",
+      body: { title: "", url: "https://valid.com" },
+    });
+    assert.equal(missingTitle.status, 400);
+
+    const badUrl = await clientA.request("/api/mylinks", {
+      method: "POST",
+      body: { title: "Title", url: "ftp://notallowed.com" },
+    });
+    assert.equal(badUrl.status, 400);
+  });
+
+  await t.test("PUT /api/mylinks/:linkId/visibility - toggles link visibility", async () => {
+    const toggleRes = await clientA.request(`/api/mylinks/${link1Id}/visibility`, {
+      method: "PUT",
+      body: { is_visible: false },
+    });
+    assert.equal(toggleRes.status, 200);
+    assert.equal(toggleRes.data.is_visible, false);
+
+    const toggleBack = await clientA.request(`/api/mylinks/${link1Id}/visibility`, {
+      method: "PUT",
+      body: { is_visible: true },
+    });
+    assert.equal(toggleBack.status, 200);
+    assert.equal(toggleBack.data.is_visible, true);
+  });
+
+  await t.test("DELETE /api/mylinks/:linkId - owner successfully deletes own link", async () => {
+    const deleteRes = await clientA.request(`/api/mylinks/${link2Id}`, {
+      method: "DELETE",
+    });
+    assert.equal(deleteRes.status, 200);
+
+    // Subsequent delete returns 404
+    const repeatDelete = await clientA.request(`/api/mylinks/${link2Id}`, {
+      method: "DELETE",
+    });
+    assert.equal(repeatDelete.status, 404);
+  });
 });
+
