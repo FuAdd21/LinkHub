@@ -214,4 +214,54 @@ export const analyticsRepository = {
     );
     return rows;
   },
+
+  /**
+   * Today's click count
+   */
+  async getTodayClicks(userId) {
+    const [rows] = await db.query(
+      "SELECT COUNT(*) as today FROM clicks WHERE user_id = ? AND DATE(timestamp) = CURDATE()",
+      [userId]
+    );
+    return Number(rows[0]?.today) || 0;
+  },
+
+  /**
+   * Today's view count
+   */
+  async getTodayViews(userId) {
+    const [rows] = await db.query(
+      "SELECT COUNT(*) as today FROM profile_views WHERE user_id = ? AND DATE(timestamp) = CURDATE()",
+      [userId]
+    );
+    return Number(rows[0]?.today) || 0;
+  },
+
+  /**
+   * Combined recent activity feed of clicks and views
+   */
+  async getRecentActivity(userId, limit = 8) {
+    const [rows] = await db.query(
+      `(
+        SELECT c.id, 'click' as type, c.device, c.referrer, c.timestamp, l.title as link_title, l.platform
+        FROM clicks c
+        JOIN links l ON c.link_id = l.id
+        WHERE c.user_id = ?
+        ORDER BY c.timestamp DESC
+        LIMIT 6
+      )
+      UNION ALL
+      (
+        SELECT v.id, 'view' as type, v.device, v.referrer, v.timestamp, NULL as link_title, NULL as platform
+        FROM profile_views v
+        WHERE v.user_id = ?
+        ORDER BY v.timestamp DESC
+        LIMIT 6
+      )
+      ORDER BY timestamp DESC
+      LIMIT ?`,
+      [userId, userId, limit]
+    );
+    return rows;
+  },
 };

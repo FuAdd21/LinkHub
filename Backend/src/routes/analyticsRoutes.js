@@ -6,15 +6,19 @@ import {
   getAnalytics,
 } from "../controllers/analyticsController.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
-import { analyticsRateLimiter } from "../middleware/rateLimiter.js";
+import {
+  clickLimiter,
+  viewLimiter,
+  analyticsQueryLimiter,
+} from "../middleware/rateLimiter.js";
 
-// Public: track a link click (rate limited)
-router.post("/analytics/click/:linkId", analyticsRateLimiter, trackClick);
+// Public: track a link click (rate limited to 60/min)
+router.post("/analytics/click/:linkId", clickLimiter, trackClick);
 
-// Public: track a profile page view (rate limited)
-router.post("/analytics/view/:username", analyticsRateLimiter, trackProfileView);
+// Public: track a profile page view (rate limited to 30/min)
+router.post("/analytics/view/:username", viewLimiter, trackProfileView);
 
-// Authenticated: get user analytics
-router.get("/analytics", authenticateToken, getAnalytics);
+// Authenticated: get user analytics (rate limited to 30/min)
+router.get("/analytics", authenticateToken, analyticsQueryLimiter, getAnalytics);
 
 export default router;
