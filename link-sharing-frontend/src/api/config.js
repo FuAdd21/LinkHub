@@ -37,7 +37,7 @@ export const api = axios.create({
 api.interceptors.request.use((config) => {
   const method = (config.method || "get").toLowerCase();
   if (["post", "put", "delete", "patch"].includes(method)) {
-    const csrfToken = getCookie("csrf_token") || localStorage.getItem("csrf_token");
+    const csrfToken = getCookie("csrf_token");
     if (csrfToken) {
       config.headers["X-CSRF-Token"] = csrfToken;
     }
@@ -45,7 +45,6 @@ api.interceptors.request.use((config) => {
 
   return config;
 });
-
 
 // Global 401/403 interceptor — auto-logout on expired/invalid token
 let logoutHandler = null;
@@ -58,8 +57,14 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 || error.response?.status === 403) {
-      const code = error.response?.data?.code;
-      if (code === "TOKEN_EXPIRED" || code === "TOKEN_INVALID" || code === "NO_TOKEN") {
+      const code =
+        error.response?.data?.error?.code || error.response?.data?.code;
+      if (
+        code === "TOKEN_EXPIRED" ||
+        code === "TOKEN_INVALID" ||
+        code === "NO_TOKEN" ||
+        code === "SESSION_REVOKED"
+      ) {
         if (logoutHandler) {
           logoutHandler();
         }
@@ -68,17 +73,3 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-/**
- * Checks if a JWT token is expired by decoding its payload.
- * Does NOT verify signature — only checks the `exp` claim.
- */
-export function isTokenExpired(token) {
-  if (!token) return true;
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload.exp * 1000 < Date.now();
-  } catch {
-    return true;
-  }
-}

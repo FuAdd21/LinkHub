@@ -1,6 +1,5 @@
-// src/context/AuthContext.jsx
 import React, { createContext, useState, useEffect, useCallback } from "react";
-import { api, isTokenExpired, setLogoutHandler } from "../api/config.js";
+import { api, setLogoutHandler } from "../api/config.js";
 import toast from "react-hot-toast";
 
 export const AuthContext = createContext();
@@ -41,7 +40,6 @@ export const AuthProvider = ({ children }) => {
           setIsAuthenticated(false);
           setUser(null);
           localStorage.removeItem("user");
-          localStorage.removeItem("csrf_token");
         }
       })
       .finally(() => {
@@ -55,17 +53,13 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  const login = useCallback((arg1, arg2, arg3) => {
+  const login = useCallback((arg1, arg2) => {
     let userData = null;
-    let csrfToken = null;
     if (typeof arg1 === "string" && typeof arg2 === "object") {
       userData = arg2;
-      csrfToken = arg3;
     } else {
       userData = arg1;
-      csrfToken = arg2;
     }
-    if (csrfToken) localStorage.setItem("csrf_token", csrfToken);
     if (userData) localStorage.setItem("user", JSON.stringify(userData));
     setIsAuthenticated(true);
     setUser(userData || null);
@@ -73,8 +67,6 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback((notify = true) => {
     api.post("/logout").catch(() => {});
-    localStorage.removeItem("token");
-    localStorage.removeItem("csrf_token");
     localStorage.removeItem("user");
     setIsAuthenticated(false);
     setUser(null);
