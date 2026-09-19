@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   RefreshCw,
@@ -13,6 +14,8 @@ import {
   Link2,
   AlertCircle,
   Share2,
+  Sparkles,
+  ArrowUpRight,
 } from "lucide-react";
 import {
   FaGithub,
@@ -57,6 +60,7 @@ export default function DashboardSocials({
   onUserChange,
   onIntegrationsChange,
 }) {
+  const navigate = useNavigate();
   const [data, setData] = useState(integrationsData || { connected: [], available: [] });
   const [activeMenu, setActiveMenu] = useState(null);
   const [syncingAll, setSyncingAll] = useState(false);
@@ -517,6 +521,28 @@ export default function DashboardSocials({
                 );
               })}
             </div>
+          </div>
+
+          {/* Custom Channels & Other Socials Navigation Banner */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#18160f] to-[#12110c] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-[#c6f035]" />
+                <h4 className="text-sm font-bold text-white font-mono">
+                  Have other social media or secondary channels?
+                </h4>
+              </div>
+              <p className="text-xs text-slate-400 max-w-md">
+                Want to link Twitch, Discord, Substack, WhatsApp, Medium, Spotify, a 2nd YouTube channel, or a custom portfolio? You can add unlimited custom destination buttons in the <strong className="text-white">Links</strong> tab.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate("/dashboard/links")}
+              className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-[#c6f035] text-slate-200 hover:text-[#0b0a07] border border-white/10 hover:border-[#c6f035] text-xs font-mono font-bold transition-all flex items-center justify-center gap-2 shrink-0 shadow-sm"
+            >
+              <span>Manage in Links</span>
+              <ArrowUpRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
 

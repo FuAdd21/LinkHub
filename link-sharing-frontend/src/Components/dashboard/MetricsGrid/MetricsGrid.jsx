@@ -16,13 +16,13 @@ export default function MetricsGrid({ analytics = {} }) {
     : views > 0
     ? ((clicks / views) * 100).toFixed(2)
     : "0.00";
-  const uniqueVisitors = Number(analytics?.uniqueVisitors ?? Math.round(views * 0.73) ?? 0);
+  const uniqueVisitors = Number(analytics?.uniqueVisitors ?? 0);
 
   const deltas = analytics?.deltas || {
-    views: "+12.8%",
-    clicks: "+18.3%",
-    rate: "+2.4%",
-    visitors: "-1.7%",
+    views: "+0.0%",
+    clicks: "+0.0%",
+    rate: "+0.0%",
+    visitors: "+0.0%",
   };
 
   const metrics = [
@@ -31,7 +31,7 @@ export default function MetricsGrid({ analytics = {} }) {
       title: "Profile views",
       value: views.toLocaleString(),
       icon: Eye,
-      trend: deltas.views || "+12.8%",
+      trend: deltas.views || "+0.0%",
       isPositive: !String(deltas.views).startsWith("-"),
     },
     {
@@ -39,7 +39,7 @@ export default function MetricsGrid({ analytics = {} }) {
       title: "Total clicks",
       value: clicks.toLocaleString(),
       icon: Navigation,
-      trend: deltas.clicks || "+18.3%",
+      trend: deltas.clicks || "+0.0%",
       isPositive: !String(deltas.clicks).startsWith("-"),
     },
     {
@@ -47,7 +47,7 @@ export default function MetricsGrid({ analytics = {} }) {
       title: "Click rate",
       value: `${clickRate}%`,
       icon: Activity,
-      trend: deltas.rate || "+2.4%",
+      trend: deltas.rate || "+0.0%",
       isPositive: !String(deltas.rate).startsWith("-"),
     },
     {
@@ -55,7 +55,7 @@ export default function MetricsGrid({ analytics = {} }) {
       title: "Unique visitors",
       value: uniqueVisitors.toLocaleString(),
       icon: Users,
-      trend: deltas.visitors || "-1.7%",
+      trend: deltas.visitors || "+0.0%",
       isPositive: !String(deltas.visitors).startsWith("-"),
     },
   ];

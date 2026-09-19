@@ -6,6 +6,8 @@ import { getGitHubUser } from "./githubService.js";
 import { getTikTokProfile } from "./tiktokService.js";
 import { getInstagramProfile } from "./instagramService.js";
 import { getTelegramProfile } from "./telegramService.js";
+import { getTwitterProfile } from "./twitterService.js";
+import { getLinkedInProfile } from "./linkedinService.js";
 import { AppError } from "../errors/AppError.js";
 import { ErrorCodes } from "../errors/errorCodes.js";
 import { logger } from "../config/logger.js";
@@ -102,7 +104,41 @@ export const socialService = {
       };
     }
 
-    // Generic fallback for other platforms (twitter, linkedin, spotify)
+    if (p === "twitter" || p === "x") {
+      const data = await getTwitterProfile(handleOrUrl);
+      const followers = Number(data.followers) || 0;
+      const cleanHandle = data.username || handleOrUrl.replace(/^@/, "").trim();
+      const fallbackAvatar = `https://unavatar.io/x/${cleanHandle}?fallback=/placeholder-avatar.png`;
+      return {
+        handle: `@${cleanHandle}`,
+        name: data.name || cleanHandle,
+        avatar: data.avatar || fallbackAvatar,
+        followers,
+        formattedFollowers: formatFollowerCount(followers),
+        profileUrl: data.profileUrl || `https://x.com/${cleanHandle}`,
+        bio: data.bio || null,
+        label: "FOLLOWERS",
+      };
+    }
+
+    if (p === "linkedin") {
+      const data = await getLinkedInProfile(handleOrUrl);
+      const connections = Number(data.connections) || 0;
+      const cleanHandle = data.username || handleOrUrl.replace(/^@/, "").trim();
+      const fallbackAvatar = `https://unavatar.io/linkedin/${cleanHandle}?fallback=/placeholder-avatar.png`;
+      return {
+        handle: `@${cleanHandle}`,
+        name: data.name || cleanHandle,
+        avatar: data.avatar || fallbackAvatar,
+        followers: connections,
+        formattedFollowers: formatFollowerCount(connections),
+        profileUrl: data.profileUrl || `https://linkedin.com/in/${cleanHandle}`,
+        bio: data.bio || null,
+        label: "CONNECTIONS",
+      };
+    }
+
+    // Generic fallback for other platforms (spotify, twitch, etc.)
     const clean = handleOrUrl.replace(/^@/, "").trim();
     let profileUrl = handleOrUrl.startsWith("http") ? handleOrUrl : `https://${provider}.com/${clean}`;
     if (p === "linkedin" && !handleOrUrl.startsWith("http")) {
@@ -114,7 +150,7 @@ export const socialService = {
     return {
       handle: `@${clean}`,
       name: clean,
-      avatar: null,
+      avatar: `https://unavatar.io/${p}/${clean}?fallback=/placeholder-avatar.png`,
       followers: 0,
       formattedFollowers: "0",
       profileUrl,

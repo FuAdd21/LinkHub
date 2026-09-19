@@ -3,18 +3,18 @@ import { formatCompactNumber } from "../dashboardUtils";
 import "./DeviceMixChart.css";
 
 export default function DeviceMixChart({ analytics = {} }) {
-  const visitors = Number(analytics?.uniqueVisitors ?? 18206);
+  const visitors = Number(analytics?.uniqueVisitors ?? 0);
   const formattedVisitors = formatCompactNumber(visitors);
 
   const mix = analytics?.deviceMix || {
-    mobile: 68,
-    desktop: 23,
-    tablet: 9,
+    mobile: 0,
+    desktop: 0,
+    tablet: 0,
   };
 
-  const mobilePct = Math.max(0, Number(mix.mobile ?? 68));
-  const desktopPct = Math.max(0, Number(mix.desktop ?? 23));
-  const tabletPct = Math.max(0, Number(mix.tablet ?? 9));
+  const mobilePct = Math.max(0, Number(mix.mobile ?? 0));
+  const desktopPct = Math.max(0, Number(mix.desktop ?? 0));
+  const tabletPct = Math.max(0, Number(mix.tablet ?? 0));
 
   // SVG circle calculations (r = 60, circumference ~ 376.99)
   const C = 2 * Math.PI * 60;

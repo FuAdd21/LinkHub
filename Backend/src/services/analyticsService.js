@@ -6,6 +6,7 @@ import { projectRepository } from "../repositories/projectRepository.js";
 import { config } from "../config/env.js";
 import { AppError } from "../errors/AppError.js";
 import { ErrorCodes } from "../errors/errorCodes.js";
+import { db } from "../config/db.js";
 
 export function hashIp(ip) {
   if (!ip) return null;
@@ -220,6 +221,64 @@ export const analyticsService = {
         ? "100.0"
         : "0.0";
 
+    // Fetch connected integrations to compute authentic audience breakdown
+    const [integrationsRows] = await db.query(
+      "SELECT provider, config FROM integrations WHERE user_id = ? AND status = 'connected'",
+      [userId]
+    ).catch(() => [[]]);
+
+    const PLATFORM_COLORS = {
+      youtube: "#ff0033",
+      github: "#8b949e",
+      telegram: "#229ED9",
+      instagram: "#E1306C",
+      tiktok: "#00f2ff",
+      twitter: "#1DA1F2",
+      linkedin: "#0A66C2",
+      x: "#ffffff",
+      spotify: "#1db954",
+    };
+
+    const PLATFORM_NAMES = {
+      youtube: "YouTube",
+      github: "GitHub",
+      telegram: "Telegram",
+      instagram: "Instagram",
+      tiktok: "TikTok",
+      twitter: "X (Twitter)",
+      linkedin: "LinkedIn",
+      x: "X",
+      spotify: "Spotify",
+    };
+
+    let totalFollowersRaw = 0;
+    const audienceBreakdown = [];
+
+    (integrationsRows || []).forEach((row) => {
+      try {
+        const conf = typeof row.config === "string" ? JSON.parse(row.config) : (row.config || {});
+        const p = (row.provider || "").toLowerCase();
+        const rawFollowers = Number(conf.followers) || 0;
+        totalFollowersRaw += rawFollowers;
+        audienceBreakdown.push({
+          platform: PLATFORM_NAMES[p] || (p.charAt(0).toUpperCase() + p.slice(1)),
+          count: conf.formattedFollowers || (rawFollowers >= 1000000 ? `${(rawFollowers / 1000000).toFixed(1)}M` : rawFollowers >= 1000 ? `${(rawFollowers / 1000).toFixed(1)}K` : String(rawFollowers)),
+          color: PLATFORM_COLORS[p] || "#c6f035",
+          raw: rawFollowers,
+        });
+      } catch {
+        // ignore malformed config
+      }
+    });
+
+    audienceBreakdown.sort((a, b) => b.raw - a.raw);
+    const totalFollowersFormatted =
+      totalFollowersRaw >= 1000000
+        ? `${(totalFollowersRaw / 1000000).toFixed(1).replace(/\.0$/, "")}M`
+        : totalFollowersRaw >= 1000
+        ? `${(totalFollowersRaw / 1000).toFixed(1).replace(/\.0$/, "")}K`
+        : String(totalFollowersRaw);
+
     return {
       totalClicks,
       todayClicks,
@@ -242,6 +301,8 @@ export const analyticsService = {
       deviceMix,
       referrerStats: referrerStatsRaw,
       recentActivity,
+      audienceBreakdown,
+      totalFollowers: totalFollowersFormatted,
     };
   },
 };

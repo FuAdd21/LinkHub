@@ -22,10 +22,10 @@ export default function LiveActivityFeed({ analytics = {} }) {
       return rawEvents.slice(0, 5).map((e) => {
         const isClick = e.type === "click";
         const loc = e.device
-          ? `${e.device.charAt(0).toUpperCase() + e.device.slice(1)} user`
-          : "Berlin, DE";
+          ? `${e.device.charAt(0).toUpperCase() + e.device.slice(1)} visitor`
+          : "Web visitor";
         const action = isClick
-          ? `opened ${e.platform || e.link_title || "a link"}`
+          ? `opened ${e.platform || e.link_title || "a destination link"}`
           : "viewed your profile";
         return {
           id: e.id || Math.random(),
@@ -36,13 +36,7 @@ export default function LiveActivityFeed({ analytics = {} }) {
       });
     }
 
-    // Default authentic sample feed matching screenshots
-    return [
-      { id: 1, location: "Berlin, DE", action: "opened GitHub", time: "Just now" },
-      { id: 2, location: "Austin, US", action: "viewed your profile", time: "2 min" },
-      { id: 3, location: "Nairobi, KE", action: "opened YouTube", time: "4 min" },
-      { id: 4, location: "London, UK", action: "viewed your profile", time: "8 min" },
-    ];
+    return [];
   }, [rawEvents]);
 
   return (
@@ -56,17 +50,28 @@ export default function LiveActivityFeed({ analytics = {} }) {
       </div>
 
       <div className="activity-feed-list">
-        {activityEvents.map((item) => (
-          <div key={item.id} className="activity-item">
-            <div className="activity-ring-marker" />
-            <div className="activity-content">
-              <div className="activity-primary-text">
-                <strong>{item.location}</strong> {item.action}
-              </div>
-              <span className="activity-time">{item.time}</span>
-            </div>
+        {activityEvents.length === 0 ? (
+          <div className="py-8 px-4 text-center space-y-1.5">
+            <p className="text-xs font-mono text-slate-400">
+              No live activity recorded yet
+            </p>
+            <p className="text-[11px] font-mono text-slate-600">
+              Clicks and profile views will stream here in real time as visitors interact with your link.
+            </p>
           </div>
-        ))}
+        ) : (
+          activityEvents.map((item) => (
+            <div key={item.id} className="activity-item">
+              <div className="activity-ring-marker" />
+              <div className="activity-content">
+                <div className="activity-primary-text">
+                  <strong>{item.location}</strong> {item.action}
+                </div>
+                <span className="activity-time">{item.time}</span>
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

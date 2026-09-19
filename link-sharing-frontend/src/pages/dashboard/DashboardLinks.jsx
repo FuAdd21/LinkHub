@@ -333,6 +333,19 @@ export default function DashboardLinks({
           </span>
         </div>
 
+        {/* Multi-account & Integration guidance banner */}
+        <div className="flex items-start sm:items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-[#161510] border border-white/5 text-[11px] font-mono text-slate-400">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-3.5 h-3.5 text-[#c6f035] shrink-0" />
+            <span>
+              <strong className="text-white">Multi-account ready:</strong> Add multiple channels (e.g. 2nd YouTube, extra Telegram group, portfolio, or custom link) anytime here.
+            </span>
+          </div>
+          <span className="text-[#c6f035] font-semibold shrink-0 hidden sm:inline">
+            Auto-synced with Integrations
+          </span>
+        </div>
+
         {/* Reorderable Links List */}
         <div className="space-y-3">
           {localLinks.length === 0 ? (

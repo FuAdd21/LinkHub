@@ -53,31 +53,35 @@ export default function DashboardAnalytics({ analytics, userData }) {
     followers: "+0.0%",
   };
 
-  // Audience platforms breakdown
-  const audienceBreakdown = analytics?.audienceBreakdown || [
-    { platform: "TikTok", count: "1.60M", color: "#c6f035", raw: 1600 },
-    { platform: "YouTube", count: "842K", color: "#00d2ff", raw: 842 },
-    { platform: "Instagram", count: "386K", color: "#ff8c42", raw: 386 },
-    { platform: "GitHub", count: "18.4K", color: "#f43f5e", raw: 18.4 },
-  ];
+  // Audience platforms breakdown from real integrations
+  const audienceBreakdown = Array.isArray(analytics?.audienceBreakdown)
+    ? analytics.audienceBreakdown
+    : [];
 
   // Daily growth chart data
   const rawClicksPerDay = analytics?.clicksPerDay || [];
   const rawViewsPerDay = analytics?.viewsPerDay || [];
+  const hasDailyData = rawClicksPerDay.length > 0 || rawViewsPerDay.length > 0;
 
-  const dates = rawClicksPerDay.length > 0
-    ? rawClicksPerDay.map((d) =>
+  const defaultDates = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  });
+
+  const dates = hasDailyData
+    ? (rawClicksPerDay.length > 0 ? rawClicksPerDay : rawViewsPerDay).map((d) =>
         new Date(d.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })
       )
-    : ["1 Aug", "6 Aug", "11 Aug", "16 Aug", "21 Aug", "26 Aug", "31 Aug"];
+    : defaultDates;
 
   const viewsData = rawViewsPerDay.length > 0
-    ? rawViewsPerDay.map((v) => v.views)
-    : [380, 520, 480, 720, 690, 890, 1150];
+    ? rawViewsPerDay.map((v) => Number(v.views) || 0)
+    : Array(dates.length).fill(0);
 
   const clicksData = rawClicksPerDay.length > 0
-    ? rawClicksPerDay.map((c) => c.clicks)
-    : [150, 210, 190, 310, 280, 390, 510];
+    ? rawClicksPerDay.map((c) => Number(c.clicks) || 0)
+    : Array(dates.length).fill(0);
 
   const lineChartData = {
     labels: dates,
@@ -169,12 +173,7 @@ export default function DashboardAnalytics({ analytics, userData }) {
   };
 
   // Destination Performance Rows from real topLinks
-  const topLinks = analytics?.topLinks || [
-    { title: "GitHub toolkit", clicks: 4286, conversionRate: "38.7%", avgTime: "01:42", change: "+18.4%" },
-    { title: "YouTube channel", clicks: 3104, conversionRate: "31.2%", avgTime: "02:18", change: "+11.7%" },
-    { title: "Instagram", clicks: 1879, conversionRate: "24.8%", avgTime: "00:58", change: "+6.2%" },
-    { title: "Notes", clicks: 986, conversionRate: "18.4%", avgTime: "03:06", change: "+4.8%" },
-  ];
+  const topLinks = Array.isArray(analytics?.topLinks) ? analytics.topLinks : [];
 
   return (
     <div className="space-y-6 sm:space-y-8 pb-12">
@@ -355,64 +354,77 @@ export default function DashboardAnalytics({ analytics, userData }) {
             Audience Mix
           </span>
 
-          {/* On Tablet & Desktop: Show Donut Chart in Center */}
-          <div className="hidden md:flex flex-col items-center space-y-4">
-            <div className="text-center">
-              <div className="text-3xl font-black text-white font-mono tracking-tight">
-                {totalFollowers}
-              </div>
-              <div className="text-xs text-slate-500 font-mono">
-                combined followers
-              </div>
+          {audienceBreakdown.length === 0 ? (
+            <div className="py-12 px-4 text-center space-y-2">
+              <p className="text-xs font-mono text-slate-400">
+                No audience platforms connected yet
+              </p>
+              <p className="text-[11px] font-mono text-slate-600 max-w-xs mx-auto">
+                Connect your YouTube, GitHub, Telegram, LinkedIn, or X channels in Integrations to visualize your live audience mix.
+              </p>
             </div>
-
-            <div className="relative w-40 h-40">
-              <Doughnut data={donutData} options={donutOptions} />
-            </div>
-          </div>
-
-          {/* On Mobile: Left total + Right Platform list side by side (matching mobile-03 screenshot) */}
-          <div className="flex md:hidden items-center justify-between gap-4">
-            <div>
-              <div className="text-3xl font-black text-white font-mono tracking-tight">
-                {totalFollowers}
-              </div>
-              <div className="text-xs text-slate-500 font-mono">
-                combined followers
-              </div>
-            </div>
-
-            <div className="space-y-2.5 text-xs font-mono min-w-[130px]">
-              {audienceBreakdown.map((item) => (
-                <div key={item.platform} className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2 text-slate-400">
-                    <span
-                      className="w-2 h-2 rounded-full shrink-0"
-                      style={{ backgroundColor: item.color }}
-                    />
-                    <span>{item.platform}</span>
+          ) : (
+            <>
+              {/* On Tablet & Desktop: Show Donut Chart in Center */}
+              <div className="hidden md:flex flex-col items-center space-y-4">
+                <div className="text-center">
+                  <div className="text-3xl font-black text-white font-mono tracking-tight">
+                    {totalFollowers}
                   </div>
-                  <span className="text-white font-bold">{item.count}</span>
+                  <div className="text-xs text-slate-500 font-mono">
+                    combined followers
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          {/* Tablet & Desktop Platform list at bottom */}
-          <div className="hidden md:grid grid-cols-2 gap-3 pt-2 text-xs font-mono">
-            {audienceBreakdown.map((item) => (
-              <div key={item.platform} className="flex items-center justify-between p-2 rounded-lg bg-[#161510] border border-white/5">
-                <div className="flex items-center gap-2 text-slate-400">
-                  <span
-                    className="w-2 h-2 rounded-full shrink-0"
-                    style={{ backgroundColor: item.color }}
-                  />
-                  <span>{item.platform}</span>
+                <div className="relative w-40 h-40">
+                  <Doughnut data={donutData} options={donutOptions} />
                 </div>
-                <span className="text-white font-bold">{item.count}</span>
               </div>
-            ))}
-          </div>
+
+              {/* On Mobile: Left total + Right Platform list side by side */}
+              <div className="flex md:hidden items-center justify-between gap-4">
+                <div>
+                  <div className="text-3xl font-black text-white font-mono tracking-tight">
+                    {totalFollowers}
+                  </div>
+                  <div className="text-xs text-slate-500 font-mono">
+                    combined followers
+                  </div>
+                </div>
+
+                <div className="space-y-2.5 text-xs font-mono min-w-[130px]">
+                  {audienceBreakdown.map((item) => (
+                    <div key={item.platform} className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2 text-slate-400">
+                        <span
+                          className="w-2 h-2 rounded-full shrink-0"
+                          style={{ backgroundColor: item.color }}
+                        />
+                        <span>{item.platform}</span>
+                      </div>
+                      <span className="text-white font-bold">{item.count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tablet & Desktop Platform list at bottom */}
+              <div className="hidden md:grid grid-cols-2 gap-3 pt-2 text-xs font-mono">
+                {audienceBreakdown.map((item) => (
+                  <div key={item.platform} className="flex items-center justify-between p-2 rounded-lg bg-[#161510] border border-white/5">
+                    <div className="flex items-center gap-2 text-slate-400">
+                      <span
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{ backgroundColor: item.color }}
+                      />
+                      <span>{item.platform}</span>
+                    </div>
+                    <span className="text-white font-bold">{item.count}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Top Destinations Card (Matching tablet-03 and desktop) */}
@@ -421,23 +433,34 @@ export default function DashboardAnalytics({ analytics, userData }) {
             Top Destinations
           </span>
 
-          <div className="divide-y divide-white/5 pt-1">
-            {topLinks.map((link, idx) => (
-              <div key={idx} className="py-3.5 flex items-center justify-between gap-4 first:pt-0 last:pb-0">
-                <div className="min-w-0 flex-1">
-                  <h4 className="text-xs sm:text-sm font-bold text-white truncate">
-                    {link.title}
-                  </h4>
-                  <p className="text-[11px] font-mono text-slate-500 mt-0.5">
-                    {(Number(link.clicks) || 0).toLocaleString()} clicks
-                  </p>
+          {topLinks.length === 0 ? (
+            <div className="py-12 px-4 text-center space-y-2">
+              <p className="text-xs font-mono text-slate-400">
+                No destination links recorded yet
+              </p>
+              <p className="text-[11px] font-mono text-slate-600 max-w-xs mx-auto">
+                Add links in the Links tab to track real visitor clicks and conversion rates.
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y divide-white/5 pt-1">
+              {topLinks.map((link, idx) => (
+                <div key={idx} className="py-3.5 flex items-center justify-between gap-4 first:pt-0 last:pb-0">
+                  <div className="min-w-0 flex-1">
+                    <h4 className="text-xs sm:text-sm font-bold text-white truncate">
+                      {link.title}
+                    </h4>
+                    <p className="text-[11px] font-mono text-slate-500 mt-0.5">
+                      {(Number(link.clicks) || 0).toLocaleString()} clicks
+                    </p>
+                  </div>
+                  <span className="font-mono text-xs sm:text-sm font-bold text-[#c6f035] shrink-0">
+                    {link.conversionRate || "0.0%"}
+                  </span>
                 </div>
-                <span className="font-mono text-xs sm:text-sm font-bold text-[#c6f035] shrink-0">
-                  {link.conversionRate || "0.0%"}
-                </span>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

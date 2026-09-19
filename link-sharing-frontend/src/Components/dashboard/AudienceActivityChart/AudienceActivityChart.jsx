@@ -18,12 +18,21 @@ export default function AudienceActivityChart({ analytics = {} }) {
       }));
     }
 
-    // Default curve anchors based on real total to render the smooth wavy line
-    const days = ["17 Aug", "24 Aug", "30 Aug", "05 Sep", "11 Sep", "Today"];
-    const base = total > 0 ? total / 6 : 10;
+    // Generate clean timeline for the last 6 days
+    const defaultDays = Array.from({ length: 6 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (5 - i));
+      return d.toLocaleDateString("en-US", { day: "2-digit", month: "short" });
+    });
+
+    if (total === 0) {
+      return defaultDays.map((date) => ({ date, value: 0 }));
+    }
+
+    const base = total / 6;
     const waveMultipliers = [0.6, 0.9, 0.7, 1.2, 1.1, 1.5];
 
-    return days.map((date, i) => ({
+    return defaultDays.map((date, i) => ({
       date,
       value: Math.round(base * waveMultipliers[i]),
     }));
