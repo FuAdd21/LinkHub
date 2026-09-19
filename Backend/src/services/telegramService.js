@@ -1,141 +1,101 @@
 import axios from "axios";
+import { formatFollowerCount } from "./youtubeService.js";
+import { AppError } from "../errors/AppError.js";
+import { ErrorCodes } from "../errors/errorCodes.js";
 
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const PLACEHOLDER_AVATAR = "/placeholder-avatar.png";
 
-function extractTelegramUsername(input) {
-  if (!input) return null;
-
-  // Extract from t.me URL
-  if (input.includes("t.me/")) {
-    const match = input.match(/t\.me\/([a-zA-Z0-9_]+)/);
+export function cleanTelegramHandle(input) {
+  if (!input) return "";
+  let str = input.trim();
+  if (str.includes("t.me/")) {
+    const match = str.match(/t\.me\/(?:s\/)?([a-zA-Z0-9_]+)/i);
     if (match) return match[1];
   }
-
-  // Remove @ if present
-  return input.replace(/^@/, "");
+  return str.replace(/^@/, "").split("/")[0].split("?")[0];
 }
 
-export async function getTelegramChannel(input) {
+function parseTelegramSubscribers(text) {
+  if (!text) return 0;
+  const clean = text.toLowerCase().replace(/(?:subscribers|members|subscribers?|members?)/g, "").trim();
+
+  if (clean.includes("k")) {
+    const num = parseFloat(clean.replace("k", "").trim());
+    return Math.round(num * 1000);
+  }
+  if (clean.includes("m")) {
+    const num = parseFloat(clean.replace("m", "").trim());
+    return Math.round(num * 1000000);
+  }
+
+  // Remove spaces like "9 516 594"
+  const digits = clean.replace(/\s+/g, "").replace(/,/g, "");
+  const parsed = parseInt(digits, 10);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
+export async function getTelegramProfile(input) {
+  const handle = cleanTelegramHandle(input);
+  if (!handle) {
+    throw AppError.badRequest("Please provide a valid Telegram username or channel link", ErrorCodes.VALIDATION_ERROR);
+  }
+
   try {
-    if (!input) {
-      return { platform: "Telegram", error: "No username or URL provided" };
-    }
+    const targetUrl = `https://t.me/${handle}`;
+    const res = await axios.get(targetUrl, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9",
+      },
+      timeout: 8000,
+    });
 
-    if (!TELEGRAM_BOT_TOKEN) {
-      console.warn("Telegram bot token not configured");
-      const cleanUsername = extractTelegramUsername(input);
-      return {
-        platform: "Telegram",
-        name: "Telegram Channel",
-        username: cleanUsername,
-        description: null,
-        members: 0,
-        profileUrl: cleanUsername ? `https://t.me/${cleanUsername}` : null,
-        avatar: PLACEHOLDER_AVATAR,
-        error: "Telegram bot token not configured",
-      };
-    }
+    const html = res.data;
+    const titleMatch = html.match(/<meta property="og:title" content="([^"]+)"/);
+    const extraMatch = html.match(/<div class="tgme_page_extra">([^<]+)<\/div>/);
+    const imageMatch = html.match(/<meta property="og:image" content="([^"]+)"/);
+    const descMatch = html.match(/<meta property="og:description" content="([^"]+)"/);
 
-    // Extract username from URL or clean @username
-    const cleanUsername = extractTelegramUsername(input);
-    if (!cleanUsername) {
-      return {
-        platform: "Telegram",
-        error: "Invalid Telegram username or URL",
-      };
-    }
+    const title = titleMatch ? titleMatch[1] : handle;
+    const isGenericContact = title.startsWith("Telegram: Contact @") && !extraMatch && !descMatch;
 
-    // Get chat info
-    const chatResponse = await axios.get(
-      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getChat`,
-      { params: { chat_id: `@${cleanUsername}` } },
-    );
-
-    if (!chatResponse.data.ok) {
-      return {
-        platform: "Telegram",
-        name: cleanUsername,
-        username: cleanUsername,
-        description: null,
-        members: 0,
-        profileUrl: `https://t.me/${cleanUsername}`,
-        avatar: PLACEHOLDER_AVATAR,
-        error: "Channel not found or bot not added as admin",
-      };
-    }
-
-    const chat = chatResponse.data.result;
-
-    // Get member count
-    let members = 0;
-    try {
-      const memberCountResponse = await axios.get(
-        `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getChatMemberCount`,
-        { params: { chat_id: `@${cleanUsername}` } },
+    if (isGenericContact) {
+      throw AppError.badRequest(
+        `Telegram channel or public account '@${handle}' was not found. Please verify the handle.`,
+        ErrorCodes.NOT_FOUND
       );
-      if (memberCountResponse.data.ok) {
-        members = memberCountResponse.data.result;
-      }
-    } catch (error) {
-      console.warn("Failed to get Telegram member count:", error.message);
-      // Member count is optional, continue without it
     }
 
-    // Get avatar if available
-    let avatar = PLACEHOLDER_AVATAR;
-    if (chat.photo?.big_file_id) {
-      try {
-        const photoResponse = await axios.get(
-          `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getFile`,
-          { params: { file_id: chat.photo.big_file_id } },
-        );
-        if (photoResponse.data.ok) {
-          avatar = `https://api.telegram.org/file/bot${TELEGRAM_BOT_TOKEN}/${photoResponse.data.result.file_path}`;
-        }
-      } catch {
-        // Keep placeholder if photo fetch fails
-      }
-    }
+    const rawExtra = extraMatch ? extraMatch[1] : null;
+    const followers = parseTelegramSubscribers(rawExtra);
+    const avatar =
+      imageMatch && !imageMatch[1].includes("telegram.org/img/t_logo")
+        ? imageMatch[1]
+        : PLACEHOLDER_AVATAR;
 
     return {
       platform: "Telegram",
-      name: chat.title || chat.first_name || cleanUsername,
-      username: chat.username || cleanUsername,
-      description: chat.description || null,
-      members,
-      profileUrl: `https://t.me/${chat.username || cleanUsername}`,
+      handle: `@${handle}`,
+      name: title,
       avatar,
+      followers,
+      formattedFollowers: formatFollowerCount(followers),
+      description: descMatch ? descMatch[1] : null,
+      profileUrl: `https://t.me/${handle}`,
+      label: rawExtra && rawExtra.toLowerCase().includes("member") ? "MEMBERS" : "SUBSCRIBERS",
     };
   } catch (error) {
-    console.error("Telegram service error:", error.message);
-
-    // Handle specific Telegram bot permission errors
-    if (error.response?.data?.error_code === 400) {
-      const cleanUsername = extractTelegramUsername(input);
-      return {
-        platform: "Telegram",
-        name: cleanUsername,
-        username: cleanUsername,
-        description: null,
-        members: 0,
-        profileUrl: cleanUsername ? `https://t.me/${cleanUsername}` : null,
-        avatar: PLACEHOLDER_AVATAR,
-        error: "Bot must be added to channel with proper permissions",
-      };
+    if (error instanceof AppError) throw error;
+    if (error.response?.status === 404) {
+      throw AppError.badRequest(
+        `Telegram account or channel '@${handle}' does not exist.`,
+        ErrorCodes.NOT_FOUND
+      );
     }
-
-    // Generic error fallback
-    const cleanUsername = extractTelegramUsername(input);
-    return {
-      platform: "Telegram",
-      name: cleanUsername,
-      username: cleanUsername,
-      description: null,
-      members: 0,
-      profileUrl: cleanUsername ? `https://t.me/${cleanUsername}` : null,
-      avatar: PLACEHOLDER_AVATAR,
-      error: "Failed to fetch Telegram channel data",
-    };
+    throw AppError.badRequest(
+      `Failed to verify Telegram handle '@${handle}': ${error.message}`,
+      ErrorCodes.VALIDATION_ERROR
+    );
   }
 }

@@ -55,4 +55,12 @@ export const PLATFORM_METADATA = Object.freeze({
     description: "Feature artist profile, monthly listeners, and top tracks.",
     placeholder: "Artist name or Spotify URL",
   },
+  telegram: {
+    name: "Telegram",
+    badge: "TG",
+    color: "#229ed9",
+    label: "SUBSCRIBERS",
+    description: "Connect Telegram channel or group to stream live subscriber metrics.",
+    placeholder: "Channel handle e.g. @telegram or t.me/channel",
+  },
 });

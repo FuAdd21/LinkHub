@@ -5,6 +5,7 @@ import { getYouTubeChannel, formatFollowerCount } from "./youtubeService.js";
 import { getGitHubUser } from "./githubService.js";
 import { getTikTokProfile } from "./tiktokService.js";
 import { getInstagramProfile } from "./instagramService.js";
+import { getTelegramProfile } from "./telegramService.js";
 import { AppError } from "../errors/AppError.js";
 import { ErrorCodes } from "../errors/errorCodes.js";
 import { logger } from "../config/logger.js";
@@ -56,6 +57,21 @@ export const socialService = {
       };
     }
 
+    if (p === "telegram") {
+      const data = await getTelegramProfile(handleOrUrl);
+      const followers = Number(data.followers) || 0;
+      return {
+        handle: data.handle || handleOrUrl,
+        name: data.name || handleOrUrl,
+        avatar: data.avatar || null,
+        followers,
+        formattedFollowers: data.formattedFollowers || formatFollowerCount(followers),
+        profileUrl: data.profileUrl || `https://t.me/${handleOrUrl.replace(/^@/, "")}`,
+        description: data.description || null,
+        label: data.label || "SUBSCRIBERS",
+      };
+    }
+
     if (p === "tiktok") {
       const data = await getTikTokProfile(handleOrUrl);
       const followers = Number(data.followers) || 0;
@@ -88,13 +104,20 @@ export const socialService = {
 
     // Generic fallback for other platforms (twitter, linkedin, spotify)
     const clean = handleOrUrl.replace(/^@/, "").trim();
+    let profileUrl = handleOrUrl.startsWith("http") ? handleOrUrl : `https://${provider}.com/${clean}`;
+    if (p === "linkedin" && !handleOrUrl.startsWith("http")) {
+      profileUrl = `https://linkedin.com/in/${clean}`;
+    } else if ((p === "twitter" || p === "x") && !handleOrUrl.startsWith("http")) {
+      profileUrl = `https://x.com/${clean}`;
+    }
+
     return {
       handle: `@${clean}`,
       name: clean,
       avatar: null,
       followers: 0,
       formattedFollowers: "0",
-      profileUrl: handleOrUrl.startsWith("http") ? handleOrUrl : `https://${provider}.com/${clean}`,
+      profileUrl,
       label: PLATFORM_METADATA[p]?.label || "FOLLOWERS",
     };
   },
@@ -115,6 +138,7 @@ export const socialService = {
       const pairs = [
         { provider: "github", handle: c.githubUser },
         { provider: "youtube", handle: c.youtubeId },
+        { provider: "telegram", handle: c.telegramUser },
         { provider: "instagram", handle: c.instagram },
         { provider: "tiktok", handle: c.tiktok },
         { provider: "twitter", handle: c.twitter },
@@ -222,6 +246,7 @@ export const socialService = {
     const colMap = {
       github: "githubUser",
       youtube: "youtubeId",
+      telegram: "telegramUser",
       instagram: "instagram",
       tiktok: "tiktok",
       twitter: "twitter",
@@ -273,6 +298,7 @@ export const socialService = {
     const colMap = {
       github: "githubUser",
       youtube: "youtubeId",
+      telegram: "telegramUser",
       instagram: "instagram",
       tiktok: "tiktok",
       twitter: "twitter",

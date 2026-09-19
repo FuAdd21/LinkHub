@@ -22,6 +22,7 @@ import {
   FaTwitter,
   FaYoutube,
   FaSpotify,
+  FaTelegram,
 } from "react-icons/fa";
 import { api } from "../../api/config";
 import { getAvatarUrl } from "../../Components/dashboard/dashboardUtils";
@@ -29,6 +30,7 @@ import { getAvatarUrl } from "../../Components/dashboard/dashboardUtils";
 const PLATFORM_ICONS = {
   youtube: FaYoutube,
   github: FaGithub,
+  telegram: FaTelegram,
   instagram: FaInstagram,
   tiktok: FaTiktok,
   twitter: FaTwitter,
@@ -40,6 +42,7 @@ const PLATFORM_ICONS = {
 const DEFAULT_PLATFORM_META = {
   youtube: { name: "YouTube", color: "#ff0000", pillCode: "YT", label: "SUBSCRIBERS", placeholder: "e.g. @mkbhd or channel URL" },
   github: { name: "GitHub", color: "#c6f035", pillCode: "GH", label: "FOLLOWERS", placeholder: "e.g. torvalds or profile URL" },
+  telegram: { name: "Telegram", color: "#229ed9", pillCode: "TG", label: "SUBSCRIBERS", placeholder: "e.g. @channel or t.me/channel" },
   instagram: { name: "Instagram", color: "#d946ef", pillCode: "IG", label: "FOLLOWERS", placeholder: "e.g. natgeo or profile URL" },
   tiktok: { name: "TikTok", color: "#00f2ff", pillCode: "TK", label: "FOLLOWERS", placeholder: "e.g. @tiktok or profile URL" },
   twitter: { name: "X (Twitter)", color: "#e2e8f0", pillCode: "X", label: "FOLLOWERS", placeholder: "e.g. @elonmusk" },
@@ -173,8 +176,8 @@ export default function DashboardSocials({
       setModalHandle("");
     } catch (err) {
       toast.error(
-        err.response?.data?.message || `Failed to connect ${modalProvider}. Please check the handle.`,
-        { id: toastId }
+        err.response?.data?.message || `Failed to connect ${modalProvider}. Please check the handle or link.`,
+        { id: toastId, duration: 5000 }
       );
     } finally {
       setConnecting(false);
@@ -677,9 +680,40 @@ export default function DashboardSocials({
                   autoFocus
                   className="w-full px-4 py-2.5 rounded-xl bg-[#1a1914] border border-white/10 text-white text-sm font-mono focus:border-[#c6f035] focus:outline-none placeholder:text-slate-600"
                 />
-                <p className="text-[11px] text-slate-500 mt-1">
-                  Our system will query the platform in real-time to fetch your avatar, name, and live subscriber/follower count.
-                </p>
+
+                <div className="mt-2.5 p-3 rounded-xl bg-[#0b0a07] border border-white/5 text-[11px] font-mono space-y-1 text-slate-400">
+                  <div className="flex items-center gap-1.5 font-bold text-slate-300">
+                    <AlertCircle className="w-3.5 h-3.5 text-[#c6f035]" />
+                    <span>Real-Time Verification</span>
+                  </div>
+                  {modalProvider === "youtube" && (
+                    <p>Enter your exact channel handle (e.g. <span className="text-[#c6f035]">@mkbhd</span>) or channel link. Must be an existing public channel.</p>
+                  )}
+                  {modalProvider === "github" && (
+                    <p>Enter your GitHub username (e.g. <span className="text-[#c6f035]">torvalds</span>) or profile link. Fetches live public followers & repos.</p>
+                  )}
+                  {modalProvider === "telegram" && (
+                    <p>Enter your public channel or username (e.g. <span className="text-[#c6f035]">@channel</span> or <span className="text-[#c6f035]">t.me/channel</span>). Fetches live subscribers/members.</p>
+                  )}
+                  {modalProvider === "instagram" && (
+                    <p>Enter your Instagram handle (e.g. <span className="text-[#c6f035]">natgeo</span>). Profile must be public.</p>
+                  )}
+                  {modalProvider === "tiktok" && (
+                    <p>Enter your TikTok handle (e.g. <span className="text-[#c6f035]">@tiktok</span>).</p>
+                  )}
+                  {modalProvider === "linkedin" && (
+                    <p>Enter your LinkedIn public profile URL or vanity username (e.g. <span className="text-[#c6f035]">in/yourname</span>).</p>
+                  )}
+                  {modalProvider === "twitter" && (
+                    <p>Enter your X/Twitter handle (e.g. <span className="text-[#c6f035]">@username</span>).</p>
+                  )}
+                  {modalProvider === "spotify" && (
+                    <p>Enter your Spotify artist or user profile URL.</p>
+                  )}
+                  <p className="text-slate-500 pt-1 border-t border-white/5">
+                    LinkHub validates live platform profiles directly. If an account does not exist or cannot be found, no dummy placeholder is created.
+                  </p>
+                </div>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-2">

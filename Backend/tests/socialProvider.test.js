@@ -49,4 +49,18 @@ test("Social Architecture Suite", async (t) => {
     assert.equal(data.handle, "@elonmusk");
     assert.equal(data.label, "FOLLOWERS");
   });
+
+  await t.test("PLATFORM_METADATA includes Telegram with subscriber label", () => {
+    assert.ok(PLATFORM_METADATA.telegram);
+    assert.equal(PLATFORM_METADATA.telegram.label, "SUBSCRIBERS");
+    assert.equal(PLATFORM_METADATA.telegram.color, "#229ed9");
+  });
+
+  await t.test("Telegram service rejects empty handles", async () => {
+    const { getTelegramProfile } = await import("../src/services/telegramService.js");
+    await assert.rejects(
+      async () => getTelegramProfile(""),
+      (err) => err instanceof AppError && err.statusCode === 400
+    );
+  });
 });

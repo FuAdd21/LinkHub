@@ -62,6 +62,9 @@ function extractHandleOrUrl(input) {
   return `@${str.replace(/^@/, "")}`;
 }
 
+import { AppError } from "../errors/AppError.js";
+import { ErrorCodes } from "../errors/errorCodes.js";
+
 async function scrapeYouTubeChannel(identifier) {
   try {
     const targetUrl = identifier.startsWith("http")
@@ -74,7 +77,7 @@ async function scrapeYouTubeChannel(identifier) {
       timeout: 8000,
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
         "Accept-Language": "en-US,en;q=0.9",
       },
     });
@@ -111,23 +114,20 @@ async function scrapeYouTubeChannel(identifier) {
       views: 0,
       profileUrl: targetUrl,
       handle: identifier.startsWith("@") ? identifier : `@${identifier}`,
+      label: "SUBSCRIBERS",
     };
   } catch (err) {
-    console.warn("YouTube scrape fallback failed:", err.message);
-    const cleanId = identifier.replace(/^@/, "");
-    return {
-      platform: "YouTube",
-      id: identifier,
-      name: cleanId,
-      avatar: PLACEHOLDER_AVATAR,
-      subscribers: 0,
-      formattedFollowers: "0",
-      videos: 0,
-      views: 0,
-      profileUrl: `https://www.youtube.com/${identifier.startsWith("@") ? identifier : `@${identifier}`}`,
-      handle: identifier.startsWith("@") ? identifier : `@${cleanId}`,
-      error: err.message,
-    };
+    if (err instanceof AppError) throw err;
+    if (err.response?.status === 404) {
+      throw AppError.badRequest(
+        `YouTube channel '${identifier}' was not found. Please verify the handle or channel URL.`,
+        ErrorCodes.NOT_FOUND
+      );
+    }
+    throw AppError.badRequest(
+      `Failed to verify YouTube channel '${identifier}': ${err.message}`,
+      ErrorCodes.VALIDATION_ERROR
+    );
   }
 }
 

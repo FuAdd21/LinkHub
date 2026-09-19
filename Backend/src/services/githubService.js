@@ -1,6 +1,9 @@
 import axios from "axios";
 import { formatFollowerCount } from "./youtubeService.js";
 
+import { AppError } from "../errors/AppError.js";
+import { ErrorCodes } from "../errors/errorCodes.js";
+
 const PLACEHOLDER_AVATAR = "/placeholder-avatar.png";
 
 export function cleanGitHubUsername(input) {
@@ -15,11 +18,11 @@ export function cleanGitHubUsername(input) {
 
 export async function getGitHubUser(input) {
   const username = cleanGitHubUsername(input);
-  try {
-    if (!username) {
-      return { platform: "GitHub", error: "No username provided" };
-    }
+  if (!username) {
+    throw AppError.badRequest("Please provide a valid GitHub username or URL", ErrorCodes.VALIDATION_ERROR);
+  }
 
+  try {
     const response = await axios.get(
       `https://api.github.com/users/${username}`,
       {
@@ -27,6 +30,7 @@ export async function getGitHubUser(input) {
           Accept: "application/vnd.github.v3+json",
           "User-Agent": "Linkhub-Social-Aggregator/1.0",
         },
+        timeout: 8000,
       },
     );
 
@@ -45,36 +49,25 @@ export async function getGitHubUser(input) {
       repos: user.public_repos || 0,
       bio: user.bio || null,
       profileUrl: `https://github.com/${user.login}`,
+      label: "FOLLOWERS",
     };
   } catch (error) {
-    console.error("GitHub service error:", error.message);
-
-    // Handle specific GitHub errors
+    if (error instanceof AppError) throw error;
     if (error.response?.status === 404) {
-      return {
-        platform: "GitHub",
-        name: username,
-        avatar: PLACEHOLDER_AVATAR,
-        followers: 0,
-        following: 0,
-        repos: 0,
-        bio: null,
-        profileUrl: username ? `https://github.com/${username}` : null,
-        error: "GitHub user not found",
-      };
+      throw AppError.badRequest(
+        `GitHub account '${username}' does not exist on GitHub. Please check the spelling.`,
+        ErrorCodes.NOT_FOUND
+      );
     }
-
-    // Generic error fallback
-    return {
-      platform: "GitHub",
-      name: username,
-      avatar: PLACEHOLDER_AVATAR,
-      followers: 0,
-      following: 0,
-      repos: 0,
-      bio: null,
-      profileUrl: username ? `https://github.com/${username}` : null,
-      error: "Failed to fetch GitHub user data",
-    };
+    if (error.response?.status === 403) {
+      throw AppError.badRequest(
+        "GitHub API rate limit temporarily reached. Please try again in a few minutes.",
+        ErrorCodes.RATE_LIMIT_EXCEEDED
+      );
+    }
+    throw AppError.badRequest(
+      `Failed to verify GitHub user '${username}': ${error.message}`,
+      ErrorCodes.VALIDATION_ERROR
+    );
   }
 }
