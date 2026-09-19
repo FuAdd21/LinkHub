@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
-    "test": "node --test --test-concurrency=1"
+    "migrate": "node migrations/runner.js",
+    "test": "node --test tests/analyticsService.test.js tests/authorization.test.js tests/authService.test.js tests/cache.test.js tests/credentials.test.js tests/emailService.test.js tests/errors.test.js tests/imageValidator.test.js tests/linkValidators.test.js tests/logger.test.js tests/migrations.test.js tests/projects.test.js tests/reservedUsernames.test.js tests/socialProvider.test.js tests/validation.test.js"
   },
   "dependencies": {
     "axios": "^1.13.6",

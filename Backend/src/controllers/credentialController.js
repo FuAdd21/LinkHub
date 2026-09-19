@@ -1,5 +1,6 @@
 import { credentialRepository } from "../repositories/credentialRepository.js";
 import { AppError } from "../errors/AppError.js";
+import { profileCache } from "../utils/cache.js";
 
 export const getCredentials = async (req, res, next) => {
   try {
@@ -15,6 +16,7 @@ export const createCredential = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const item = await credentialRepository.create(userId, req.validated);
+    profileCache.invalidateUser(userId);
     res.status(201).json({ success: true, data: item });
   } catch (err) {
     next(err);
@@ -30,6 +32,7 @@ export const updateCredential = async (req, res, next) => {
     if (existing.user_id !== userId) throw AppError.forbidden("Access denied");
 
     const updated = await credentialRepository.update(id, req.validated);
+    profileCache.invalidateUser(userId);
     res.json({ success: true, data: updated });
   } catch (err) {
     next(err);
@@ -45,6 +48,7 @@ export const deleteCredential = async (req, res, next) => {
     if (existing.user_id !== userId) throw AppError.forbidden("Access denied");
 
     await credentialRepository.delete(id);
+    profileCache.invalidateUser(userId);
     res.json({ success: true, message: "Credential deleted successfully" });
   } catch (err) {
     next(err);

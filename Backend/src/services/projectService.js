@@ -1,5 +1,6 @@
 import { projectRepository } from "../repositories/projectRepository.js";
 import { AppError } from "../errors/AppError.js";
+import { profileCache } from "../utils/cache.js";
 
 const MAX_PROJECTS = 25;
 
@@ -15,7 +16,9 @@ export const projectService = {
         `Project limit reached. You can showcase up to ${MAX_PROJECTS} projects.`
       );
     }
-    return projectRepository.create(userId, projectData);
+    const created = await projectRepository.create(userId, projectData);
+    profileCache.invalidateUser(userId);
+    return created;
   },
 
   async updateProject(userId, projectId, updateData) {
@@ -26,7 +29,9 @@ export const projectService = {
     if (project.user_id !== userId) {
       throw AppError.forbidden("You do not have permission to modify this project");
     }
-    return projectRepository.update(projectId, updateData);
+    const updated = await projectRepository.update(projectId, updateData);
+    profileCache.invalidateUser(userId);
+    return updated;
   },
 
   async deleteProject(userId, projectId) {
@@ -37,7 +42,9 @@ export const projectService = {
     if (project.user_id !== userId) {
       throw AppError.forbidden("You do not have permission to delete this project");
     }
-    return projectRepository.delete(projectId);
+    const res = await projectRepository.delete(projectId);
+    profileCache.invalidateUser(userId);
+    return res;
   },
 
   async reorderProjects(userId, order) {
@@ -49,6 +56,8 @@ export const projectService = {
         throw AppError.forbidden("Invalid project ID in reorder list");
       }
     }
-    return projectRepository.reorder(userId, order);
+    const res = await projectRepository.reorder(userId, order);
+    profileCache.invalidateUser(userId);
+    return res;
   },
 };

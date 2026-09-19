@@ -6,6 +6,8 @@ import crypto from "crypto";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { db } from "../config/db.js";
+import { validateImageMagicBytes } from "../utils/imageValidator.js";
+import { profileCache } from "../utils/cache.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -78,7 +80,19 @@ export const uploadBanner = multer({
 export const updateAvatar = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
+      return res.status(400).json({ success: false, message: "No file uploaded" });
+    }
+
+    // Magic byte inspection
+    const { valid } = await validateImageMagicBytes(req.file.path);
+    if (!valid) {
+      try {
+        await fs.promises.unlink(req.file.path);
+      } catch {}
+      return res.status(400).json({
+        success: false,
+        message: "Invalid file content. Must be a valid JPEG, PNG, WEBP, or GIF image.",
+      });
     }
 
     const [existing] = await db.query("SELECT avatar FROM clients WHERE id = ?", [req.user.id]);
@@ -95,10 +109,12 @@ export const updateAvatar = async (req, res) => {
       deleteOldFile(oldAvatar);
     }
 
-    res.json({ avatar: avatarPath });
+    profileCache.invalidateUser(req.user.id);
+
+    res.json({ success: true, avatar: avatarPath, data: { avatar: avatarPath } });
   } catch (err) {
     console.error("updateAvatar error:", err);
-    res.status(500).json({ message: "Failed to update avatar" });
+    res.status(500).json({ success: false, message: "Failed to update avatar" });
   }
 };
 
@@ -115,17 +131,31 @@ export const removeAvatar = async (req, res) => {
       deleteOldFile(oldAvatar);
     }
 
-    res.json({ message: "Avatar removed", avatar: null });
+    profileCache.invalidateUser(req.user.id);
+
+    res.json({ success: true, message: "Avatar removed", avatar: null, data: { avatar: null } });
   } catch (err) {
     console.error("removeAvatar error:", err);
-    res.status(500).json({ message: "Failed to remove avatar" });
+    res.status(500).json({ success: false, message: "Failed to remove avatar" });
   }
 };
 
 export const updateBanner = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
+      return res.status(400).json({ success: false, message: "No file uploaded" });
+    }
+
+    // Magic byte inspection
+    const { valid } = await validateImageMagicBytes(req.file.path);
+    if (!valid) {
+      try {
+        await fs.promises.unlink(req.file.path);
+      } catch {}
+      return res.status(400).json({
+        success: false,
+        message: "Invalid file content. Must be a valid JPEG, PNG, WEBP, or GIF image.",
+      });
     }
 
     const [existing] = await db.query("SELECT banner_url FROM clients WHERE id = ?", [req.user.id]);
@@ -142,10 +172,12 @@ export const updateBanner = async (req, res) => {
       deleteOldFile(oldBanner);
     }
 
-    res.json({ banner_url: bannerPath });
+    profileCache.invalidateUser(req.user.id);
+
+    res.json({ success: true, banner_url: bannerPath, data: { banner_url: bannerPath } });
   } catch (err) {
     console.error("updateBanner error:", err);
-    res.status(500).json({ message: "Failed to update banner" });
+    res.status(500).json({ success: false, message: "Failed to update banner" });
   }
 };
 
@@ -239,10 +271,15 @@ export const updateProfileDetails = async (req, res) => {
       [userId]
     );
 
-    res.json({ message: "Profile details updated", user: updated[0] });
+    profileCache.invalidateUser(userId);
+    if (updated[0]?.username) {
+      profileCache.invalidateProfile(updated[0].username);
+    }
+
+    res.json({ success: true, message: "Profile details updated", user: updated[0], data: updated[0] });
   } catch (err) {
     console.error("updateProfileDetails error:", err);
-    res.status(500).json({ message: "Failed to update profile details" });
+    res.status(500).json({ success: false, message: "Failed to update profile details" });
   }
 };
 
@@ -250,7 +287,7 @@ export const updateSocialProfiles = async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
-      return res.status(401).json({ message: "Invalid token - no user id" });
+      return res.status(401).json({ success: false, message: "Invalid token - no user id" });
     }
 
     const {
@@ -277,7 +314,9 @@ export const updateSocialProfiles = async (req, res) => {
       ],
     );
 
-    res.json({ message: "Social profiles updated successfully" });
+    profileCache.invalidateUser(userId);
+
+    res.json({ success: true, message: "Social profiles updated successfully" });
   } catch (err) {
     console.error("updateSocialProfiles error:", err);
     res.status(500).json({ message: "Failed to update social profiles" });
@@ -448,7 +487,9 @@ export const deleteAccount = async (req, res) => {
     // Delete user — links and clicks cascade via FK
     await db.query("DELETE FROM clients WHERE id = ?", [userId]);
 
-    res.json({ message: "Account deleted successfully" });
+    profileCache.invalidateUser(userId);
+
+    res.json({ success: true, message: "Account deleted successfully" });
   } catch (err) {
     console.error("deleteAccount error:", err);
     res.status(500).json({ message: "Failed to delete account" });

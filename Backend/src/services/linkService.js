@@ -8,6 +8,7 @@ import { detectPlatform } from "../utils/detectPlatform.js";
 import { fetchProfileData } from "./profileFetcher.js";
 import { fetchSocialProfile } from "./socialFetchService.js";
 import { logger } from "../config/logger.js";
+import { profileCache } from "../utils/cache.js";
 
 export async function syncLinkToSocialProfile(userId, platform, username) {
   if (!userId || !platform) return;
@@ -119,6 +120,8 @@ export const linkService = {
       await syncLinkToSocialProfile(userId, platformInfo.platform, username);
     }
 
+    profileCache.invalidateUser(userId);
+
     return {
       ...created,
       profileData:
@@ -177,6 +180,8 @@ export const linkService = {
       await syncLinkToSocialProfile(userId, platform, username);
     }
 
+    profileCache.invalidateUser(userId);
+
     return {
       ...updated,
       profileData:
@@ -193,6 +198,7 @@ export const linkService = {
     }
 
     await linkRepository.update(linkId, userId, { display_mode });
+    profileCache.invalidateUser(userId);
     return { success: true, display_mode };
   },
 
@@ -203,6 +209,7 @@ export const linkService = {
     }
 
     await linkRepository.update(linkId, userId, { is_visible: is_visible ? 1 : 0 });
+    profileCache.invalidateUser(userId);
     return { success: true, is_visible: Boolean(is_visible) };
   },
 
@@ -213,6 +220,7 @@ export const linkService = {
     }
 
     await linkRepository.delete(linkId, userId);
+    profileCache.invalidateUser(userId);
     return { success: true };
   },
 
@@ -223,6 +231,7 @@ export const linkService = {
 
     try {
       await linkRepository.reorder(userId, linkIds);
+      profileCache.invalidateUser(userId);
       return { success: true };
     } catch (err) {
       throw AppError.badRequest(err.message, ErrorCodes.VALIDATION_ERROR);

@@ -1,6 +1,7 @@
 import { db } from "../config/db.js";
 import { formatFollowerCount } from "../services/youtubeService.js";
 import { isReservedUsername } from "../utils/reservedUsernames.js";
+import { profileCache } from "../utils/cache.js";
 
 // GET /api/profile/:username — Public profile page data
 export const getPublicProfile = async (req, res) => {
@@ -8,7 +9,15 @@ export const getPublicProfile = async (req, res) => {
     const { username } = req.params;
 
     if (!username) {
-      return res.status(400).json({ message: "Username is required" });
+      return res.status(400).json({ success: false, message: "Username is required" });
+    }
+
+    const normalizedUsername = username.toLowerCase();
+    const cachedProfile = profileCache.get(`profile:${normalizedUsername}`);
+    if (cachedProfile) {
+      res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+      res.set("X-Cache", "HIT");
+      return res.json(cachedProfile);
     }
 
     // Fetch user by username (public projection — never load email or credentials)
@@ -25,11 +34,11 @@ export const getPublicProfile = async (req, res) => {
               primary_cta_type, primary_cta_label, primary_cta_url,
               youtubeId, githubUser, telegramUser, instagram, twitter, linkedin, tiktok
        FROM clients WHERE username = ?`,
-      [username.toLowerCase()],
+      [normalizedUsername],
     );
 
     if (users.length === 0) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
     const user = users[0];
@@ -123,8 +132,7 @@ export const getPublicProfile = async (req, res) => {
       profileData: typeof link.profileData === "string" ? JSON.parse(link.profileData) : link.profileData,
     }));
 
-    res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
-    res.json({
+    const profilePayload = {
       name: user.name,
       username: user.username,
       bio: user.bio,
@@ -161,7 +169,13 @@ export const getPublicProfile = async (req, res) => {
         : null,
       projects: parsedProjects,
       credentials: credentialRows,
-    });
+    };
+
+    profileCache.setProfile(user.username, user.id, profilePayload, 60);
+
+    res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+    res.set("X-Cache", "MISS");
+    res.json(profilePayload);
   } catch (err) {
     console.error("getPublicProfile error:", err);
     res.status(500).json({ message: "Server error" });
@@ -218,6 +232,9 @@ export const setupUsername = async (req, res) => {
       cleanUsername,
       userId,
     ]);
+
+    profileCache.invalidateUser(userId);
+    profileCache.invalidateProfile(cleanUsername);
 
     res.json({ message: "Username updated", username: cleanUsername });
   } catch (err) {
@@ -343,6 +360,8 @@ export const updateProfile = async (req, res) => {
       values,
     );
 
+    profileCache.invalidateUser(userId);
+
     // Return updated profile
     const [updated] = await db.query(
       `SELECT id, name, username, bio, avatar, banner_url, theme,
@@ -357,6 +376,10 @@ export const updateProfile = async (req, res) => {
        FROM clients WHERE id = ?`,
       [userId],
     );
+
+    if (updated[0]?.username) {
+      profileCache.invalidateProfile(updated[0].username);
+    }
 
     res.json({ message: "Profile updated", user: updated[0], profile: updated[0] });
   } catch (err) {
