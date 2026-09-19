@@ -10,19 +10,34 @@ import {
   updateDisplayMode,
 } from "../controllers/linkController.js";
 import { authenticateToken } from "../middleware/authMiddleware.js";
-import { validate } from "../middleware/validator.js";
-
-const linkRules = {
-  title: { required: true, minLength: 1, maxLength: 255, label: "Title" },
-  url: { required: true, type: "url", label: "URL" },
-};
+import { validateRequest } from "../middleware/validate.js";
+import {
+  createLinkSchema,
+  updateLinkSchema,
+  reorderLinksSchema,
+} from "../validators/linkSchemas.js";
 
 // Reorder must come BEFORE the :linkId routes to avoid param catch
-router.put("/mylinks/order", authenticateToken, reorderLinks);
+router.put(
+  "/mylinks/order",
+  authenticateToken,
+  validateRequest({ body: reorderLinksSchema }),
+  reorderLinks
+);
 
 router.get("/mylinks", authenticateToken, getLinks);
-router.post("/mylinks", authenticateToken, validate(linkRules), createLink);
-router.put("/mylinks/:linkId", authenticateToken, validate(linkRules), updateLink);
+router.post(
+  "/mylinks",
+  authenticateToken,
+  validateRequest({ body: createLinkSchema }),
+  createLink
+);
+router.put(
+  "/mylinks/:linkId",
+  authenticateToken,
+  validateRequest({ body: updateLinkSchema }),
+  updateLink
+);
 router.put("/mylinks/:linkId/visibility", authenticateToken, toggleVisibility);
 router.put("/mylinks/:linkId/display-mode", authenticateToken, updateDisplayMode);
 router.delete("/mylinks/:linkId", authenticateToken, deleteLink);
