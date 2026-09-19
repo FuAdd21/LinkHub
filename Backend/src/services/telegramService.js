@@ -99,3 +99,5 @@ export async function getTelegramProfile(input) {
     );
   }
 }
+
+export const getTelegramChannel = getTelegramProfile;
