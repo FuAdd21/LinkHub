@@ -61,10 +61,12 @@ export async function runMigrations(pool) {
         try {
           await connection.query(statement);
         } catch (err) {
-          // If a table or index already existed from legacy bootstrap, continue safely
+          // If a table, column, or index already existed from legacy bootstrap, continue safely
           if (
             err.code === "ER_TABLE_EXISTS_ERROR" ||
             err.code === "ER_DUP_KEYNAME" ||
+            err.code === "ER_DUP_FIELDNAME" ||
+            err.errno === 1060 ||
             err.errno === 1061
           ) {
             continue;
@@ -91,4 +93,28 @@ export async function runMigrations(pool) {
   } finally {
     if (connection) connection.release();
   }
+}
+
+// CLI execution support
+const isMain = process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1]);
+if (isMain) {
+  import("../src/config/env.js").then(async ({ config }) => {
+    const mysql = (await import("mysql2/promise")).default;
+    const pool = mysql.createPool({
+      host: config.db.host,
+      user: config.db.user,
+      password: config.db.password,
+      database: config.db.database,
+      waitForConnections: true,
+      connectionLimit: 2,
+    });
+    try {
+      await runMigrations(pool);
+      await pool.end();
+      process.exit(0);
+    } catch (err) {
+      logger.error("CLI Migration execution failed:", err);
+      process.exit(1);
+    }
+  });
 }

@@ -30,8 +30,7 @@ CREATE TABLE IF NOT EXISTS credentials (
   INDEX idx_credentials_user_pos (user_id, position)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Safely add primary CTA columns to clients if they do not exist
-ALTER TABLE clients 
-  ADD COLUMN IF NOT EXISTS primary_cta_type VARCHAR(50) DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS primary_cta_label VARCHAR(100) DEFAULT NULL,
-  ADD COLUMN IF NOT EXISTS primary_cta_url VARCHAR(512) DEFAULT NULL;
+-- Safely add primary CTA columns to clients
+ALTER TABLE clients ADD COLUMN primary_cta_type VARCHAR(50) DEFAULT NULL;
+ALTER TABLE clients ADD COLUMN primary_cta_label VARCHAR(100) DEFAULT NULL;
+ALTER TABLE clients ADD COLUMN primary_cta_url VARCHAR(512) DEFAULT NULL;
