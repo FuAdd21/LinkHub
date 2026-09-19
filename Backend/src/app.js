@@ -19,6 +19,8 @@ import socialRoutes from "./routes/socialRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
 import integrationRoutes from "./routes/integrationRoutes.js";
+import projectRoutes from "./routes/projectRoutes.js";
+import credentialRoutes from "./routes/credentialRoutes.js";
 import { handleLinkRedirect } from "./controllers/redirectController.js";
 
 const app = express();
@@ -58,7 +60,6 @@ app.use(json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 app.use("/uploads", express.static(join(__dirname, "..", "uploads")));
 
-
 // Routes
 app.use("/", authRoutes);
 app.use("/api", linkRoutes);
@@ -68,6 +69,8 @@ app.use("/api/socials", socialRoutes);
 app.use("/api", profileRoutes);
 app.use("/api", analyticsRoutes);
 app.use("/api/integrations", integrationRoutes);
+app.use("/api/projects", projectRoutes);
+app.use("/api/credentials", credentialRoutes);
 
 // Server-side redirect & click tracker
 app.get("/r/:linkId", handleLinkRedirect);

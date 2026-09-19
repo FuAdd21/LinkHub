@@ -392,6 +392,23 @@ export default function PublicProfile() {
           </div>
         )}
 
+        {/* Primary Call To Action */}
+        {userData.primary_cta?.url && (
+          <a
+            href={userData.primary_cta.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full mt-3.5 py-3 px-4 rounded-xl font-mono font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-[0_2px_14px_rgba(198,240,53,0.2)] hover:brightness-110 active:scale-[0.99] focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
+            style={{
+              backgroundColor: accentColor,
+              color: "#07080a",
+            }}
+          >
+            <span>{userData.primary_cta.label || "Get in touch"}</span>
+            <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
+          </a>
+        )}
+
         {/* Social Icons Pill Row */}
         {activeSocials.length > 0 && userData.show_social_row !== false && (
           <div className="canvas-socials-row flex items-center justify-center gap-2 my-4">
@@ -533,6 +550,87 @@ export default function PublicProfile() {
             );
           })}
         </div>
+
+        {/* ─── Selected Projects Showcase (Task 48) ─── */}
+        {userData.projects?.length > 0 && (
+          <div className="w-full mt-5 space-y-2.5">
+            <div className="text-[10px] font-mono font-bold tracking-[0.2em] text-[#788278] uppercase px-1">
+              SELECTED WORK
+            </div>
+            {userData.projects.map((proj) => (
+              <a
+                key={proj.id}
+                href={proj.url || "#"}
+                target={proj.url ? "_blank" : "_self"}
+                rel="noopener noreferrer"
+                className="block p-3.5 rounded-xl bg-[#13120D]/90 hover:bg-[#181711] border border-white/10 hover:border-[#c6f035]/50 transition-all shadow-sm group focus-visible:ring-2 focus-visible:ring-[#c6f035] focus-visible:outline-none"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <div className="text-xs sm:text-sm font-bold text-white group-hover:text-[#c6f035] transition-colors flex items-center gap-1.5">
+                      <span>{proj.title}</span>
+                      {proj.featured && (
+                        <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-[#c6f035]/10 text-[#c6f035] border border-[#c6f035]/30">
+                          Featured
+                        </span>
+                      )}
+                    </div>
+                    {proj.role && (
+                      <div className="text-[11px] font-mono text-[#8c948c] mt-0.5">
+                        {proj.role}
+                      </div>
+                    )}
+                    {proj.description && (
+                      <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed">
+                        {proj.description}
+                      </p>
+                    )}
+                    {proj.technologies?.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {proj.technologies.map((t, idx) => (
+                          <span
+                            key={idx}
+                            className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/[0.04] text-slate-400 border border-white/5"
+                          >
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {proj.url && (
+                    <ArrowUpRight className="w-3.5 h-3.5 text-slate-500 group-hover:text-[#c6f035] transition-all shrink-0 mt-0.5" />
+                  )}
+                </div>
+              </a>
+            ))}
+          </div>
+        )}
+
+        {/* ─── Credentials & Proof ─── */}
+        {userData.credentials?.length > 0 && (
+          <div className="w-full mt-5 space-y-2">
+            <div className="text-[10px] font-mono font-bold tracking-[0.2em] text-[#788278] uppercase px-1">
+              CREDENTIALS & PROOF
+            </div>
+            {userData.credentials.map((c) => (
+              <div
+                key={c.id}
+                className="p-3 rounded-xl bg-[#13120D]/80 border border-white/5 flex items-center justify-between text-xs"
+              >
+                <div>
+                  <div className="font-bold text-white">{c.title}</div>
+                  <div className="text-[10px] font-mono text-slate-400">{c.issuer}</div>
+                </div>
+                {c.year && (
+                  <span className="text-[10px] font-mono text-[#c6f035] font-bold shrink-0">
+                    {c.year}
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Footer Brand inside the canvas (Matches screenshot) */}
         <div className="canvas-footer flex items-center gap-1.5 mt-6 text-[10px] font-mono font-bold tracking-[0.2em] text-[#606760] uppercase">

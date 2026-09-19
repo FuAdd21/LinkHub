@@ -22,6 +22,7 @@ export const getPublicProfile = async (req, res) => {
               COALESCE(show_verified_badge, 1) as show_verified_badge,
               COALESCE(show_social_row, 1) as show_social_row,
               background_type, background_value,
+              primary_cta_type, primary_cta_label, primary_cta_url,
               youtubeId, githubUser, telegramUser, instagram, twitter, linkedin, tiktok
        FROM clients WHERE username = ?`,
       [username.toLowerCase()],
@@ -43,6 +44,40 @@ export const getPublicProfile = async (req, res) => {
        ORDER BY position ASC, id DESC`,
       [user.id],
     );
+
+    // Fetch showcase projects
+    let parsedProjects = [];
+    try {
+      const [projectRows] = await db.query(
+        `SELECT id, title, description, url, image_url, role, technologies, featured, position
+         FROM projects
+         WHERE user_id = ?
+         ORDER BY position ASC, id DESC`,
+        [user.id]
+      );
+      parsedProjects = projectRows.map((p) => ({
+        ...p,
+        technologies: typeof p.technologies === "string" ? JSON.parse(p.technologies) : (p.technologies || []),
+        featured: Boolean(p.featured),
+      }));
+    } catch {
+      parsedProjects = [];
+    }
+
+    // Fetch verified credentials / education
+    let credentialRows = [];
+    try {
+      const [creds] = await db.query(
+        `SELECT id, title, issuer, year, url, position
+         FROM credentials
+         WHERE user_id = ?
+         ORDER BY position ASC, year DESC, id DESC`,
+        [user.id]
+      );
+      credentialRows = creds;
+    } catch {
+      credentialRows = [];
+    }
 
     // Fetch connected integrations with real metrics
     const [integrationRows] = await db.query(
@@ -117,6 +152,15 @@ export const getPublicProfile = async (req, res) => {
         tiktok: user.tiktok,
       },
       links: parsedLinks,
+      primary_cta: user.primary_cta_url
+        ? {
+            type: user.primary_cta_type || "link",
+            label: user.primary_cta_label || "Get in touch",
+            url: user.primary_cta_url,
+          }
+        : null,
+      projects: parsedProjects,
+      credentials: credentialRows,
     });
   } catch (err) {
     console.error("getPublicProfile error:", err);
@@ -275,6 +319,18 @@ export const updateProfile = async (req, res) => {
       updates.push("banner_url = ?");
       values.push(req.body.banner_url ? String(req.body.banner_url).slice(0, 512) : null);
     }
+    if (req.body.primary_cta_type !== undefined) {
+      updates.push("primary_cta_type = ?");
+      values.push(req.body.primary_cta_type ? String(req.body.primary_cta_type).slice(0, 50) : null);
+    }
+    if (req.body.primary_cta_label !== undefined) {
+      updates.push("primary_cta_label = ?");
+      values.push(req.body.primary_cta_label ? String(req.body.primary_cta_label).slice(0, 100) : null);
+    }
+    if (req.body.primary_cta_url !== undefined) {
+      updates.push("primary_cta_url = ?");
+      values.push(req.body.primary_cta_url ? String(req.body.primary_cta_url).slice(0, 512) : null);
+    }
 
     if (updates.length === 0) {
       return res.status(400).json({ message: "No fields to update" });
@@ -296,7 +352,9 @@ export const updateProfile = async (req, res) => {
               COALESCE(font_labels, 'IBM Plex Mono / Medium') as font_labels,
               COALESCE(show_verified_badge, 1) as show_verified_badge,
               COALESCE(show_social_row, 1) as show_social_row,
-              background_type, background_value FROM clients WHERE id = ?`,
+              background_type, background_value,
+              primary_cta_type, primary_cta_label, primary_cta_url
+       FROM clients WHERE id = ?`,
       [userId],
     );
 

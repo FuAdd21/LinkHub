@@ -12,6 +12,7 @@ import {
   LogOut,
   X,
   ShieldCheck,
+  Briefcase,
 } from "lucide-react";
 import { getAvatarUrl, getPageCompletion } from "../dashboardUtils";
 import "./SidebarNav.css";
@@ -31,6 +32,7 @@ export default function SidebarNav({
   const navItems = [
     { label: "Overview", path: "/dashboard/overview", icon: LayoutGrid },
     { label: "Links", path: "/dashboard/links", icon: Link2, badge: links?.length ?? 0 },
+    { label: "Projects", path: "/dashboard/projects", icon: Briefcase },
     { label: "Appearance", path: "/dashboard/themes", icon: Palette },
     { label: "Analytics", path: "/dashboard/analytics", icon: BarChart2 },
     {

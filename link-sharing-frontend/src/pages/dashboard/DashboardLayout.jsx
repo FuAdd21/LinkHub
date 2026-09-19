@@ -13,10 +13,9 @@ import {
   Palette,
   BarChart2,
   Radio,
+  Briefcase,
   Settings,
   AlertCircle,
-  RefreshCw,
-  MoreHorizontal,
 } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
 import useDashboardData from "../../hooks/useDashboardData";
@@ -31,6 +30,7 @@ import QuickLinksToggle from "../../Components/dashboard/QuickLinksToggle/QuickL
 
 const DashboardOverview = lazy(() => import("./DashboardOverview"));
 const DashboardLinks = lazy(() => import("./DashboardLinks"));
+const DashboardProjects = lazy(() => import("./DashboardProjects"));
 const DashboardThemes = lazy(() => import("./DashboardThemes"));
 const DashboardAnalytics = lazy(() => import("./DashboardAnalytics"));
 const DashboardSocials = lazy(() => import("./DashboardSocials"));
@@ -107,6 +107,7 @@ export default function DashboardLayout() {
   const getPageTitle = () => {
     const path = location.pathname;
     if (path.includes("/links")) return "Links";
+    if (path.includes("/projects")) return "Projects";
     if (path.includes("/themes")) return "Appearance";
     if (path.includes("/analytics")) return "Analytics";
     if (path.includes("/socials")) return "Integrations";
@@ -119,6 +120,7 @@ export default function DashboardLayout() {
   const mobileNavTabs = [
     { label: "Overview", path: "/dashboard/overview", icon: LayoutGrid },
     { label: "Links", path: "/dashboard/links", icon: Link2 },
+    { label: "Projects", path: "/dashboard/projects", icon: Briefcase },
     { label: "Appearance", path: "/dashboard/themes", icon: Palette },
     { label: "Analytics", path: "/dashboard/analytics", icon: BarChart2 },
     { label: "Integrations", path: "/dashboard/socials", icon: Radio },
@@ -243,6 +245,15 @@ export default function DashboardLayout() {
                         onRefresh={refresh}
                         onUserChange={updateUser}
                         onLinksChange={updateLinks}
+                      />
+                    }
+                  />
+                  <Route
+                    path="projects"
+                    element={
+                      <DashboardProjects
+                        userData={userData}
+                        onUserChange={updateUser}
                       />
                     }
                   />
