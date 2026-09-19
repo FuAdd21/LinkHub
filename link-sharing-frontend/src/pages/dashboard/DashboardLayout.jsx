@@ -16,6 +16,8 @@ import {
   Briefcase,
   Settings,
   AlertCircle,
+  MoreHorizontal,
+  Menu,
 } from "lucide-react";
 import { AuthContext } from "../../context/AuthContext";
 import useDashboardData from "../../hooks/useDashboardData";
