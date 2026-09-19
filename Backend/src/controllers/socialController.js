@@ -6,7 +6,7 @@ import { getInstagramProfile } from "../services/instagramService.js";
 import { getTwitterProfile } from "../services/twitterService.js";
 import { getLinkedInProfile } from "../services/linkedinService.js";
 import { getTikTokProfile } from "../services/tiktokService.js";
-import { getCache, setCache } from "../utils/cache.js";
+
 
 export const fetchSocialProfileData = async (req, res) => {
   try {

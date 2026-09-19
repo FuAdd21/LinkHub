@@ -2,20 +2,26 @@ import { AppError } from "../errors/AppError.js";
 import { ErrorCodes } from "../errors/errorCodes.js";
 
 /**
- * Validates request payload against Zod schema objects
- * @param {object} schemas
- * @param {import('zod').ZodTypeAny} [schemas.body]
- * @param {import('zod').ZodTypeAny} [schemas.query]
- * @param {import('zod').ZodTypeAny} [schemas.params]
+ * Validates request payload against Zod schema objects.
+ * Supports both { body: schema, query: schema, params: schema }
+ * and passing a raw Zod schema directly (defaults to validating body).
+ * Populates req.validated as well as req[target] with sanitized data.
+ *
+ * @param {object|import('zod').ZodTypeAny} schemas
  */
 export function validateRequest(schemas) {
+  const normalizedSchemas =
+    schemas && (schemas.body || schemas.query || schemas.params)
+      ? schemas
+      : { body: schemas };
+
   return async (req, res, next) => {
     try {
       const details = [];
 
       for (const target of ["body", "query", "params"]) {
-        if (schemas[target]) {
-          const result = schemas[target].safeParse(req[target]);
+        if (normalizedSchemas[target]) {
+          const result = normalizedSchemas[target].safeParse(req[target]);
           if (!result.success) {
             for (const issue of result.error.issues) {
               details.push({
@@ -25,6 +31,9 @@ export function validateRequest(schemas) {
             }
           } else {
             req[target] = result.data;
+            if (target === "body") {
+              req.validated = result.data;
+            }
           }
         }
       }

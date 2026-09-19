@@ -97,3 +97,8 @@ class MemoryCache {
 }
 
 export const profileCache = new MemoryCache();
+
+// Backwards-compatible convenience helpers
+export const getCache = (key) => profileCache.get(key);
+export const setCache = (key, val, ttl) => profileCache.set(key, val, ttl);
+export const delCache = (key) => profileCache.del(key);
