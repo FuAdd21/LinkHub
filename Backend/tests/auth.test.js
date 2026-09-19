@@ -132,4 +132,80 @@ test("Authentication Integration Suite", async (t) => {
     const checkB = await clientB.request("/api/users/me");
     assert.equal(checkB.status, 200);
   });
+
+  await t.test("POST /register - rejects weak passwords with 400", async () => {
+    const client = new TestClient(baseUrl);
+    const weakPassUser = {
+      name: "Weak Pass",
+      email: `weak_${crypto.randomBytes(4).toString("hex")}@example.com`,
+      password: "weak",
+    };
+
+    const res = await client.request("/register", {
+      method: "POST",
+      body: weakPassUser,
+    });
+    assert.equal(res.status, 400);
+  });
+
+  await t.test("POST /register - rejects invalid email format with 400", async () => {
+    const client = new TestClient(baseUrl);
+    const invalidEmailUser = {
+      name: "Invalid Email",
+      email: "notanemail",
+      password: "Password123!",
+    };
+
+    const res = await client.request("/register", {
+      method: "POST",
+      body: invalidEmailUser,
+    });
+    assert.equal(res.status, 400);
+  });
+
+  await t.test("POST /forgot-password - anti-enumeration protection on unknown email", async () => {
+    const client = new TestClient(baseUrl);
+    const res = await client.request("/forgot-password", {
+      method: "POST",
+      body: { email: "completely_unknown_user_999@example.com" },
+    });
+    assert.equal(res.status, 200);
+    assert.match(res.data.message, /recovery instructions/i);
+  });
+
+  await t.test("POST /reset-password - rejects invalid or fabricated token with 400", async () => {
+    const client = new TestClient(baseUrl);
+    const res = await client.request("/reset-password", {
+      method: "POST",
+      body: {
+        token: "completely_fake_token_that_does_not_exist",
+        newPassword: "BrandNewPassword123!",
+      },
+    });
+    assert.equal(res.status, 400);
+  });
+
+  await t.test("POST /logout - succeeds and returns status 200", async () => {
+    const client = new TestClient(baseUrl);
+    const res = await client.request("/logout", { method: "POST" });
+    assert.equal(res.status, 200);
+  });
+
+  await t.test("PUT /api/profile/username - rejects reserved usernames with 400", async () => {
+    const client = new TestClient(baseUrl);
+    await client.request("/login", {
+      method: "POST",
+      body: {
+        email: testUser.email,
+        password: testUser.password,
+      },
+    });
+
+    const res = await client.request("/api/profile/username", {
+      method: "PUT",
+      body: { username: "admin" },
+    });
+    assert.equal(res.status, 400);
+  });
 });
+
