@@ -1,5 +1,5 @@
 process.env.NODE_ENV = "test";
-import { app } from "../server.js";
+import { app } from "../src/app.js";
 import { db, initDatabase } from "../src/config/db.js";
 
 let serverInstance = null;
