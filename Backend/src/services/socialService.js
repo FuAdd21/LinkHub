@@ -225,7 +225,7 @@ export const socialService = {
     };
   },
 
-  async connectIntegration(userId, provider, handle) {
+  async connectIntegration(userId, provider, handle, customFollowers, addToLinks = true) {
     if (!handle || typeof handle !== "string" || !handle.trim()) {
       throw AppError.badRequest("Please provide a valid handle or username", ErrorCodes.VALIDATION_ERROR);
     }
@@ -237,6 +237,15 @@ export const socialService = {
 
     // Fetch metrics from platform
     const meta = await this.fetchProviderData(p, handle.trim());
+
+    // If custom followers or connections was specified (e.g. for LinkedIn login wall or custom count)
+    if (customFollowers !== undefined && customFollowers !== null && String(customFollowers).trim() !== "") {
+      const parsed = parseInt(String(customFollowers).replace(/[^0-9]/g, ""), 10);
+      if (!isNaN(parsed) && parsed >= 0) {
+        meta.followers = parsed;
+        meta.formattedFollowers = formatFollowerCount(parsed);
+      }
+    }
 
     const result = await integrationRepository.upsert(userId, p, {
       status: "connected",
@@ -255,6 +264,44 @@ export const socialService = {
     if (colMap[p]) {
       const cleanHandle = (meta.handle || handle).replace(/^@/, "").trim();
       await db.query(`UPDATE clients SET ${colMap[p]} = ? WHERE id = ?`, [cleanHandle, userId]).catch(() => {});
+    }
+
+    // Auto-create or ensure link exists in links table if requested
+    if (addToLinks && meta.profileUrl) {
+      try {
+        const cleanHandle = (meta.handle || handle).replace(/^@/, "");
+        const [existingLinks] = await db.query(
+          "SELECT id FROM links WHERE user_id = ? AND (url = ? OR (platform = ? AND username = ?)) LIMIT 1",
+          [userId, meta.profileUrl, p, cleanHandle]
+        );
+
+        if (existingLinks.length > 0) {
+          await db.query(
+            `UPDATE links SET url = ?, avatar_url = COALESCE(?, avatar_url), username = ? WHERE id = ?`,
+            [meta.profileUrl, meta.avatar, cleanHandle, existingLinks[0].id]
+          );
+        } else {
+          const [countRows] = await db.query("SELECT COUNT(*) as cnt FROM links WHERE user_id = ?", [userId]);
+          const nextPos = countRows[0]?.cnt || 0;
+          const platformName = PLATFORM_METADATA[p]?.name || provider;
+          await db.query(
+            `INSERT INTO links (user_id, title, url, platform, username, avatar_url, icon, display_mode, position, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, 'link', ?, NOW())`,
+            [
+              userId,
+              platformName,
+              meta.profileUrl,
+              p,
+              cleanHandle,
+              meta.avatar || null,
+              p,
+              nextPos,
+            ]
+          );
+        }
+      } catch (linkErr) {
+        logger.warn(`Failed to auto-sync link for ${p}: ${linkErr.message}`);
+      }
     }
 
     return result;

@@ -66,6 +66,8 @@ export default function DashboardSocials({
   const [connectModalOpen, setConnectModalOpen] = useState(false);
   const [modalProvider, setModalProvider] = useState("youtube");
   const [modalHandle, setModalHandle] = useState("");
+  const [modalFollowers, setModalFollowers] = useState("");
+  const [modalAddToLinks, setModalAddToLinks] = useState(true);
   const [connecting, setConnecting] = useState(false);
 
   useEffect(() => {
@@ -148,9 +150,11 @@ export default function DashboardSocials({
     }
   };
 
-  const openConnectModal = (provider, currentHandle = "") => {
+  const openConnectModal = (provider, currentHandle = "", currentFollowers = "") => {
     setModalProvider(provider);
     setModalHandle(currentHandle || "");
+    setModalFollowers(currentFollowers && currentFollowers > 0 ? String(currentFollowers) : "");
+    setModalAddToLinks(true);
     setConnectModalOpen(true);
     setActiveMenu(null);
   };
@@ -163,17 +167,20 @@ export default function DashboardSocials({
     }
 
     setConnecting(true);
-    const toastId = toast.loading(`Connecting to ${modalProvider} & fetching live stats...`);
+    const toastId = toast.loading(`Connecting to ${modalProvider} & verifying stats...`);
 
     try {
       await api.post("/api/integrations/connect", {
         provider: modalProvider,
         handle: modalHandle.trim(),
+        followers: modalFollowers.trim() ? modalFollowers.trim() : undefined,
+        addToLinks: modalAddToLinks,
       });
       await refreshData();
       toast.success(`${modalProvider} connected with live profile data!`, { id: toastId });
       setConnectModalOpen(false);
       setModalHandle("");
+      setModalFollowers("");
     } catch (err) {
       toast.error(
         err.response?.data?.message || `Failed to connect ${modalProvider}. Please check the handle or link.`,
@@ -400,11 +407,11 @@ export default function DashboardSocials({
                                 <span>Sync now</span>
                               </button>
                               <button
-                                onClick={() => openConnectModal(net.provider, net.handle)}
+                                onClick={() => openConnectModal(net.provider, net.handle, net.followers)}
                                 className="w-full px-3 py-2 text-left text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
                               >
                                 <Edit3 className="w-3.5 h-3.5 text-blue-400" />
-                                <span>Edit handle</span>
+                                <span>Edit details</span>
                               </button>
                               {net.profileUrl && (
                                 <a
@@ -681,6 +688,39 @@ export default function DashboardSocials({
                   className="w-full px-4 py-2.5 rounded-xl bg-[#1a1914] border border-white/10 text-white text-sm font-mono focus:border-[#c6f035] focus:outline-none placeholder:text-slate-600"
                 />
 
+                {/* Connections / Followers Count Input for LinkedIn or manual override */}
+                {(modalProvider === "linkedin" || modalFollowers !== "") && (
+                  <div className="mt-3">
+                    <label className="block text-xs font-mono uppercase text-slate-400 mb-1.5">
+                      {DEFAULT_PLATFORM_META[modalProvider]?.label || "CONNECTIONS"} Count (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={modalFollowers}
+                      onChange={(e) => setModalFollowers(e.target.value)}
+                      placeholder="e.g. 500 or 1250"
+                      className="w-full px-4 py-2 rounded-xl bg-[#1a1914] border border-white/10 text-white text-sm font-mono focus:border-[#c6f035] focus:outline-none placeholder:text-slate-600"
+                    />
+                    <p className="text-[10px] text-slate-500 mt-1">
+                      LinkedIn login wall restricts automated bots. Enter your current connections count to display on your public profile reach.
+                    </p>
+                  </div>
+                )}
+
+                {/* Add to Links toggle */}
+                <div className="mt-3.5 pt-3 border-t border-white/5 flex items-center gap-2.5">
+                  <input
+                    type="checkbox"
+                    id="addToLinksCheck"
+                    checked={modalAddToLinks}
+                    onChange={(e) => setModalAddToLinks(e.target.checked)}
+                    className="w-4 h-4 rounded accent-[#c6f035] bg-[#1a1914] border-white/20 cursor-pointer"
+                  />
+                  <label htmlFor="addToLinksCheck" className="text-xs font-mono text-slate-300 cursor-pointer select-none">
+                    Automatically add this button to my public <span className="text-[#c6f035] font-bold">Links</span> list
+                  </label>
+                </div>
+
                 <div className="mt-2.5 p-3 rounded-xl bg-[#0b0a07] border border-white/5 text-[11px] font-mono space-y-1 text-slate-400">
                   <div className="flex items-center gap-1.5 font-bold text-slate-300">
                     <AlertCircle className="w-3.5 h-3.5 text-[#c6f035]" />
@@ -702,7 +742,7 @@ export default function DashboardSocials({
                     <p>Enter your TikTok handle (e.g. <span className="text-[#c6f035]">@tiktok</span>).</p>
                   )}
                   {modalProvider === "linkedin" && (
-                    <p>Enter your LinkedIn public profile URL or vanity username (e.g. <span className="text-[#c6f035]">in/yourname</span>).</p>
+                    <p>Enter your LinkedIn public profile URL or vanity username (e.g. <span className="text-[#c6f035]">in/yourname</span>). Enter your connections count above.</p>
                   )}
                   {modalProvider === "twitter" && (
                     <p>Enter your X/Twitter handle (e.g. <span className="text-[#c6f035]">@username</span>).</p>

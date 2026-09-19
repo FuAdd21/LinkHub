@@ -15,8 +15,14 @@ export const getIntegrations = async (req, res, next) => {
 export const connectIntegration = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const { provider, handle } = req.body;
-    const result = await socialService.connectIntegration(userId, provider, handle);
+    const { provider, handle, followers, addToLinks } = req.body;
+    const result = await socialService.connectIntegration(
+      userId,
+      provider,
+      handle,
+      followers,
+      addToLinks !== false
+    );
     res.json({
       message: `${provider} integration saved successfully`,
       integration: result,
