@@ -189,10 +189,35 @@ export default function DashboardSocials({
     .slice(0, 2)
     .toUpperCase();
 
-  const connectedList = data?.connected || [];
-  const availableList = data?.available || [];
+  const allIntegrations = data?.integrations || [];
+  const connectedList =
+    data?.connected && Array.isArray(data.connected) && data.connected.length > 0
+      ? data.connected
+      : allIntegrations.filter((i) => i.status === "connected" || i.status === "stale");
+
+  const availableList =
+    data?.available && Array.isArray(data.available) && data.available.length > 0
+      ? data.available
+      : allIntegrations.filter((i) => i.status !== "connected" && i.status !== "stale");
+
+  // Fallback to platform catalog if availableList is still empty so user always has connection options
+  const effectiveAvailableList =
+    availableList.length > 0
+      ? availableList
+      : Object.entries(DEFAULT_PLATFORM_META)
+          .filter(([key]) => !connectedList.some((c) => c.provider.toLowerCase() === key.toLowerCase()))
+          .map(([key, val]) => ({
+            provider: key,
+            name: val.name,
+            color: val.color,
+            label: val.label,
+            placeholder: val.placeholder,
+            description: `Connect your ${val.name} account to stream live metrics.`,
+            status: "disconnected",
+          }));
+
+  const activeCount = data?.activeCount ?? data?.connectedCount ?? connectedList.length;
   const totalAudienceFormatted = data?.totalAudienceFormatted || "0";
-  const activeCount = data?.activeCount || 0;
 
   return (
     <div className="space-y-6 sm:space-y-8 pb-12">
@@ -247,10 +272,10 @@ export default function DashboardSocials({
 
         <div className="flex items-center sm:items-end justify-between sm:justify-start sm:flex-col gap-1 text-right">
           <span className="text-xs font-mono font-bold text-[#c6f035]">
-            {activeCount} / {connectedList.length + availableList.length} LIVE
+            {activeCount} / {connectedList.length + effectiveAvailableList.length} LIVE
           </span>
           <span className="text-[10px] font-mono text-slate-500">
-            {data?.lastSyncSummary || "No active syncs"}
+            {data?.lastSyncSummary || (activeCount > 0 ? `${activeCount} active platform syncs` : "No active syncs")}
           </span>
         </div>
       </div>
@@ -264,7 +289,7 @@ export default function DashboardSocials({
               Active Connected Networks ({connectedList.length})
             </h3>
             <button
-              onClick={() => openConnectModal("youtube")}
+              onClick={() => openConnectModal(effectiveAvailableList[0]?.provider || "youtube")}
               className="text-xs font-mono font-bold text-[#c6f035] hover:underline flex items-center gap-1.5"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -282,20 +307,20 @@ export default function DashboardSocials({
                 Connect your YouTube channel, GitHub account, Instagram, or TikTok to sync your real subscribers, followers, and social proofs dynamically.
               </p>
               <div className="pt-2 flex justify-center gap-2">
-                <button
-                  onClick={() => openConnectModal("youtube")}
-                  className="px-4 py-2 rounded-xl bg-[#c6f035] text-[#0d0f0d] font-bold text-xs hover:brightness-110 transition-all flex items-center gap-2"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Connect YouTube</span>
-                </button>
-                <button
-                  onClick={() => openConnectModal("github")}
-                  className="px-4 py-2 rounded-xl bg-white/10 text-white font-bold text-xs hover:bg-white/20 transition-all flex items-center gap-2"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Connect GitHub</span>
-                </button>
+                {effectiveAvailableList.slice(0, 2).map((p, idx) => (
+                  <button
+                    key={p.provider}
+                    onClick={() => openConnectModal(p.provider)}
+                    className={`px-4 py-2 rounded-xl font-bold text-xs hover:brightness-110 transition-all flex items-center gap-2 ${
+                      idx === 0
+                        ? "bg-[#c6f035] text-[#0d0f0d]"
+                        : "bg-white/10 text-white hover:bg-white/20"
+                    }`}
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Connect {p.name}</span>
+                  </button>
+                ))}
               </div>
             </div>
           ) : (
@@ -449,10 +474,10 @@ export default function DashboardSocials({
           {/* Available / Connect More Section */}
           <div className="pt-4 space-y-3">
             <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 font-mono">
-              Available Platforms ({availableList.length})
+              Available Platforms ({effectiveAvailableList.length})
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {availableList.map((tool) => {
+              {effectiveAvailableList.map((tool) => {
                 const IconComponent = PLATFORM_ICONS[tool.provider.toLowerCase()] || Link2;
                 return (
                   <div

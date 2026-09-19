@@ -30,7 +30,10 @@ export const connectIntegration = async (req, res, next) => {
 export const syncIntegration = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const { provider } = req.body;
+    const provider = req.params.provider || req.body?.provider;
+    if (!provider) {
+      return res.status(400).json({ message: "Provider is required" });
+    }
     const result = await socialService.syncIntegration(userId, provider);
     res.json({
       message: `${provider} metrics synchronized successfully`,
@@ -41,11 +44,14 @@ export const syncIntegration = async (req, res, next) => {
   }
 };
 
-// DELETE /api/integrations/:provider — Disconnect
+// DELETE /api/integrations/:provider or POST /api/integrations/disconnect — Disconnect
 export const disconnectIntegration = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const { provider } = req.params;
+    const provider = req.params.provider || req.body?.provider;
+    if (!provider) {
+      return res.status(400).json({ message: "Provider is required" });
+    }
     await socialService.disconnectIntegration(userId, provider);
     res.json({ message: `${provider} integration removed successfully` });
   } catch (err) {

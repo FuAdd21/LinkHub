@@ -106,7 +106,7 @@ export const socialService = {
 
     // Auto-sync if user has handles saved in profile but not yet in integrations
     const [clients] = await db.query(
-      "SELECT youtubeId, githubUser, instagram, tiktok FROM clients WHERE id = ?",
+      "SELECT youtubeId, githubUser, instagram, tiktok, twitter, linkedin, telegramUser FROM clients WHERE id = ?",
       [userId]
     );
 
@@ -117,6 +117,8 @@ export const socialService = {
         { provider: "youtube", handle: c.youtubeId },
         { provider: "instagram", handle: c.instagram },
         { provider: "tiktok", handle: c.tiktok },
+        { provider: "twitter", handle: c.twitter },
+        { provider: "linkedin", handle: c.linkedin },
       ];
 
       for (const { provider, handle } of pairs) {
@@ -143,7 +145,7 @@ export const socialService = {
     let totalAudience = 0;
     const integrations = Object.entries(PLATFORM_METADATA).map(([key, meta]) => {
       const entry = dbMap.get(key);
-      const isConnected = entry && entry.status === "connected";
+      const isConnected = entry && (entry.status === "connected" || entry.status === "stale");
       const config = entry?.config || null;
 
       let followers = 0;
@@ -167,8 +169,9 @@ export const socialService = {
         status: entry ? entry.status : "disconnected",
         last_synced_at: entry?.last_synced_at || null,
         last_synced_human: formatTimeAgo(entry?.last_synced_at),
+        timeAgo: formatTimeAgo(entry?.last_synced_at),
         handle,
-        name,
+        name: name || meta.name,
         avatar,
         profileUrl,
         followers,
@@ -177,11 +180,24 @@ export const socialService = {
       };
     });
 
+    const connected = integrations.filter((i) => i.status === "connected" || i.status === "stale");
+    const available = integrations.filter((i) => i.status !== "connected" && i.status !== "stale");
+
+    // Compute relative percentage and labels for each connected network
+    connected.forEach((net) => {
+      net.barPercent = totalAudience > 0 ? Math.round((net.followers / totalAudience) * 100) : 0;
+      net.timeAgo = net.last_synced_human || "Just now";
+    });
+
     return {
       integrations,
+      connected,
+      available,
       totalAudience,
       totalAudienceFormatted: formatFollowerCount(totalAudience),
-      connectedCount: integrations.filter((i) => i.status === "connected").length,
+      connectedCount: connected.length,
+      activeCount: connected.length,
+      lastSyncSummary: connected.length > 0 ? `${connected.length} active platform syncs` : "No active syncs",
     };
   },
 
@@ -202,6 +218,19 @@ export const socialService = {
       status: "connected",
       config: meta,
     });
+
+    const colMap = {
+      github: "githubUser",
+      youtube: "youtubeId",
+      instagram: "instagram",
+      tiktok: "tiktok",
+      twitter: "twitter",
+      linkedin: "linkedin",
+    };
+    if (colMap[p]) {
+      const cleanHandle = (meta.handle || handle).replace(/^@/, "").trim();
+      await db.query(`UPDATE clients SET ${colMap[p]} = ? WHERE id = ?`, [cleanHandle, userId]).catch(() => {});
+    }
 
     return result;
   },
@@ -240,6 +269,23 @@ export const socialService = {
   async disconnectIntegration(userId, provider) {
     const p = provider.toLowerCase();
     await integrationRepository.delete(userId, p);
+
+    const colMap = {
+      github: "githubUser",
+      youtube: "youtubeId",
+      instagram: "instagram",
+      tiktok: "tiktok",
+      twitter: "twitter",
+      linkedin: "linkedin",
+    };
+    if (colMap[p]) {
+      try {
+        await db.query(`UPDATE clients SET ${colMap[p]} = NULL WHERE id = ?`, [userId]);
+      } catch (err) {
+        logger.warn(`Failed to clear ${colMap[p]} from clients: ${err.message}`);
+      }
+    }
+
     return { success: true };
   },
 
