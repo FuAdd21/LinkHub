@@ -110,7 +110,7 @@ export default function Onboarding() {
         name: displayName,
         username: cleanUser,
       };
-      if (token) login(token, updatedUser);
+      login(updatedUser);
 
       toast.success("Profile initialized! Welcome to your command center.");
       navigate("/dashboard");
