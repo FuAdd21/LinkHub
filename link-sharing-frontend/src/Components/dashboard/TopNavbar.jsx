@@ -1,7 +1,13 @@
+import { useState, useEffect } from "react";
 import { getAvatarUrl } from "./dashboardUtils";
 
 export default function TopNavbar({ user, onMenuClick }) {
   const avatarUrl = getAvatarUrl(user);
+  const [avatarError, setAvatarError] = useState(false);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [avatarUrl]);
 
   return (
     <header className="fixed top-0 w-full z-50 bg-[#0b0e14]/80 backdrop-blur-xl flex justify-between items-center px-8 h-20 w-full max-w-full font-['Inter'] antialiased tracking-tight">
@@ -29,8 +35,13 @@ export default function TopNavbar({ user, onMenuClick }) {
           settings
         </button>
         <div className="w-10 h-10 rounded-full border-2 border-primary-container overflow-hidden bg-surface-container-high shadow-lg">
-          {avatarUrl ? (
-            <img className="w-full h-full object-cover" src={avatarUrl} alt="User Avatar" />
+          {avatarUrl && !avatarError ? (
+            <img
+              className="w-full h-full object-cover"
+              src={avatarUrl}
+              alt="User Avatar"
+              onError={() => setAvatarError(true)}
+            />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-primary/20 text-primary">
               <span className="material-symbols-outlined">person</span>

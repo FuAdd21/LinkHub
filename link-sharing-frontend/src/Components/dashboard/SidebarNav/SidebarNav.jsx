@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutGrid,
@@ -45,6 +45,12 @@ export default function SidebarNav({
   ];
 
   const avatarUrl = getAvatarUrl(user);
+  const [avatarError, setAvatarError] = useState(false);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [avatarUrl]);
+
   const completionPercent = getPageCompletion(user, links);
   const initials = (user?.name || user?.username || "U")
     .split(" ")
@@ -160,10 +166,11 @@ export default function SidebarNav({
         <div className="relative pt-2 border-t border-white/5 mt-auto lg:mt-0">
           <div className="sidebar-user-pill justify-center lg:justify-between">
             <div className="flex items-center gap-2.5 min-w-0">
-              {avatarUrl ? (
+              {avatarUrl && !avatarError ? (
                 <img
                   src={avatarUrl}
                   alt={user?.name || "User"}
+                  onError={() => setAvatarError(true)}
                   className="w-8 h-8 rounded-full object-cover shrink-0 border border-white/10"
                 />
               ) : (

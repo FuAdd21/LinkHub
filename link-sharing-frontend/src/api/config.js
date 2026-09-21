@@ -12,8 +12,8 @@ export const API_BASE_URL =
  * into a fully-qualified URL the browser can load.
  */
 export function assetUrl(path) {
-  if (!path) return "";
-  if (path.startsWith("http")) return path;
+  if (!path || typeof path !== "string") return "";
+  if (path.startsWith("http") || path.startsWith("blob:") || path.startsWith("data:")) return path;
   return `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
 

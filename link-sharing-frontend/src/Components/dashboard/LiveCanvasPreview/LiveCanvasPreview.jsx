@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowUpRight,
@@ -48,6 +49,11 @@ export default function LiveCanvasPreview({ user, links = [], integrations }) {
   const bio = user?.bio || "";
   const avatarUrl = getAvatarUrl(user?.avatar || user);
   const accentColor = user?.accent_color || "#c6f035";
+  const [avatarError, setAvatarError] = useState(false);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [avatarUrl]);
 
   // Connected integrations list if passed
   const connectedList = Array.isArray(integrations)
@@ -134,11 +140,12 @@ export default function LiveCanvasPreview({ user, links = [], integrations }) {
       <div className="canvas-phone-frame preview-grid">
         {/* Avatar */}
         <div className="canvas-avatar-circle">
-          {avatarUrl ? (
+          {avatarUrl && !avatarError ? (
             <img
               src={avatarUrl}
               alt={name}
               className="w-full h-full object-cover"
+              onError={() => setAvatarError(true)}
             />
           ) : (
             <span>{initials}</span>

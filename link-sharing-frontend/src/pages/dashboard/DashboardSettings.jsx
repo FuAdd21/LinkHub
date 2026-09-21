@@ -49,6 +49,7 @@ export default function DashboardSettings({ userData, onRefresh, onUserChange, o
 
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -228,10 +229,11 @@ export default function DashboardSettings({ userData, onRefresh, onUserChange, o
 
               <div className="flex items-center gap-4 pt-1">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-2 border-[#c6f035] p-1 flex items-center justify-center shrink-0">
-                  {avatarUrl ? (
+                  {avatarUrl && !avatarError ? (
                     <img
                       src={avatarUrl}
                       alt="Avatar"
+                      onError={() => setAvatarError(true)}
                       className="w-full h-full rounded-full object-cover"
                     />
                   ) : (

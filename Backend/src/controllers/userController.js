@@ -111,7 +111,20 @@ export const updateAvatar = async (req, res) => {
 
     profileCache.invalidateUser(req.user.id);
 
-    res.json({ success: true, avatar: avatarPath, data: { avatar: avatarPath } });
+    const [userRows] = await db.query(
+      `SELECT id, name, username, email, bio, avatar, banner_url,
+              COALESCE(theme, 'Obsidian') as theme,
+              COALESCE(accent_color, '#c6f035') as accent_color
+       FROM clients WHERE id = ?`,
+      [req.user.id]
+    );
+
+    res.json({
+      success: true,
+      avatar: avatarPath,
+      user: userRows[0],
+      data: { avatar: avatarPath, user: userRows[0] },
+    });
   } catch (err) {
     console.error("updateAvatar error:", err);
     res.status(500).json({ success: false, message: "Failed to update avatar" });
@@ -133,7 +146,20 @@ export const removeAvatar = async (req, res) => {
 
     profileCache.invalidateUser(req.user.id);
 
-    res.json({ success: true, message: "Avatar removed", avatar: null, data: { avatar: null } });
+    const [userRows] = await db.query(
+      `SELECT id, name, username, email, bio, avatar, banner_url,
+              COALESCE(theme, 'Obsidian') as theme,
+              COALESCE(accent_color, '#c6f035') as accent_color
+       FROM clients WHERE id = ?`,
+      [req.user.id]
+    );
+
+    res.json({
+      success: true,
+      avatar: null,
+      user: userRows[0],
+      data: { avatar: null, user: userRows[0] },
+    });
   } catch (err) {
     console.error("removeAvatar error:", err);
     res.status(500).json({ success: false, message: "Failed to remove avatar" });
@@ -174,7 +200,20 @@ export const updateBanner = async (req, res) => {
 
     profileCache.invalidateUser(req.user.id);
 
-    res.json({ success: true, banner_url: bannerPath, data: { banner_url: bannerPath } });
+    const [userRows] = await db.query(
+      `SELECT id, name, username, email, bio, avatar, banner_url,
+              COALESCE(theme, 'Obsidian') as theme,
+              COALESCE(accent_color, '#c6f035') as accent_color
+       FROM clients WHERE id = ?`,
+      [req.user.id]
+    );
+
+    res.json({
+      success: true,
+      banner_url: bannerPath,
+      user: userRows[0],
+      data: { banner_url: bannerPath, user: userRows[0] },
+    });
   } catch (err) {
     console.error("updateBanner error:", err);
     res.status(500).json({ success: false, message: "Failed to update banner" });

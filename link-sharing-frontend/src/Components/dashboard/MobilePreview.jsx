@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useState, useEffect } from "react";
 import { getAvatarUrl, getBannerUrl } from "./dashboardUtils";
 
 export default function MobilePreview({
@@ -9,6 +9,23 @@ export default function MobilePreview({
 }) {
   const avatarUrl = getAvatarUrl(user);
   const bannerUrl = getBannerUrl(user);
+  const [avatarError, setAvatarError] = useState(false);
+  const [bannerError, setBannerError] = useState(false);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [avatarUrl]);
+
+  useEffect(() => {
+    setBannerError(false);
+  }, [bannerUrl]);
+
+  const initials = (user?.name || user?.username || "U")
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <div className="flex flex-col items-center">
@@ -23,8 +40,13 @@ export default function MobilePreview({
           
           {/* Cover / Banner Section */}
           <div className="h-44 w-full relative shrink-0">
-            {bannerUrl ? (
-                <img src={bannerUrl} className="w-full h-full object-cover" alt="Banner" />
+            {bannerUrl && !bannerError ? (
+                <img
+                  src={bannerUrl}
+                  className="w-full h-full object-cover"
+                  alt="Banner"
+                  onError={() => setBannerError(true)}
+                />
             ) : (
                 <div className="w-full h-full bg-surface-container-highest/50" />
             )}
@@ -34,12 +56,17 @@ export default function MobilePreview({
           {/* Profile Identity Details */}
           <div className="px-6 -mt-16 relative z-10 flex flex-col items-center text-center">
             <div className="w-24 h-24 rounded-full p-0.5 bg-gradient-to-tr from-primary via-primary-container to-tertiary shadow-2xl shadow-primary/20">
-              <div className="w-full h-full rounded-full border-4 border-[#0b0e14] overflow-hidden bg-surface-dim">
-                {avatarUrl ? (
-                    <img src={avatarUrl} className="w-full h-full object-cover" alt="Avatar" />
+              <div className="w-full h-full rounded-full border-4 border-[#0b0e14] overflow-hidden bg-surface-dim flex items-center justify-center">
+                {avatarUrl && !avatarError ? (
+                    <img
+                      src={avatarUrl}
+                      className="w-full h-full object-cover"
+                      alt="Avatar"
+                      onError={() => setAvatarError(true)}
+                    />
                 ) : (
-                    <div className="w-full h-full bg-surface-container-high flex items-center justify-center text-primary/40">
-                        <span className="material-symbols-outlined text-4xl">person</span>
+                    <div className="w-full h-full bg-[#161a16] flex items-center justify-center text-primary font-black text-xl select-none">
+                        {initials}
                     </div>
                 )}
               </div>
@@ -47,7 +74,7 @@ export default function MobilePreview({
 
             <div className="mt-4 space-y-1">
               <h3 className="text-xl font-black text-white tracking-tight uppercase">
-                {user?.full_name || "Julian Marcus"}
+                {user?.name || user?.full_name || "Julian Marcus"}
               </h3>
               <p className="text-sm font-bold text-primary tracking-widest uppercase opacity-80">
                 @{user?.username || "creator_hub"}

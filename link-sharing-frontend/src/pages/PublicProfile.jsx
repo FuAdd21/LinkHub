@@ -88,6 +88,11 @@ export default function PublicProfile() {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [avatarError, setAvatarError] = useState(false);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [userData?.avatar]);
 
   const isOwner = isAuthenticated && authUser?.username === username;
 
@@ -353,10 +358,11 @@ export default function PublicProfile() {
           className="canvas-avatar-circle w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 p-0.5 flex items-center justify-center shrink-0 overflow-hidden mb-3 shadow-[0_0_24px_rgba(198,240,53,0.25)] transition-transform hover:scale-105"
           style={{ borderColor: accentColor }}
         >
-          {avatarUrl ? (
+          {avatarUrl && !avatarError ? (
             <img
               src={avatarUrl}
               alt={name}
+              onError={() => setAvatarError(true)}
               className="w-full h-full rounded-full object-cover"
             />
           ) : (

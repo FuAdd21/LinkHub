@@ -14,23 +14,33 @@ export function formatCompactNumber(value) {
 }
 
 export function getAvatarUrl(user) {
-  if (!user?.avatar) {
+  if (!user) return null;
+  const avatar = typeof user === "string" ? user : user.avatar || user.avatar_url;
+  if (!avatar || typeof avatar !== "string" || !avatar.trim()) {
     return null;
   }
 
-  return user.avatar.startsWith("http")
-    ? user.avatar
-    : `${API_BASE_URL}${user.avatar}`;
+  if (avatar.startsWith("http") || avatar.startsWith("blob:") || avatar.startsWith("data:")) {
+    return avatar;
+  }
+
+  const cleanPath = avatar.startsWith("/") ? avatar : `/${avatar}`;
+  return `${API_BASE_URL}${cleanPath}`;
 }
 
 export function getBannerUrl(user) {
-  if (!user?.banner) {
+  if (!user) return null;
+  const banner = typeof user === "string" ? user : user.banner || user.banner_url;
+  if (!banner || typeof banner !== "string" || !banner.trim()) {
     return null;
   }
 
-  return user.banner.startsWith("http")
-    ? user.banner
-    : `${API_BASE_URL}${user.banner}`;
+  if (banner.startsWith("http") || banner.startsWith("blob:") || banner.startsWith("data:")) {
+    return banner;
+  }
+
+  const cleanPath = banner.startsWith("/") ? banner : `/${banner}`;
+  return `${API_BASE_URL}${cleanPath}`;
 }
 
 export function getPublicProfileUrl(username) {
