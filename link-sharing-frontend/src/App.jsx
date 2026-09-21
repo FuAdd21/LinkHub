@@ -5,6 +5,7 @@ import Login from "./Components/Login";
 import Register from "./Components/Register";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import ForgotPassword from "./Components/ForgetPassword";
+import ResetPassword from "./Components/ResetPassword";
 import WelcomePage from "./Components/WelcomePage";
 import PublicProfile from "./pages/PublicProfile";
 import Onboarding from "./pages/Onboarding";
@@ -29,6 +30,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route 
           path="/create-profile" 
           element={
