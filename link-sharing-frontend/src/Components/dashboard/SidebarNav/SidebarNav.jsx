@@ -173,11 +173,13 @@ export default function SidebarNav({
               )}
               <div className="hidden lg:flex flex-col min-w-0">
                 <span className="text-xs font-bold text-white truncate leading-snug">
-                  {user?.name || user?.username || "Maya Kim"}
+                  {user?.name || user?.username || "Account"}
                 </span>
-                <span className="text-[11px] text-slate-500 truncate leading-tight">
-                  {user?.email || "maya@studio.dev"}
-                </span>
+                {user?.email && (
+                  <span className="text-[11px] text-slate-500 truncate leading-tight">
+                    {user.email}
+                  </span>
+                )}
               </div>
             </div>
             <button

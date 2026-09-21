@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { Check, Github, Instagram, Twitter, Youtube, ExternalLink, BadgeCheck } from "lucide-react";
+import { Check } from "lucide-react";
 import { api } from "../../api/config";
-import { getAvatarUrl } from "../../Components/dashboard/dashboardUtils";
+import LiveCanvasPreview from "../../Components/dashboard/LiveCanvasPreview/LiveCanvasPreview";
 
 const THEMES = [
   { id: "Obsidian", name: "Obsidian", bg: "#11120F", dot: "#c6f035", text: "#ffffff" },
@@ -31,14 +31,20 @@ const LABEL_FONTS = [
   "Fira Code / Medium",
 ];
 
-export default function DashboardThemes({ userData, links = [], onRefresh, onUserChange }) {
+export default function DashboardThemes({
+  userData,
+  links = [],
+  integrations,
+  onRefresh,
+  onUserChange,
+}) {
   const [theme, setTheme] = useState(userData?.theme || "Obsidian");
   const [accent, setAccent] = useState(userData?.accent_color || "#c6f035");
   const [surface, setSurface] = useState(userData?.surface_color || "#11120F");
   const [headingFont, setHeadingFont] = useState(userData?.font_heading || "Manrope / Semibold");
   const [labelFont, setLabelFont] = useState(userData?.font_labels || "IBM Plex Mono / Medium");
-  const [displayName, setDisplayName] = useState(userData?.name || "Maya Kim");
-  const [bio, setBio] = useState(userData?.bio || "Creator, developer, systems thinker.");
+  const [displayName, setDisplayName] = useState(userData?.name || userData?.username || "");
+  const [bio, setBio] = useState(userData?.bio || "");
   const [showVerified, setShowVerified] = useState(
     userData?.show_verified_badge !== 0 && userData?.show_verified_badge !== false
   );
@@ -92,121 +98,26 @@ export default function DashboardThemes({ userData, links = [], onRefresh, onUse
     }
   };
 
-  const avatarUrl = getAvatarUrl(userData?.avatar);
-  const userInitials = (displayName || "MK")
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  const previewUser = {
+    ...userData,
+    name: displayName || userData?.username || "Your Name",
+    bio: bio,
+    theme: theme,
+    accent_color: accent,
+    surface_color: surface,
+    font_heading: headingFont,
+    font_labels: labelFont,
+    show_verified_badge: showVerified,
+    show_social_row: showSocials,
+  };
 
-  // Selected Theme styling for mockup
-  const isPaper = theme === "Paper";
-  const previewBg = isPaper ? "#f3f4f3" : theme === "Signal" ? "#0d131a" : "#11120F";
-  const previewText = isPaper ? "#11120F" : "#ffffff";
-  const previewCardBg = isPaper ? "#e5e5e5" : "#1a1914";
-
-  // Shared Preview Component
-  const renderPreviewFrame = (isMobileInline = false) => (
-    <div
-      className={`rounded-3xl border border-white/10 p-6 flex flex-col items-center justify-between shadow-2xl transition-all ${
-        isMobileInline ? "min-h-[460px]" : "min-h-[580px]"
-      }`}
-      style={{ backgroundColor: previewBg }}
-    >
-      <div className="w-full flex flex-col items-center text-center space-y-4 pt-3">
-        {/* Avatar Circle */}
-        <div
-          className="w-20 h-20 rounded-full border-2 p-1 flex items-center justify-center transition-all"
-          style={{ borderColor: accent }}
-        >
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt={displayName}
-              className="w-full h-full rounded-full object-cover"
-            />
-          ) : (
-            <div
-              className="w-full h-full rounded-full flex items-center justify-center font-bold text-lg"
-              style={{
-                backgroundColor: isPaper ? "#dedede" : "#1a1914",
-                color: accent,
-              }}
-            >
-              {userInitials}
-            </div>
-          )}
-        </div>
-
-        {/* Name & Badge */}
-        <div className="space-y-1">
-          <div className="flex items-center justify-center gap-1.5">
-            <h3
-              className="text-base font-black tracking-tight"
-              style={{ color: previewText }}
-            >
-              {displayName}
-            </h3>
-            {showVerified && (
-              <BadgeCheck className="w-4 h-4 text-[#c6f035] fill-[#c6f035]" />
-            )}
-          </div>
-          <p
-            className="text-xs font-medium max-w-[240px] mx-auto opacity-75"
-            style={{ color: previewText }}
-          >
-            {bio}
-          </p>
-        </div>
-
-        {/* Social Icons Row */}
-        {showSocials && (
-          <div className="flex items-center gap-3 pt-1 text-slate-400">
-            <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
-              <Github className="w-3.5 h-3.5" />
-            </div>
-            <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
-              <Instagram className="w-3.5 h-3.5" />
-            </div>
-            <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
-              <Youtube className="w-3.5 h-3.5" />
-            </div>
-            <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
-              <ExternalLink className="w-3.5 h-3.5" />
-            </div>
-          </div>
-        )}
-
-        {/* Live Link Stack */}
-        <div className="w-full space-y-2.5 pt-4">
-          {links
-            .filter((l) => l.is_visible !== 0 && l.is_visible !== false)
-            .slice(0, 4)
-            .map((link) => (
-              <div
-                key={link.id}
-                className="w-full py-3 px-4 rounded-xl border border-white/5 text-xs font-semibold text-center truncate transition-all"
-                style={{
-                  backgroundColor: previewCardBg,
-                  color: previewText,
-                }}
-              >
-                {link.title}
-              </div>
-            ))}
-        </div>
-      </div>
-
-      {/* Audience Proof or Watermark */}
-      <div className="pt-6 pb-2 text-center space-y-1">
-        <div className="text-xs font-bold text-[#c6f035]">
-          2.84M combined audience
-        </div>
-        <div className="text-[10px] font-mono text-slate-500">
-          linkhub.io/{userData?.username || "maya"}
-        </div>
-      </div>
+  const renderPreviewFrame = () => (
+    <div className="w-full flex justify-center">
+      <LiveCanvasPreview
+        user={previewUser}
+        links={links}
+        integrations={integrations}
+      />
     </div>
   );
 

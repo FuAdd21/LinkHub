@@ -27,10 +27,10 @@ export default function DashboardSettings({ userData, onRefresh, onUserChange, o
   const [activeTab, setActiveTab] = useState("profile");
 
   // Profile Form state
-  const [name, setName] = useState(userData?.name || "Maya Kim");
-  const [username, setUsername] = useState(userData?.username || "maya");
-  const [email, setEmail] = useState(userData?.email || "maya@studio.dev");
-  const [bio, setBio] = useState(userData?.bio || "Creator, developer, systems thinker.");
+  const [name, setName] = useState(userData?.name || userData?.username || "");
+  const [username, setUsername] = useState(userData?.username || "");
+  const [email, setEmail] = useState(userData?.email || "");
+  const [bio, setBio] = useState(userData?.bio || "");
   const [showInSearch, setShowInSearch] = useState(
     userData?.show_in_search !== 0 && userData?.show_in_search !== false
   );

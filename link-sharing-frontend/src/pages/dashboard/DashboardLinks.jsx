@@ -768,11 +768,13 @@ export default function DashboardLinks({
             {/* Name & Bio */}
             <div>
               <h3 className="text-base font-black text-white">
-                {userData?.name || "Maya Kim"}
+                {userData?.name || userData?.username || "Your Name"}
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                {userData?.bio || "Creator · Developer"}
-              </p>
+              {userData?.bio && (
+                <p className="text-xs text-slate-500 mt-0.5">
+                  {userData.bio}
+                </p>
+              )}
             </div>
 
             {/* Header Icons in preview */}

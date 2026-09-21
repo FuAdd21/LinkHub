@@ -292,6 +292,7 @@ export default function DashboardLayout() {
                       <DashboardThemes
                         userData={userData}
                         links={links}
+                        integrations={integrations}
                         onRefresh={refresh}
                         onUserChange={updateUser}
                       />

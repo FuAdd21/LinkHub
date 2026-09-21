@@ -43,10 +43,11 @@ function extractDomain(url = "") {
 }
 
 export default function LiveCanvasPreview({ user, links = [], integrations }) {
-  const username = user?.username || "maya";
-  const name = user?.name || user?.username || "Maya K.";
-  const bio = user?.bio || "Developer, designer, and curious builder sharing the work in progress.";
+  const username = user?.username || "profile";
+  const name = user?.name || user?.username || "Your Name";
+  const bio = user?.bio || "";
   const avatarUrl = getAvatarUrl(user?.avatar || user);
+  const accentColor = user?.accent_color || "#c6f035";
 
   // Connected integrations list if passed
   const connectedList = Array.isArray(integrations)
@@ -83,15 +84,9 @@ export default function LiveCanvasPreview({ user, links = [], integrations }) {
     (l) => l.display_mode === "header_pill"
   );
 
-  const displayLinks = destinationLinks.length > 0
-    ? destinationLinks.slice(0, 4)
-    : [
-        { id: 1, title: "Explore my open-source toolkit", url: "https://github.com/maya", platform: "github" },
-        { id: 2, title: "Build in public — weekly", url: "https://youtube.com/@maya", platform: "youtube" },
-        { id: 3, title: "Behind the scenes", url: "https://instagram.com/maya", platform: "instagram" },
-      ];
+  const displayLinks = destinationLinks.slice(0, 4);
 
-  const initials = name
+  const initials = (name || "U")
     .split(" ")
     .map((w) => w[0])
     .join("")
@@ -270,35 +265,42 @@ export default function LiveCanvasPreview({ user, links = [], integrations }) {
         )}
 
         {/* Links Cards */}
-        <div className="canvas-links-list">
-          {displayLinks.map((link) => {
-            const Icon = getPlatformIcon(link.platform, link.url);
-            return (
-              <a
-                key={link.id}
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="canvas-link-item"
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-7 h-7 rounded-md bg-[#161916] border border-white/5 flex items-center justify-center text-white flex-shrink-0">
-                    <Icon className="w-3.5 h-3.5" />
-                  </div>
-                  <div className="min-w-0 text-left">
-                    <div className="text-xs font-bold text-white truncate max-w-[150px]">
-                      {link.title}
+        {displayLinks.length > 0 ? (
+          <div className="canvas-links-list">
+            {displayLinks.map((link) => {
+              const Icon = getPlatformIcon(link.platform, link.url);
+              return (
+                <a
+                  key={link.id}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="canvas-link-item"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-7 h-7 rounded-md bg-[#161916] border border-white/5 flex items-center justify-center text-white flex-shrink-0">
+                      <Icon className="w-3.5 h-3.5" />
                     </div>
-                    <div className="text-[10px] text-[#788278] truncate max-w-[150px]">
-                      {extractDomain(link.url)}
+                    <div className="min-w-0 text-left">
+                      <div className="text-xs font-bold text-white truncate max-w-[150px]">
+                        {link.title}
+                      </div>
+                      <div className="text-[10px] text-[#788278] truncate max-w-[150px]">
+                        {extractDomain(link.url)}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 ml-2" />
-              </a>
-            );
-          })}
-        </div>
+                  <ArrowUpRight className="w-3.5 h-3.5 text-slate-400 flex-shrink-0 ml-2" />
+                </a>
+              );
+            })}
+          </div>
+        ) : connectedList.length === 0 ? (
+          <div className="w-full py-5 px-3 rounded-xl border border-dashed border-white/10 text-center space-y-1 my-2">
+            <div className="text-xs font-bold text-slate-300">No links added yet</div>
+            <p className="text-[10px] text-slate-500">Add destinations or connect socials to populate your live card.</p>
+          </div>
+        ) : null}
 
         {/* Footer Brand */}
         <div className="canvas-footer">
