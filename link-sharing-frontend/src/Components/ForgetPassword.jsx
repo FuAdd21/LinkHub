@@ -1,141 +1,145 @@
-import { Mail, ArrowLeft, Send } from "lucide-react";
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import axios from "axios";
+import { Link } from "react-router-dom";
+import { Mail, ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
 import toast from "react-hot-toast";
-import { API_BASE_URL } from "../api/config.js";
+import { authApi } from "../api/authApi.js";
+import { getErrorMessage } from "../api/responseHandler.js";
+import LinkHubLogo from "./common/LinkHubLogo";
 
-const MotionDiv = motion.div;
-const MotionButton = motion.button;
-
-const ForgotPassword = () => {
+export default function ForgotPassword() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
-  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email) {
-      toast.error("Please enter your email address");
+      toast.error("Please enter your email address.");
       return;
     }
     setLoading(true);
 
     try {
-      await axios.post(`${API_BASE_URL}/forgot-password`, {
-        email: email.trim(),
-      });
+      await authApi.forgotPassword(email.trim());
       setSent(true);
-      toast.success("Recovery link dispatched");
+      toast.success("Recovery link dispatched to your inbox.");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Recovery request failed");
+      toast.error(getErrorMessage(err, "Recovery request failed. Please check the email provided."));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="app-auth-shell min-h-screen px-4 py-12 relative overflow-hidden bg-[var(--saas-bg-main)]">
-      {/* Cinematic Background Elements */}
-      <div className="absolute inset-0 z-0">
-         <div className="absolute top-[-10%] left-[10%] w-[40%] h-[40%] bg-[var(--saas-accent-primary)] opacity-10 blur-[120px] rounded-full" />
-         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-600/10 blur-[120px] rounded-full" />
-      </div>
+    <div className="min-h-screen bg-[#07080a] text-white selection:bg-[#c6f035] selection:text-black font-sans flex flex-col justify-between">
+      {/* ──── Header Navigation ──── */}
+      <header className="w-full border-b border-white/[0.07] px-6 sm:px-10 lg:px-16 py-4.5 flex items-center justify-between">
+        <LinkHubLogo showPro={true} />
 
-      <MotionDiv
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="relative z-10 w-full max-w-[440px] mx-auto"
-      >
-        <div className="flex flex-col items-center mb-10">
-          <Link to="/" className="flex h-12 w-12 items-center justify-center rounded-[1.25rem] bg-[var(--saas-accent-gradient)] font-black text-white text-xl shadow-[0_0_30px_var(--saas-accent-glow)] transition-transform hover:scale-110">
-            LH
-          </Link>
-          <h1 className="mt-8 text-3xl font-black tracking-tight text-[var(--saas-text-primary)] font-display">
-            {sent ? "Check your inbox." : "Recovery needed?"}
-          </h1>
-          <p className="mt-2 text-center text-[14px] font-medium text-[var(--saas-text-secondary)] max-w-xs">
-            {sent 
-              ? `We've sent a secure recovery link to ${email}`
-              : "Enter your email and we'll help you establish access."
-            }
-          </p>
-        </div>
+        <Link
+          to="/login"
+          className="text-xs font-bold tracking-wider font-mono text-[#c6f035] uppercase hover:underline"
+        >
+          SIGN IN
+        </Link>
+      </header>
 
-        <div className="app-auth-panel rounded-[2.5rem] p-8 md:p-10 border border-[var(--saas-border)] bg-[var(--saas-bg-surface)] shadow-2xl backdrop-blur-3xl relative">
-          <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-          
-          {!sent ? (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-[11px] font-black uppercase tracking-[0.2em] text-[var(--saas-text-secondary)] mb-2.5 px-1">
-                  Target Account
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none text-[var(--saas-text-secondary)] group-focus-within:text-[var(--saas-accent-primary)] transition-colors">
-                     <Mail className="w-4.5 h-4.5" />
-                  </div>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    required
-                    className="w-full bg-[var(--saas-bg-elevated)] border border-[var(--saas-border)] focus:border-[var(--saas-accent-primary)] focus:ring-4 focus:ring-[var(--saas-accent-glow)]/10 rounded-2xl py-4 pl-12 pr-4 text-sm font-semibold text-[var(--saas-text-primary)] transition-all outline-none placeholder:text-[var(--saas-text-secondary)]/30"
-                  />
-                </div>
-              </div>
-
-              <MotionButton
-                type="submit"
-                disabled={loading}
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-                className="w-full flex items-center justify-center gap-2 rounded-2xl py-4 text-sm font-black uppercase tracking-widest text-black bg-[var(--saas-accent-gradient)] shadow-lg shadow-[var(--saas-accent-glow)] hover:brightness-110 transition-all disabled:opacity-50"
-              >
-                {loading ? (
-                  <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                ) : (
-                  <>
-                    Send Reset Key
-                    <Send className="w-4 h-4 ml-1" />
-                  </>
-                )}
-              </MotionButton>
-            </form>
-          ) : (
-            <div className="text-center py-4">
-               <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--saas-accent-glow)]/10 text-[var(--saas-accent-primary)] mb-6">
-                  <Mail className="w-8 h-8" />
-               </div>
-               <p className="text-sm text-[var(--saas-text-secondary)] leading-relaxed mb-8">
-                 Didn't receive the email? Check your spam folder or try another address.
-               </p>
-               <button 
-                 onClick={() => setSent(false)}
-                 className="text-[11px] font-black uppercase tracking-widest text-[var(--saas-accent-primary)] hover:underline"
-               >
-                 Resend Link
-               </button>
+      {/* ──── Main Content ──── */}
+      <main className="flex-1 max-w-[1280px] w-full mx-auto px-6 sm:px-10 lg:px-16 py-8 sm:py-14 flex items-center justify-center">
+        <div className="w-full max-w-md mx-auto">
+          {/* Card Container */}
+          <div className="rounded-2xl border border-white/[0.08] bg-[#0c0d10]/95 backdrop-blur-xl p-8 sm:p-10 shadow-2xl relative">
+            <div className="text-[10px] font-mono font-medium tracking-[0.2em] text-[#c6f035] uppercase mb-4">
+              IDENTITY RECOVERY
             </div>
-          )}
 
-          <div className="mt-8 pt-8 border-t border-[var(--saas-border)]">
-              <Link 
-                to="/login" 
-                className="flex items-center justify-center gap-2 text-[var(--saas-text-secondary)] hover:text-[var(--saas-text-primary)] text-sm font-bold transition-colors"
+            {!sent ? (
+              <>
+                <h1 className="text-3xl font-extrabold text-white tracking-tight leading-snug mb-3">
+                  Reset your access.
+                </h1>
+                <p className="text-xs text-zinc-400 font-normal leading-relaxed mb-8">
+                  Enter the email linked to your LinkHub account. We'll dispatch a secure recovery token.
+                </p>
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div>
+                    <label className="block text-[10px] font-mono font-semibold tracking-wider text-zinc-400 uppercase mb-2">
+                      Account Email
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-zinc-500">
+                        <Mail className="w-4 h-4" />
+                      </div>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="you@domain.com"
+                        required
+                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-[#111215] border border-white/10 text-sm text-white focus:border-[#c6f035] focus:ring-1 focus:ring-[#c6f035] focus:outline-none transition-all placeholder:text-zinc-600 font-sans"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3.5 bg-[#c6f035] text-[#07080a] font-bold text-sm rounded-xl hover:brightness-105 active:scale-[0.99] transition-all shadow-[0_2px_12px_rgba(198,240,53,0.15)] flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {loading ? (
+                      <div className="w-5 h-5 border-2 border-[#07080a]/30 border-t-[#07080a] rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <span>Dispatch recovery link</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+                </form>
+              </>
+            ) : (
+              <div className="text-center py-4">
+                <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-[#c6f035]/10 border border-[#c6f035]/20 text-[#c6f035] mb-6">
+                  <CheckCircle2 className="w-8 h-8" />
+                </div>
+                <h2 className="text-2xl font-bold text-white tracking-tight mb-2">
+                  Check your inbox
+                </h2>
+                <p className="text-xs text-zinc-400 leading-relaxed mb-6">
+                  We've dispatched a recovery link to <span className="text-white font-mono">{email}</span>. Click the link to define a new password.
+                </p>
+                <div className="p-4 rounded-xl bg-[#111215] border border-white/5 text-[11px] text-zinc-400 mb-6 font-mono text-left">
+                  <span className="text-[#c6f035] font-bold">NOTE:</span> The recovery link is cryptographically signed and expires in 1 hour for your security.
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSent(false)}
+                  className="text-xs font-mono font-medium text-zinc-400 hover:text-[#c6f035] transition-colors"
+                >
+                  Didn't receive it? Try another address
+                </button>
+              </div>
+            )}
+
+            <div className="mt-8 pt-6 border-t border-white/[0.06] flex items-center justify-center">
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-2 text-xs font-medium text-zinc-400 hover:text-white transition-colors"
               >
-                <ArrowLeft className="w-4 h-4" />
-                Back to Authentication
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Return to sign in</span>
               </Link>
+            </div>
           </div>
         </div>
-      </MotionDiv>
+      </main>
+
+      {/* ──── Footer ──── */}
+      <footer className="w-full border-t border-white/[0.07] px-6 sm:px-10 lg:px-16 py-5 flex items-center justify-between text-[10px] font-mono tracking-widest text-zinc-500 uppercase">
+        <div>LINKHUB / 2026</div>
+        <div>SECURE ACCESS RECOVERY</div>
+      </footer>
     </div>
   );
-};
-
-export default ForgotPassword;
+}
