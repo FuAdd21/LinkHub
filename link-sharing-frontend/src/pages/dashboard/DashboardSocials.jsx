@@ -71,7 +71,7 @@ export default function DashboardSocials({
   const [modalProvider, setModalProvider] = useState("youtube");
   const [modalHandle, setModalHandle] = useState("");
   const [modalFollowers, setModalFollowers] = useState("");
-  const [modalAddToLinks, setModalAddToLinks] = useState(true);
+  const [modalAddToLinks, setModalAddToLinks] = useState(false);
   const [connecting, setConnecting] = useState(false);
 
   useEffect(() => {
@@ -361,6 +361,11 @@ export default function DashboardSocials({
                               src={net.avatar}
                               alt={net.name}
                               className="w-full h-full rounded-full object-cover"
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                const bg = (netColor || "#0a66c2").replace("#", "");
+                                e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(net.name || "User")}&backgroundColor=${bg}&textColor=ffffff`;
+                              }}
                             />
                           ) : (
                             <div className="w-full h-full rounded-full bg-[#1a1914] flex items-center justify-center">
@@ -734,16 +739,19 @@ export default function DashboardSocials({
                 )}
 
                 {/* Add to Links toggle */}
-                <div className="mt-3.5 pt-3 border-t border-white/5 flex items-center gap-2.5">
+                <div className="mt-3.5 pt-3 border-t border-white/5 flex items-start gap-2.5">
                   <input
                     type="checkbox"
                     id="addToLinksCheck"
                     checked={modalAddToLinks}
                     onChange={(e) => setModalAddToLinks(e.target.checked)}
-                    className="w-4 h-4 rounded accent-[#c6f035] bg-[#1a1914] border-white/20 cursor-pointer"
+                    className="w-4 h-4 mt-0.5 rounded accent-[#c6f035] bg-[#1a1914] border-white/20 cursor-pointer"
                   />
                   <label htmlFor="addToLinksCheck" className="text-xs font-mono text-slate-300 cursor-pointer select-none">
-                    Automatically add this button to my public <span className="text-[#c6f035] font-bold">Links</span> list
+                    Also create a standard entry in <span className="text-[#c6f035] font-bold">Links</span> list
+                    <span className="block text-[10px] text-slate-500 font-normal mt-0.5">
+                      (Leave unchecked if you only want the dedicated rich card with live reach on your profile)
+                    </span>
                   </label>
                 </div>
 

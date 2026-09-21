@@ -125,7 +125,7 @@ export const socialService = {
       const data = await getLinkedInProfile(handleOrUrl);
       const connections = Number(data.connections) || 0;
       const cleanHandle = data.username || handleOrUrl.replace(/^@/, "").trim();
-      const fallbackAvatar = `https://unavatar.io/linkedin/${cleanHandle}?fallback=/placeholder-avatar.png`;
+      const fallbackAvatar = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(cleanHandle)}&backgroundColor=0A66C2&textColor=ffffff`;
       return {
         handle: `@${cleanHandle}`,
         name: data.name || cleanHandle,
@@ -261,7 +261,7 @@ export const socialService = {
     };
   },
 
-  async connectIntegration(userId, provider, handle, customFollowers, addToLinks = true) {
+  async connectIntegration(userId, provider, handle, customFollowers, addToLinks = true, customAvatar = null) {
     if (!handle || typeof handle !== "string" || !handle.trim()) {
       throw AppError.badRequest("Please provide a valid handle or username", ErrorCodes.VALIDATION_ERROR);
     }
@@ -281,6 +281,16 @@ export const socialService = {
         meta.followers = parsed;
         meta.formattedFollowers = formatFollowerCount(parsed);
       }
+    }
+
+    // Inherit user LinkHub profile avatar or custom avatar if external scraping cannot load private avatar
+    const [userRows] = await db.query("SELECT avatar, name FROM clients WHERE id = ?", [userId]).catch(() => [[]]);
+    const userAvatar = userRows?.[0]?.avatar;
+
+    if (customAvatar && typeof customAvatar === "string" && customAvatar.trim()) {
+      meta.avatar = customAvatar.trim();
+    } else if (p === "linkedin" && userAvatar && (!meta.avatar || meta.avatar.includes("dicebear") || meta.avatar.includes("placeholder-avatar") || meta.avatar.includes("unavatar.io"))) {
+      meta.avatar = userAvatar;
     }
 
     const result = await integrationRepository.upsert(userId, p, {

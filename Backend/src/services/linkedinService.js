@@ -1,12 +1,13 @@
 import axios from "axios";
 import { JSDOM } from "jsdom";
 
-const PLACEHOLDER_AVATAR = "/placeholder-avatar.png";
+const getFallbackAvatar = (username) =>
+  `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(username || "LinkedIn")}&backgroundColor=0A66C2&textColor=ffffff`;
 
 function extractLinkedInUsername(input) {
   if (!input) return null;
   if (input.includes("linkedin.com/in/")) {
-    const match = input.match(/linkedin\.com\/in\/([a-zA-Z0-9-]+)(?:\/|$|\?)/);
+    const match = input.match(/linkedin\.com\/in\/([a-zA-Z0-9_-]+)(?:\/|$|\?)/);
     if (match) return match[1].split("?")[0];
   }
   return input.replace(/^@/, "");
@@ -74,19 +75,19 @@ export async function getLinkedInProfile(input) {
         platform: "LinkedIn",
         username,
         name: data.name,
-        avatar: data.avatar || `https://unavatar.io/linkedin/${username}?fallback=${PLACEHOLDER_AVATAR}`,
+        avatar: data.avatar || getFallbackAvatar(username),
         connections: data.connections || 0,
         bio: data.bio || `@${username} on LinkedIn`,
         profileUrl: `https://linkedin.com/in/${username}`,
       };
     }
 
-    // Pro fallback using unavatar.io
+    // Pro fallback using branded initials avatar
     return {
       platform: "LinkedIn",
       username,
       name: username,
-      avatar: `https://unavatar.io/linkedin/${username}?fallback=${PLACEHOLDER_AVATAR}`,
+      avatar: getFallbackAvatar(username),
       connections: null,
       bio: `@${username} on LinkedIn`,
       profileUrl: `https://linkedin.com/in/${username}`,

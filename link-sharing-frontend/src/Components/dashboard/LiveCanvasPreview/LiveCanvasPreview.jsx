@@ -48,10 +48,37 @@ export default function LiveCanvasPreview({ user, links = [], integrations }) {
   const bio = user?.bio || "Developer, designer, and curious builder sharing the work in progress.";
   const avatarUrl = getAvatarUrl(user?.avatar || user);
 
-  const visibleLinks = getVisibleLinks(links);
-  const destinationLinks = visibleLinks.filter(
-    (l) => (l.display_mode || "link") === "link"
+  // Connected integrations list if passed
+  const connectedList = Array.isArray(integrations)
+    ? integrations
+    : integrations?.connected || [];
+
+  const connectedProviders = new Set(
+    connectedList.map((c) => (c.provider || "").toLowerCase().trim())
   );
+
+  const visibleLinks = getVisibleLinks(links);
+  const destinationLinks = visibleLinks.filter((l) => {
+    if ((l.display_mode || "link") !== "link") return false;
+
+    // Deduplication: if this platform is already connected in integrations, hide redundant generic link
+    const plat = (l.platform || "").toLowerCase().trim();
+    const urlLower = (l.url || "").toLowerCase();
+
+    for (const prov of connectedProviders) {
+      if (prov && (plat === prov || plat.includes(prov))) return false;
+      if (prov === "linkedin" && urlLower.includes("linkedin.com")) return false;
+      if (prov === "youtube" && (urlLower.includes("youtube.com") || urlLower.includes("youtu.be"))) return false;
+      if (prov === "github" && urlLower.includes("github.com")) return false;
+      if (prov === "instagram" && urlLower.includes("instagram.com")) return false;
+      if (prov === "tiktok" && urlLower.includes("tiktok.com")) return false;
+      if (prov === "twitter" && (urlLower.includes("twitter.com") || urlLower.includes("x.com"))) return false;
+      if (prov === "telegram" && (urlLower.includes("t.me") || urlLower.includes("telegram.me"))) return false;
+      if (prov === "spotify" && urlLower.includes("spotify.com")) return false;
+    }
+    return true;
+  });
+
   const headerPillsFromLinks = visibleLinks.filter(
     (l) => l.display_mode === "header_pill"
   );
@@ -72,11 +99,6 @@ export default function LiveCanvasPreview({ user, links = [], integrations }) {
     .toUpperCase();
 
   const publicUrl = `/${username}`;
-
-  // Connected integrations list if passed
-  const connectedList = Array.isArray(integrations)
-    ? integrations
-    : integrations?.connected || [];
 
   // Aggregate socials for live preview with deduplication
   const socialsMap = new Map();
@@ -173,9 +195,15 @@ export default function LiveCanvasPreview({ user, links = [], integrations }) {
               const isYT = p === "youtube";
               const isGH = p === "github";
               const isIG = p === "instagram";
+              const isLI = p === "linkedin";
+              const isTK = p === "tiktok";
+              const isSP = p === "spotify";
               const actionUrl = isYT
                 ? (net.profileUrl ? (net.profileUrl.includes("?") ? `${net.profileUrl}&sub_confirmation=1` : `${net.profileUrl}?sub_confirmation=1`) : `https://youtube.com/${net.handle}?sub_confirmation=1`)
                 : net.profileUrl;
+
+              const metricText = net.formattedFollowers || net.followers || (isLI ? "500+" : "0");
+              const labelText = isLI ? "connections" : isYT ? "subscribers" : "followers";
 
               return (
                 <div
@@ -185,11 +213,24 @@ export default function LiveCanvasPreview({ user, links = [], integrations }) {
                   <div className="flex items-center gap-2 min-w-0">
                     <div className="w-8 h-8 rounded-full border border-white/10 overflow-hidden shrink-0 bg-[#161916] flex items-center justify-center">
                       {net.avatar ? (
-                        <img src={net.avatar} alt={net.name} className="w-full h-full object-cover" />
+                        <img
+                          src={net.avatar}
+                          alt={net.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.style.display = "none";
+                          }}
+                        />
                       ) : isYT ? (
                         <FaYoutube className="w-4 h-4 text-[#ff0000]" />
                       ) : isGH ? (
                         <FaGithub className="w-4 h-4 text-white" />
+                      ) : isLI ? (
+                        <FaLinkedin className="w-4 h-4 text-[#0A66C2]" />
+                      ) : isTK ? (
+                        <FaTiktok className="w-4 h-4 text-[#00f2ff]" />
+                      ) : isSP ? (
+                        <FaSpotify className="w-4 h-4 text-[#1db954]" />
                       ) : (
                         <FaInstagram className="w-4 h-4 text-[#d946ef]" />
                       )}
@@ -199,7 +240,7 @@ export default function LiveCanvasPreview({ user, links = [], integrations }) {
                         {net.name}
                       </div>
                       <div className="text-[10px] font-mono text-slate-400 truncate">
-                        <span className="text-[#c6f035] font-bold">{net.formattedFollowers || net.followers}</span> {net.label ? net.label.toLowerCase() : "followers"}
+                        <span className="text-[#c6f035] font-bold">{metricText}</span> {labelText}
                       </div>
                     </div>
                   </div>
@@ -208,15 +249,19 @@ export default function LiveCanvasPreview({ user, links = [], integrations }) {
                     href={actionUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`px-2.5 py-1 rounded-md text-[10px] font-mono font-bold shrink-0 shadow-sm ${
+                    className={`px-2.5 py-1 rounded-md text-[10px] font-mono font-bold shrink-0 shadow-sm transition-all active:scale-95 ${
                       isYT
-                        ? "bg-[#ff0000] text-white"
+                        ? "bg-[#ff0000] text-white hover:brightness-110"
+                        : isLI
+                        ? "bg-[#0A66C2] text-white hover:brightness-110"
                         : isIG
                         ? "bg-gradient-to-r from-[#d946ef] to-[#f43f5e] text-white"
+                        : isTK
+                        ? "bg-[#00f2ff] text-[#0d0f0d]"
                         : "bg-[#c6f035] text-[#0d0f0d]"
                     }`}
                   >
-                    {isYT ? "Subscribe" : "Follow"}
+                    {isYT ? "Subscribe" : isLI ? "Connect" : "Follow"}
                   </a>
                 </div>
               );

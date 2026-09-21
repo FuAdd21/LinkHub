@@ -23,6 +23,7 @@ import {
   Sparkles,
   Layers,
   Tag,
+  AlertCircle,
 } from "lucide-react";
 import { api } from "../../api/config";
 import { linksApi } from "../../api/linksApi";
@@ -46,6 +47,7 @@ function getPlatformIcon(url = "", platform = "") {
 export default function DashboardLinks({
   userData,
   links = [],
+  integrations,
   onRefresh,
   onUserChange,
   onLinksChange,
@@ -62,6 +64,26 @@ export default function DashboardLinks({
   });
   const [saving, setSaving] = useState(false);
   const [draggingIdx, setDraggingIdx] = useState(null);
+
+  // Set of connected integration providers to warn against duplicates
+  const connectedProviders = new Set(
+    (integrations?.connected || []).map((i) => (i.provider || "").toLowerCase()).filter(Boolean)
+  );
+
+  const checkConnectedIntegration = (url = "", platform = "") => {
+    const u = (url || "").toLowerCase();
+    const p = (platform || "").toLowerCase();
+    if (connectedProviders.has(p)) return platform || p;
+    if (connectedProviders.has("linkedin") && (p.includes("linkedin") || u.includes("linkedin.com"))) return "LinkedIn";
+    if (connectedProviders.has("youtube") && (p.includes("youtube") || u.includes("youtube.com") || u.includes("youtu.be"))) return "YouTube";
+    if (connectedProviders.has("github") && (p.includes("github") || u.includes("github.com"))) return "GitHub";
+    if (connectedProviders.has("instagram") && (p.includes("instagram") || u.includes("instagram.com"))) return "Instagram";
+    if (connectedProviders.has("tiktok") && (p.includes("tiktok") || u.includes("tiktok.com"))) return "TikTok";
+    if (connectedProviders.has("twitter") && (p.includes("twitter") || p.includes("x") || u.includes("twitter.com") || u.includes("x.com"))) return "Twitter / X";
+    return null;
+  };
+
+  const matchedConnectedProvider = checkConnectedIntegration(form.url, form.platform);
 
   useEffect(() => {
     setLocalLinks(links);
@@ -252,6 +274,12 @@ export default function DashboardLinks({
         setLocalLinks(updated);
         onLinksChange?.(updated);
         toast.success("Link published");
+      }
+      if (matchedConnectedProvider) {
+        toast(
+          `${matchedConnectedProvider} is already integrated. Profile automatically highlights your live card without duplicates.`,
+          { icon: "💡", duration: 4000 }
+        );
       }
       setModalOpen(false);
       onRefresh?.();
@@ -850,6 +878,20 @@ export default function DashboardLinks({
                   <option value="Newsletter">Newsletter / Substack</option>
                 </select>
               </div>
+
+              {matchedConnectedProvider && (
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-2.5 text-xs text-amber-200 animate-in fade-in duration-200">
+                  <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <div className="font-bold text-amber-300">
+                      {matchedConnectedProvider} is already integrated
+                    </div>
+                    <p className="text-[11px] text-amber-200/80 leading-relaxed">
+                      You already connected {matchedConnectedProvider} in Integrations. Your public profile and live preview automatically display a live rich card with followers/connections. Any manual link here will be deduplicated to avoid duplicates on your live card.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <div className="space-y-1.5 pt-1">
                 <label className="text-xs font-bold text-slate-300 flex items-center justify-between">

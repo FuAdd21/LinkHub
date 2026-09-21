@@ -308,10 +308,27 @@ export default function PublicProfile() {
 
   const activeSocials = Array.from(socialsMap.entries());
 
+  // Build a set of active connected provider names to deduplicate manual links
+  const connectedProviders = new Set(
+    connectedIntegrations.map((c) => (c.provider || "").toLowerCase()).filter(Boolean)
+  );
+
   // Destination links to render in canvas-links-list:
   // ONLY links with display_mode === 'link' (or unset/null)
-  // Guarantees links in header_pill or rich_card mode are never duplicated in the destination list!
-  const destinationLinks = visibleLinks.filter((l) => (l.display_mode || "link") === "link");
+  // Guarantees links in header_pill or rich_card mode, OR links already connected as integrations, are never duplicated!
+  const destinationLinks = visibleLinks.filter((l) => {
+    if ((l.display_mode || "link") !== "link") return false;
+    const p = (l.platform || "").toLowerCase();
+    const u = (l.url || "").toLowerCase();
+    if (connectedProviders.has(p)) return false;
+    if (connectedProviders.has("linkedin") && (p.includes("linkedin") || u.includes("linkedin.com"))) return false;
+    if (connectedProviders.has("youtube") && (p.includes("youtube") || u.includes("youtube.com") || u.includes("youtu.be"))) return false;
+    if (connectedProviders.has("github") && (p.includes("github") || u.includes("github.com"))) return false;
+    if (connectedProviders.has("instagram") && (p.includes("instagram") || u.includes("instagram.com"))) return false;
+    if (connectedProviders.has("tiktok") && (p.includes("tiktok") || u.includes("tiktok.com"))) return false;
+    if (connectedProviders.has("twitter") && (p.includes("twitter") || p.includes("x") || u.includes("twitter.com") || u.includes("x.com"))) return false;
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-[#070705] preview-grid flex flex-col items-center justify-center p-4 sm:p-8 relative selection:bg-[#c6f035] selection:text-[#0d0f0d] overflow-x-hidden">
@@ -442,6 +459,7 @@ export default function PublicProfile() {
               const isGitHub = p === "github";
               const isInstagram = p === "instagram";
               const isTikTok = p === "tiktok";
+              const isLinkedIn = p === "linkedin";
 
               // Direct subscribe URL for YouTube: adds sub_confirmation=1 to trigger subscription modal
               const actionUrl = isYouTube
@@ -460,6 +478,12 @@ export default function PublicProfile() {
                           src={net.avatar}
                           alt={net.name}
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = isLinkedIn
+                              ? `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(net.name || "User")}&backgroundColor=0A66C2&textColor=ffffff`
+                              : `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(net.name || "User")}&backgroundColor=161916&textColor=c6f035`;
+                          }}
                         />
                       ) : isYouTube ? (
                         <FaYoutube className="w-5 h-5 text-[#ff0000]" />
@@ -469,6 +493,8 @@ export default function PublicProfile() {
                         <FaInstagram className="w-5 h-5 text-[#d946ef]" />
                       ) : isTikTok ? (
                         <FaTiktok className="w-5 h-5 text-[#00f2ff]" />
+                      ) : isLinkedIn ? (
+                        <FaLinkedin className="w-5 h-5 text-[#0A66C2]" />
                       ) : (
                         <Link2 className="w-5 h-5 text-slate-400" />
                       )}
@@ -481,13 +507,14 @@ export default function PublicProfile() {
                         {isGitHub && <FaGithub className="w-3.5 h-3.5 text-slate-300 shrink-0" />}
                         {isInstagram && <FaInstagram className="w-3.5 h-3.5 text-[#d946ef] shrink-0" />}
                         {isTikTok && <FaTiktok className="w-3.5 h-3.5 text-[#00f2ff] shrink-0" />}
+                        {isLinkedIn && <FaLinkedin className="w-3.5 h-3.5 text-[#0A66C2] shrink-0" />}
                       </div>
 
                       <div className="text-[11px] font-mono text-slate-400 truncate">
                         <span className="text-[#c6f035] font-bold">
-                          {net.formattedFollowers || net.followers}
+                          {net.formattedFollowers || net.followers || "500+"}
                         </span>{" "}
-                        {net.label ? net.label.toLowerCase() : "followers"}
+                        {net.label ? net.label.toLowerCase() : isLinkedIn ? "connections" : "followers"}
                         {isYouTube && net.videos > 0 && (
                           <span className="text-slate-500"> · {net.videos} videos</span>
                         )}
@@ -498,7 +525,7 @@ export default function PublicProfile() {
                     </div>
                   </div>
 
-                  {/* Direct Subscribe / Follow Action Button */}
+                  {/* Direct Subscribe / Connect / Follow Action Button */}
                   <a
                     href={actionUrl}
                     target="_blank"
@@ -510,10 +537,12 @@ export default function PublicProfile() {
                         ? "bg-gradient-to-r from-[#d946ef] to-[#f43f5e] hover:opacity-90 text-white"
                         : isTikTok
                         ? "bg-[#00f2ff] hover:brightness-110 text-[#0d0f0d]"
+                        : isLinkedIn
+                        ? "bg-[#0A66C2] hover:bg-[#084e96] text-white"
                         : "bg-[#c6f035] hover:brightness-110 text-[#0d0f0d]"
                     }`}
                   >
-                    <span>{isYouTube ? "Subscribe" : "Follow"}</span>
+                    <span>{isYouTube ? "Subscribe" : isLinkedIn ? "Connect" : "Follow"}</span>
                   </a>
                 </div>
               );
