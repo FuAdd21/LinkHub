@@ -2,8 +2,18 @@ import "dotenv/config";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+function cleanVal(raw) {
+  if (typeof raw !== "string") return raw;
+  const t = raw.trim();
+  if ((t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'"))) {
+    return t.slice(1, -1).trim();
+  }
+  return t;
+}
+
 function required(name) {
-  const value = process.env[name];
+  const raw = process.env[name];
+  const value = cleanVal(raw);
   if (!value) {
     throw new Error(`Missing required environment variable: ${name}`);
   }
@@ -11,20 +21,22 @@ function required(name) {
 }
 
 function optional(name, fallback) {
-  return process.env[name] || fallback;
+  const raw = process.env[name];
+  if (raw === undefined || raw === null || raw === "") return fallback;
+  return cleanVal(raw);
 }
 
 function optionalInt(name, fallback) {
-  const raw = process.env[name];
+  const raw = cleanVal(process.env[name]);
   if (!raw) return fallback;
   const parsed = parseInt(raw, 10);
   return Number.isNaN(parsed) ? fallback : parsed;
 }
 
 function optionalBool(name, fallback) {
-  const raw = process.env[name];
-  if (raw === undefined || raw === null) return fallback;
-  return raw === "true" || raw === "1";
+  const raw = cleanVal(process.env[name]);
+  if (raw === undefined || raw === null || raw === "") return fallback;
+  return raw === "true" || raw === "1" || raw === true;
 }
 
 // ─── Environment ──────────────────────────────────────────────────────────────
