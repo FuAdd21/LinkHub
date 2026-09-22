@@ -479,31 +479,44 @@ export default function PublicProfile() {
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-10 h-10 rounded-full border border-white/10 overflow-hidden shrink-0 bg-[#161916] flex items-center justify-center">
-                      {net.avatar ? (
-                        <img
-                          src={net.avatar}
-                          alt={net.name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.target.onerror = null;
-                            e.target.src = isLinkedIn
-                              ? `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(net.name || "User")}&backgroundColor=0A66C2&textColor=ffffff`
-                              : `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(net.name || "User")}&backgroundColor=161916&textColor=c6f035`;
-                          }}
-                        />
-                      ) : isYouTube ? (
-                        <FaYoutube className="w-5 h-5 text-[#ff0000]" />
-                      ) : isGitHub ? (
-                        <FaGithub className="w-5 h-5 text-white" />
-                      ) : isInstagram ? (
-                        <FaInstagram className="w-5 h-5 text-[#d946ef]" />
-                      ) : isTikTok ? (
-                        <FaTiktok className="w-5 h-5 text-[#00f2ff]" />
-                      ) : isLinkedIn ? (
-                        <FaLinkedin className="w-5 h-5 text-[#0A66C2]" />
-                      ) : (
-                        <Link2 className="w-5 h-5 text-slate-400" />
-                      )}
+                      {(() => {
+                        const isGhost =
+                          !net.avatar ||
+                          net.avatar.includes("licdn.com/aero-v1/sc/h/") ||
+                          net.avatar.includes("placeholder") ||
+                          net.avatar.includes("ghost");
+                        const cardAvatar = !isGhost ? net.avatar : (avatarUrl || net.avatar);
+
+                        return cardAvatar ? (
+                          <img
+                            src={cardAvatar}
+                            alt={net.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              if (avatarUrl && cardAvatar !== avatarUrl) {
+                                e.target.src = avatarUrl;
+                                return;
+                              }
+                              e.target.src = isLinkedIn
+                                ? `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(net.name || "User")}&backgroundColor=0A66C2&textColor=ffffff`
+                                : `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(net.name || "User")}&backgroundColor=161916&textColor=c6f035`;
+                            }}
+                          />
+                        ) : isYouTube ? (
+                          <FaYoutube className="w-5 h-5 text-[#ff0000]" />
+                        ) : isGitHub ? (
+                          <FaGithub className="w-5 h-5 text-white" />
+                        ) : isInstagram ? (
+                          <FaInstagram className="w-5 h-5 text-[#d946ef]" />
+                        ) : isTikTok ? (
+                          <FaTiktok className="w-5 h-5 text-[#00f2ff]" />
+                        ) : isLinkedIn ? (
+                          <FaLinkedin className="w-5 h-5 text-[#0A66C2]" />
+                        ) : (
+                          <Link2 className="w-5 h-5 text-slate-400" />
+                        );
+                      })()}
                     </div>
 
                     <div className="min-w-0 text-left">

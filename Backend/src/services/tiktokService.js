@@ -4,17 +4,46 @@ import { JSDOM } from "jsdom";
 const getFallbackAvatar = (username) =>
   `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(username || "TikTok")}&backgroundColor=00f2ff&textColor=000000`;
 
-function extractTikTokUsername(input) {
+export async function extractTikTokUsername(input) {
   if (!input) return null;
+  let cleanInput = String(input).trim();
+
+  // If it's a short URL (vt.tiktok.com, vm.tiktok.com, tiktok.com/t/...)
+  if (
+    cleanInput.includes("vt.tiktok.com") ||
+    cleanInput.includes("vm.tiktok.com") ||
+    cleanInput.includes("tiktok.com/t/")
+  ) {
+    try {
+      let target = cleanInput;
+      if (!/^https?:\/\//i.test(target)) target = `https://${target}`;
+      const res = await fetch(target, {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        },
+      });
+      if (res.url) {
+        const match = res.url.match(/tiktok\.com\/@([a-zA-Z0-9_.]+)/);
+        if (match) return match[1];
+      }
+    } catch (e) {
+      console.warn("TikTok redirect resolution failed:", e.message);
+    }
+  }
 
   // Extract from tiktok.com/@username URL
-  if (input.includes("tiktok.com/@")) {
-    const match = input.match(/tiktok\.com\/@([a-zA-Z0-9_.]+)(?:\/|$|\?)/);
+  if (cleanInput.includes("tiktok.com/@")) {
+    const match = cleanInput.match(/tiktok\.com\/@([a-zA-Z0-9_.]+)(?:\/|$|\?)/);
     if (match) return match[1].split("?")[0];
   }
 
-  // Remove @ if present
-  return input.replace(/^@/, "").trim();
+  // Remove url prefixes, trailing slashes, and leading @
+  return cleanInput
+    .replace(/^https?:\/\/(?:www\.)?tiktok\.com\/@?/i, "")
+    .replace(/^@/, "")
+    .replace(/\/.*$/, "")
+    .trim();
 }
 
 async function fetchTikTokData(username) {
@@ -130,7 +159,7 @@ async function fetchTikTokData(username) {
 
 export async function getTikTokProfile(input) {
   try {
-    const username = extractTikTokUsername(input);
+    const username = await extractTikTokUsername(input);
     if (!username) return { platform: "TikTok", error: "Invalid username" };
 
     const data = await fetchTikTokData(username);

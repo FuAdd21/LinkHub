@@ -195,7 +195,7 @@ export default function DashboardSocials({
     }
   };
 
-  const avatarUrl = getAvatarUrl(userData?.avatar);
+  const avatarUrl = getAvatarUrl(userData);
   const userInitials = (userData?.name || "U")
     .split(" ")
     .map((w) => w[0])
@@ -356,22 +356,35 @@ export default function DashboardSocials({
                           className="w-11 h-11 rounded-full border-2 p-0.5 flex items-center justify-center shrink-0 overflow-hidden"
                           style={{ borderColor: netColor }}
                         >
-                          {net.avatar ? (
-                            <img
-                              src={net.avatar}
-                              alt={net.name}
-                              className="w-full h-full rounded-full object-cover"
-                              onError={(e) => {
-                                e.target.onerror = null;
-                                const bg = (netColor || "#0a66c2").replace("#", "");
-                                e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(net.name || "User")}&backgroundColor=${bg}&textColor=ffffff`;
-                              }}
-                            />
-                          ) : (
-                            <div className="w-full h-full rounded-full bg-[#1a1914] flex items-center justify-center">
-                              <IconComponent className="w-5 h-5 text-white" />
-                            </div>
-                          )}
+                          {(() => {
+                            const isGhost =
+                              !net.avatar ||
+                              net.avatar.includes("licdn.com/aero-v1/sc/h/") ||
+                              net.avatar.includes("placeholder") ||
+                              net.avatar.includes("ghost");
+                            const displayAvatar = !isGhost ? net.avatar : (avatarUrl || net.avatar);
+
+                            return displayAvatar ? (
+                              <img
+                                src={displayAvatar}
+                                alt={net.name}
+                                className="w-full h-full rounded-full object-cover"
+                                onError={(e) => {
+                                  e.target.onerror = null;
+                                  if (avatarUrl && displayAvatar !== avatarUrl) {
+                                    e.target.src = avatarUrl;
+                                    return;
+                                  }
+                                  const bg = (netColor || "#0a66c2").replace("#", "");
+                                  e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(net.name || "User")}&backgroundColor=${bg}&textColor=ffffff`;
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full rounded-full bg-[#1a1914] flex items-center justify-center">
+                                <IconComponent className="w-5 h-5 text-white" />
+                              </div>
+                            );
+                          })()}
                         </div>
                         <div className="min-w-0">
                           <h4 className="text-sm font-bold text-white truncate max-w-[150px]">

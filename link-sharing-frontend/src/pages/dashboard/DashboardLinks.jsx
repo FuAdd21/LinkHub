@@ -66,8 +66,12 @@ export default function DashboardLinks({
   const [draggingIdx, setDraggingIdx] = useState(null);
 
   // Set of connected integration providers to warn against duplicates
+  const connectedList = Array.isArray(integrations)
+    ? integrations
+    : integrations?.connected || [];
+
   const connectedProviders = new Set(
-    (integrations?.connected || []).map((i) => (i.provider || "").toLowerCase()).filter(Boolean)
+    connectedList.map((i) => (i.provider || "").toLowerCase().trim()).filter(Boolean)
   );
 
   const checkConnectedIntegration = (url = "", platform = "") => {
@@ -80,6 +84,8 @@ export default function DashboardLinks({
     if (connectedProviders.has("instagram") && (p.includes("instagram") || u.includes("instagram.com"))) return "Instagram";
     if (connectedProviders.has("tiktok") && (p.includes("tiktok") || u.includes("tiktok.com"))) return "TikTok";
     if (connectedProviders.has("twitter") && (p.includes("twitter") || p.includes("x") || u.includes("twitter.com") || u.includes("x.com"))) return "Twitter / X";
+    if (connectedProviders.has("telegram") && (p.includes("telegram") || u.includes("t.me") || u.includes("telegram.me"))) return "Telegram";
+    if (connectedProviders.has("spotify") && (p.includes("spotify") || u.includes("spotify.com"))) return "Spotify";
     return null;
   };
 
@@ -245,6 +251,15 @@ export default function DashboardLinks({
     }
 
     let normalizedUrl = form.url.trim();
+    // Clean accidental repeated prefixes like tiktok.com/@https://...
+    if (normalizedUrl.includes("tiktok.com/@https://")) {
+      normalizedUrl = normalizedUrl.replace(/.*tiktok\.com\/@https?:\/\//i, "https://");
+    } else if (normalizedUrl.includes("tiktok.com/@http://")) {
+      normalizedUrl = normalizedUrl.replace(/.*tiktok\.com\/@https?:\/\//i, "http://");
+    } else if (normalizedUrl.includes("linkedin.com/in/https://")) {
+      normalizedUrl = normalizedUrl.replace(/.*linkedin\.com\/in\/https?:\/\//i, "https://");
+    }
+
     if (!/^https?:\/\//i.test(normalizedUrl)) {
       normalizedUrl = `https://${normalizedUrl}`;
     }
@@ -395,6 +410,7 @@ export default function DashboardLinks({
             localLinks.map((link, index) => {
               const isVisible = link.is_visible !== 0 && link.is_visible !== false;
               const cleanUrl = (link.url || "").replace(/^https?:\/\//i, "");
+              const isIntegrated = checkConnectedIntegration(link.url, link.platform);
 
               return (
                 <div
@@ -422,10 +438,19 @@ export default function DashboardLinks({
                         <GripVertical className="w-4 h-4" />
                       </button>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           <h4 className="text-sm font-bold text-white truncate">
                             {link.title}
                           </h4>
+                          {isIntegrated && (
+                            <span
+                              className="px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0 flex items-center gap-1"
+                              title={`${isIntegrated} is active in Integrations`}
+                            >
+                              <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" />
+                              Integrated
+                            </span>
+                          )}
                           {link.display_mode === "header_pill" && (
                             <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20 shrink-0">
                               Header Icon
@@ -469,10 +494,19 @@ export default function DashboardLinks({
                         <GripVertical className="w-4 h-4" />
                       </button>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <h4 className="text-sm font-bold text-white truncate group-hover:text-[#c6f035] transition-colors">
                             {link.title}
                           </h4>
+                          {isIntegrated && (
+                            <span
+                              className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0 flex items-center gap-1"
+                              title={`${isIntegrated} is actively connected in your Integrations`}
+                            >
+                              <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                              Integrated in Socials
+                            </span>
+                          )}
                           {link.display_mode === "header_pill" && (
                             <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20 shrink-0">
                               Header Icon
@@ -487,6 +521,11 @@ export default function DashboardLinks({
                         <p className="text-xs font-mono text-slate-500 truncate mt-0.5">
                           {cleanUrl}
                         </p>
+                        {isIntegrated && (
+                          <p className="text-[10px] font-mono text-emerald-400/80 mt-0.5 flex items-center gap-1">
+                            Live integration active · Rich card and stats auto-displayed on public profile
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -777,6 +816,71 @@ export default function DashboardLinks({
               )}
             </div>
 
+            {/* Connected Networks Metrics & Summary */}
+            {connectedList.length > 0 && (
+              <div className="w-full space-y-2 pt-1">
+                <div className="text-[11px] font-bold text-[#c6f035]">
+                  {connectedList
+                    .reduce((acc, curr) => acc + (Number(curr.followers) || 0), 0)
+                    .toLocaleString()}{" "}
+                  combined audience
+                </div>
+                <div className="grid grid-cols-2 gap-1.5 text-xs font-mono">
+                  {connectedList.map((net) => {
+                    const p = (net.provider || "").toLowerCase();
+                    const code =
+                      p === "youtube"
+                        ? "YT"
+                        : p === "github"
+                        ? "GH"
+                        : p === "instagram"
+                        ? "IG"
+                        : p === "tiktok"
+                        ? "TK"
+                        : p === "linkedin"
+                        ? "IN"
+                        : p === "telegram"
+                        ? "TG"
+                        : p === "twitter"
+                        ? "X"
+                        : net.badge || p.slice(0, 2).toUpperCase();
+                    const color =
+                      net.color ||
+                      (p === "youtube"
+                        ? "#ff0000"
+                        : p === "tiktok"
+                        ? "#00f2ff"
+                        : p === "linkedin"
+                        ? "#0A66C2"
+                        : p === "github"
+                        ? "#24292e"
+                        : p === "instagram"
+                        ? "#e1306c"
+                        : "#c6f035");
+                    return (
+                      <div
+                        key={net.provider}
+                        className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-[#161510] border border-white/5 text-[11px]"
+                      >
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <span
+                            className="w-1.5 h-1.5 rounded-full shrink-0"
+                            style={{ backgroundColor: color }}
+                          />
+                          <span className="text-slate-400 font-bold truncate">
+                            {code}
+                          </span>
+                        </div>
+                        <span className="text-white font-bold shrink-0">
+                          {net.formattedFollowers || net.followers || (p === "linkedin" ? "500+" : "0")}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Header Icons in preview */}
             {localLinks.some((l) => l.display_mode === "header_pill" && l.is_visible !== 0 && l.is_visible !== false) && (
               <div className="flex items-center justify-center gap-1.5 pt-1">
@@ -798,19 +902,39 @@ export default function DashboardLinks({
               </div>
             )}
 
-            {/* Links Stack in preview */}
+            {/* Destination Links Stack in preview (deduplicating links that are already active in Connected Networks) */}
             <div className="w-full space-y-2.5 pt-2">
-              {localLinks
-                .filter((l) => l.is_visible !== 0 && l.is_visible !== false && (l.display_mode || "link") === "link")
-                .slice(0, 4)
-                .map((link) => (
+              {(() => {
+                const previewLinks = localLinks
+                  .filter((l) => {
+                    if (l.is_visible === 0 || l.is_visible === false) return false;
+                    if ((l.display_mode || "link") !== "link") return false;
+                    // Deduplicate against connected networks so no duplicate buttons appear
+                    return !checkConnectedIntegration(l.url, l.platform);
+                  })
+                  .slice(0, 4);
+
+                if (previewLinks.length === 0) {
+                  return connectedList.length > 0 ? (
+                    <div className="w-full py-2.5 px-3 rounded-xl bg-[#161510]/60 border border-white/5 text-[11px] font-mono text-slate-500 text-center">
+                      Connected networks active above
+                    </div>
+                  ) : (
+                    <div className="w-full py-2.5 px-3 rounded-xl bg-[#161510]/60 border border-white/5 text-[11px] font-mono text-slate-500 text-center">
+                      No custom destination links
+                    </div>
+                  );
+                }
+
+                return previewLinks.map((link) => (
                   <div
                     key={link.id}
                     className="w-full py-3 px-4 rounded-xl bg-[#1a1914] border border-white/5 text-xs font-semibold text-slate-300 text-center hover:border-white/20 transition-colors truncate"
                   >
                     {link.title}
                   </div>
-                ))}
+                ));
+              })()}
             </div>
           </div>
 

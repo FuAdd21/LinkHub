@@ -103,13 +103,16 @@ export default function LiveCanvasPreview({ user, links = [], integrations }) {
 
   // Aggregate socials for live preview with deduplication
   const socialsMap = new Map();
-  if (user?.githubUser) socialsMap.set("github", { url: `https://github.com/${user.githubUser}`, icon: FaGithub, label: "GitHub" });
-  if (user?.linkedin) socialsMap.set("linkedin", { url: `https://linkedin.com/in/${user.linkedin}`, icon: FaLinkedin, label: "LinkedIn" });
-  if (user?.twitter) socialsMap.set("twitter", { url: `https://twitter.com/${user.twitter}`, icon: FaTwitter, label: "Twitter" });
-  if (user?.instagram) socialsMap.set("instagram", { url: `https://instagram.com/${user.instagram}`, icon: FaInstagram, label: "Instagram" });
-  if (user?.youtubeId) socialsMap.set("youtube", { url: `https://youtube.com/${user.youtubeId}`, icon: FaYoutube, label: "YouTube" });
-  if (user?.tiktok) socialsMap.set("tiktok", { url: `https://tiktok.com/@${user.tiktok}`, icon: FaTiktok, label: "TikTok" });
-  if (user?.spotify) socialsMap.set("spotify", { url: `https://open.spotify.com/artist/${user.spotify}`, icon: FaSpotify, label: "Spotify" });
+  if (user?.githubUser) socialsMap.set("github", { url: user.githubUser.startsWith("http") ? user.githubUser : `https://github.com/${user.githubUser.replace(/^@/, "")}`, icon: FaGithub, label: "GitHub" });
+  if (user?.linkedin) socialsMap.set("linkedin", { url: user.linkedin.startsWith("http") ? user.linkedin : `https://linkedin.com/in/${user.linkedin.replace(/^@/, "")}`, icon: FaLinkedin, label: "LinkedIn" });
+  if (user?.twitter) socialsMap.set("twitter", { url: user.twitter.startsWith("http") ? user.twitter : `https://twitter.com/${user.twitter.replace(/^@/, "")}`, icon: FaTwitter, label: "Twitter" });
+  if (user?.instagram) socialsMap.set("instagram", { url: user.instagram.startsWith("http") ? user.instagram : `https://instagram.com/${user.instagram.replace(/^@/, "")}`, icon: FaInstagram, label: "Instagram" });
+  if (user?.youtubeId) socialsMap.set("youtube", { url: user.youtubeId.startsWith("http") ? user.youtubeId : `https://youtube.com/${user.youtubeId}`, icon: FaYoutube, label: "YouTube" });
+  if (user?.tiktok) {
+    const cleanTk = user.tiktok.replace(/^@/, "").replace(/^https?:\/\/(?:www\.)?tiktok\.com\/@?/i, "");
+    socialsMap.set("tiktok", { url: user.tiktok.startsWith("http") ? user.tiktok : `https://tiktok.com/@${cleanTk}`, icon: FaTiktok, label: "TikTok" });
+  }
+  if (user?.spotify) socialsMap.set("spotify", { url: user.spotify.startsWith("http") ? user.spotify : `https://open.spotify.com/artist/${user.spotify}`, icon: FaSpotify, label: "Spotify" });
 
   headerPillsFromLinks.forEach((pill) => {
     const platKey = (pill.platform || extractDomain(pill.url) || "link").toLowerCase();
@@ -214,28 +217,41 @@ export default function LiveCanvasPreview({ user, links = [], integrations }) {
                 >
                   <div className="flex items-center gap-2 min-w-0">
                     <div className="w-8 h-8 rounded-full border border-white/10 overflow-hidden shrink-0 bg-[#161916] flex items-center justify-center">
-                      {net.avatar ? (
-                        <img
-                          src={net.avatar}
-                          alt={net.name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.target.style.display = "none";
-                          }}
-                        />
-                      ) : isYT ? (
-                        <FaYoutube className="w-4 h-4 text-[#ff0000]" />
-                      ) : isGH ? (
-                        <FaGithub className="w-4 h-4 text-white" />
-                      ) : isLI ? (
-                        <FaLinkedin className="w-4 h-4 text-[#0A66C2]" />
-                      ) : isTK ? (
-                        <FaTiktok className="w-4 h-4 text-[#00f2ff]" />
-                      ) : isSP ? (
-                        <FaSpotify className="w-4 h-4 text-[#1db954]" />
-                      ) : (
-                        <FaInstagram className="w-4 h-4 text-[#d946ef]" />
-                      )}
+                      {(() => {
+                        const isGhost =
+                          !net.avatar ||
+                          net.avatar.includes("licdn.com/aero-v1/sc/h/") ||
+                          net.avatar.includes("placeholder") ||
+                          net.avatar.includes("ghost");
+                        const displayAvatar = !isGhost ? net.avatar : (avatarUrl || net.avatar);
+
+                        return displayAvatar ? (
+                          <img
+                            src={displayAvatar}
+                            alt={net.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              if (avatarUrl && displayAvatar !== avatarUrl) {
+                                e.target.src = avatarUrl;
+                              } else {
+                                e.target.style.display = "none";
+                              }
+                            }}
+                          />
+                        ) : isYT ? (
+                          <FaYoutube className="w-4 h-4 text-[#ff0000]" />
+                        ) : isGH ? (
+                          <FaGithub className="w-4 h-4 text-white" />
+                        ) : isLI ? (
+                          <FaLinkedin className="w-4 h-4 text-[#0A66C2]" />
+                        ) : isTK ? (
+                          <FaTiktok className="w-4 h-4 text-[#00f2ff]" />
+                        ) : isSP ? (
+                          <FaSpotify className="w-4 h-4 text-[#1db954]" />
+                        ) : (
+                          <FaInstagram className="w-4 h-4 text-[#d946ef]" />
+                        );
+                      })()}
                     </div>
                     <div className="min-w-0 text-left">
                       <div className="text-xs font-bold text-white truncate max-w-[120px]">

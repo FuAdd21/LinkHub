@@ -77,13 +77,14 @@ export const socialService = {
     if (p === "tiktok") {
       const data = await getTikTokProfile(handleOrUrl);
       const followers = Number(data.followers) || 0;
+      const cleanHandle = data.username || handleOrUrl.replace(/^@/, "").replace(/^https?:\/\/(?:www\.)?tiktok\.com\/@?/i, "").trim();
       return {
-        handle: data.handle || (handleOrUrl.startsWith("@") ? handleOrUrl : `@${handleOrUrl}`),
-        name: data.name || handleOrUrl,
+        handle: `@${cleanHandle}`,
+        name: data.name || cleanHandle,
         avatar: data.avatar || null,
         followers,
         formattedFollowers: formatFollowerCount(followers),
-        profileUrl: data.profileUrl || `https://tiktok.com/@${handleOrUrl.replace(/^@/, "")}`,
+        profileUrl: data.profileUrl || `https://tiktok.com/@${cleanHandle}`,
         likes: data.likes || 0,
         label: "FOLLOWERS",
       };
@@ -125,11 +126,18 @@ export const socialService = {
       const data = await getLinkedInProfile(handleOrUrl);
       const connections = Number(data.connections) || 0;
       const cleanHandle = data.username || handleOrUrl.replace(/^@/, "").trim();
-      const fallbackAvatar = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(cleanHandle)}&backgroundColor=0A66C2&textColor=ffffff`;
+      const isGhostAvatar =
+        !data.avatar ||
+        data.avatar.includes("licdn.com/aero-v1/sc/h/") ||
+        data.avatar.includes("ghost") ||
+        data.avatar.includes("placeholder");
+      const fallbackAvatar = isGhostAvatar
+        ? null
+        : data.avatar;
       return {
         handle: `@${cleanHandle}`,
         name: data.name || cleanHandle,
-        avatar: data.avatar || fallbackAvatar,
+        avatar: fallbackAvatar,
         followers: connections,
         formattedFollowers: formatFollowerCount(connections),
         profileUrl: data.profileUrl || `https://linkedin.com/in/${cleanHandle}`,
@@ -165,9 +173,10 @@ export const socialService = {
 
     // Auto-sync if user has handles saved in profile but not yet in integrations
     const [clients] = await db.query(
-      "SELECT youtubeId, githubUser, instagram, tiktok, twitter, linkedin, telegramUser FROM clients WHERE id = ?",
+      "SELECT avatar, youtubeId, githubUser, instagram, tiktok, twitter, linkedin, telegramUser FROM clients WHERE id = ?",
       [userId]
     );
+    const userProfileAvatar = clients?.[0]?.avatar || null;
 
     if (clients.length > 0) {
       const c = clients[0];
@@ -187,6 +196,9 @@ export const socialService = {
         if (!existing || !existing.config) {
           try {
             const meta = await this.fetchProviderData(provider, handle);
+            if (userProfileAvatar && (!meta.avatar || meta.avatar.includes("licdn.com/aero-v1/sc/h/") || meta.avatar.includes("placeholder"))) {
+              meta.avatar = userProfileAvatar;
+            }
             await integrationRepository.upsert(userId, provider, {
               status: "connected",
               config: meta,
@@ -221,6 +233,15 @@ export const socialService = {
         name = config.name || null;
         avatar = config.avatar || null;
         profileUrl = config.profileUrl || null;
+
+        // If avatar is missing or is LinkedIn's anonymous silhouette, inherit user's LinkHub profile avatar
+        const isGhostAvatar = !avatar ||
+          avatar.includes("licdn.com/aero-v1/sc/h/") ||
+          avatar.includes("placeholder-avatar") ||
+          avatar.includes("ghost");
+        if (isGhostAvatar && userProfileAvatar) {
+          avatar = userProfileAvatar;
+        }
       }
 
       return {
@@ -287,9 +308,17 @@ export const socialService = {
     const [userRows] = await db.query("SELECT avatar, name FROM clients WHERE id = ?", [userId]).catch(() => [[]]);
     const userAvatar = userRows?.[0]?.avatar;
 
+    const isGhostAvatar =
+      !meta.avatar ||
+      meta.avatar.includes("licdn.com/aero-v1/sc/h/") ||
+      meta.avatar.includes("dicebear") ||
+      meta.avatar.includes("placeholder-avatar") ||
+      meta.avatar.includes("unavatar.io") ||
+      meta.avatar.includes("ghost");
+
     if (customAvatar && typeof customAvatar === "string" && customAvatar.trim()) {
       meta.avatar = customAvatar.trim();
-    } else if (p === "linkedin" && userAvatar && (!meta.avatar || meta.avatar.includes("dicebear") || meta.avatar.includes("placeholder-avatar") || meta.avatar.includes("unavatar.io"))) {
+    } else if (isGhostAvatar && userAvatar) {
       meta.avatar = userAvatar;
     }
 
