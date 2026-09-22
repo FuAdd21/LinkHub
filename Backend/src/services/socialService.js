@@ -139,7 +139,9 @@ export const socialService = {
         name: data.name || cleanHandle,
         avatar: fallbackAvatar,
         followers: connections,
-        formattedFollowers: formatFollowerCount(connections),
+        formattedFollowers: data.formattedConnections || formatFollowerCount(connections),
+        followerCount: data.followerCount || null,
+        formattedFollowerCount: data.formattedFollowerCount || (data.followerCount ? formatFollowerCount(data.followerCount) : null),
         profileUrl: data.profileUrl || `https://linkedin.com/in/${cleanHandle}`,
         bio: data.bio || null,
         label: "CONNECTIONS",
@@ -256,7 +258,10 @@ export const socialService = {
         avatar,
         profileUrl,
         followers,
-        formattedFollowers: formatFollowerCount(followers),
+        formattedFollowers: config?.formattedFollowers || formatFollowerCount(followers),
+        followerCount: config?.followerCount || null,
+        formattedFollowerCount: config?.formattedFollowerCount || (config?.followerCount ? formatFollowerCount(config.followerCount) : null),
+        label: config?.label || meta.label,
         config,
       };
     });
@@ -282,7 +287,7 @@ export const socialService = {
     };
   },
 
-  async connectIntegration(userId, provider, handle, customFollowers, addToLinks = true, customAvatar = null) {
+  async connectIntegration(userId, provider, handle, customFollowers, addToLinks = true, customAvatar = null, customFollowerCount = null) {
     if (!handle || typeof handle !== "string" || !handle.trim()) {
       throw AppError.badRequest("Please provide a valid handle or username", ErrorCodes.VALIDATION_ERROR);
     }
@@ -302,6 +307,12 @@ export const socialService = {
         meta.followers = parsed;
         meta.formattedFollowers = formatFollowerCount(parsed);
       }
+    }
+
+    // If custom follower count was specified for platforms with dual metrics like LinkedIn
+    if (customFollowerCount !== undefined && customFollowerCount !== null && String(customFollowerCount).trim() !== "") {
+      meta.followerCount = String(customFollowerCount).trim();
+      meta.formattedFollowerCount = String(customFollowerCount).trim();
     }
 
     // Inherit user LinkHub profile avatar or custom avatar if external scraping cannot load private avatar
@@ -397,6 +408,16 @@ export const socialService = {
 
     try {
       const freshMeta = await this.fetchProviderData(p, handle);
+      if (p === "linkedin") {
+        if (!freshMeta.followerCount && existing.config?.followerCount) {
+          freshMeta.followerCount = existing.config.followerCount;
+          freshMeta.formattedFollowerCount = existing.config.formattedFollowerCount;
+        }
+        const isGhost = !freshMeta.avatar || freshMeta.avatar.includes("licdn.com/aero-v1/sc/h/") || freshMeta.avatar.includes("ghost");
+        if (isGhost && existing.config?.avatar) {
+          freshMeta.avatar = existing.config.avatar;
+        }
+      }
       const updated = await integrationRepository.upsert(userId, p, {
         status: "connected",
         config: freshMeta,

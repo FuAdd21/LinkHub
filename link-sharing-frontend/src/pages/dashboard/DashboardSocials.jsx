@@ -71,6 +71,8 @@ export default function DashboardSocials({
   const [modalProvider, setModalProvider] = useState("youtube");
   const [modalHandle, setModalHandle] = useState("");
   const [modalFollowers, setModalFollowers] = useState("");
+  const [modalFollowerCount, setModalFollowerCount] = useState("");
+  const [modalAvatar, setModalAvatar] = useState("");
   const [modalAddToLinks, setModalAddToLinks] = useState(false);
   const [connecting, setConnecting] = useState(false);
 
@@ -154,11 +156,13 @@ export default function DashboardSocials({
     }
   };
 
-  const openConnectModal = (provider, currentHandle = "", currentFollowers = "") => {
+  const openConnectModal = (provider, currentHandle = "", currentFollowers = "", currentFollowerCount = "", currentAvatar = "") => {
     setModalProvider(provider);
     setModalHandle(currentHandle || "");
     setModalFollowers(currentFollowers && currentFollowers > 0 ? String(currentFollowers) : "");
-    setModalAddToLinks(true);
+    setModalFollowerCount(currentFollowerCount ? String(currentFollowerCount) : "");
+    setModalAvatar(currentAvatar || "");
+    setModalAddToLinks(false);
     setConnectModalOpen(true);
     setActiveMenu(null);
   };
@@ -178,6 +182,8 @@ export default function DashboardSocials({
         provider: modalProvider,
         handle: modalHandle.trim(),
         followers: modalFollowers.trim() ? modalFollowers.trim() : undefined,
+        followerCount: modalFollowerCount.trim() ? modalFollowerCount.trim() : undefined,
+        avatar: modalAvatar.trim() ? modalAvatar.trim() : undefined,
         addToLinks: modalAddToLinks,
       });
       await refreshData();
@@ -185,6 +191,8 @@ export default function DashboardSocials({
       setConnectModalOpen(false);
       setModalHandle("");
       setModalFollowers("");
+      setModalFollowerCount("");
+      setModalAvatar("");
     } catch (err) {
       toast.error(
         err.response?.data?.message || `Failed to connect ${modalProvider}. Please check the handle or link.`,
@@ -362,7 +370,8 @@ export default function DashboardSocials({
                               net.avatar.includes("licdn.com/aero-v1/sc/h/") ||
                               net.avatar.includes("placeholder") ||
                               net.avatar.includes("ghost");
-                            const displayAvatar = !isGhost ? net.avatar : (avatarUrl || net.avatar);
+                            const rawAvatar = !isGhost ? net.avatar : (avatarUrl || net.avatar);
+                            const displayAvatar = getAvatarUrl(rawAvatar);
 
                             return displayAvatar ? (
                               <img
@@ -429,7 +438,7 @@ export default function DashboardSocials({
                                 <span>Sync now</span>
                               </button>
                               <button
-                                onClick={() => openConnectModal(net.provider, net.handle, net.followers)}
+                                onClick={() => openConnectModal(net.provider, net.handle, net.followers, net.followerCount || net.formattedFollowerCount, net.avatar)}
                                 className="w-full px-3 py-2 text-left text-slate-300 hover:text-white hover:bg-white/5 flex items-center gap-2"
                               >
                                 <Edit3 className="w-3.5 h-3.5 text-blue-400" />
@@ -460,16 +469,31 @@ export default function DashboardSocials({
                       </div>
                     </div>
 
-                    {/* Card Middle: Real Follower Count */}
+                    {/* Card Middle: Real Follower Count & Connections */}
                     <div className="flex items-baseline justify-between pt-1">
-                      <div>
-                        <div className="text-2xl font-mono font-black text-white tracking-tight">
-                          {net.formattedFollowers || net.followers}
+                      <div className="flex items-baseline gap-4">
+                        <div>
+                          <div className="text-2xl font-mono font-black text-white tracking-tight">
+                            {net.formattedFollowers || net.followers}
+                          </div>
+                          <div className="text-[9px] font-mono uppercase tracking-wider text-slate-500 mt-0.5">
+                            {net.label || "FOLLOWERS"}
+                          </div>
                         </div>
-                        <div className="text-[9px] font-mono uppercase tracking-wider text-slate-500 mt-0.5">
-                          {net.label || "FOLLOWERS"}
-                        </div>
+
+                        {/* For LinkedIn: Display Followers beside Connections */}
+                        {net.provider?.toLowerCase() === "linkedin" && (net.formattedFollowerCount || net.followerCount) && (
+                          <div className="pl-4 border-l border-white/10">
+                            <div className="text-2xl font-mono font-black text-white tracking-tight">
+                              {net.formattedFollowerCount || net.followerCount}
+                            </div>
+                            <div className="text-[9px] font-mono uppercase tracking-wider text-slate-500 mt-0.5">
+                              FOLLOWERS
+                            </div>
+                          </div>
+                        )}
                       </div>
+
                       <div className="text-right">
                         <span className="text-xs font-mono font-bold text-[#c6f035]">
                           {net.barPercent}%
@@ -732,21 +756,56 @@ export default function DashboardSocials({
                   className="w-full px-4 py-2.5 rounded-xl bg-[#1a1914] border border-white/10 text-white text-sm font-mono focus:border-[#c6f035] focus:outline-none placeholder:text-slate-600"
                 />
 
-                {/* Connections / Followers Count Input for LinkedIn or manual override */}
+                {/* Connections Count Input for LinkedIn or manual override */}
                 {(modalProvider === "linkedin" || modalFollowers !== "") && (
                   <div className="mt-3">
                     <label className="block text-xs font-mono uppercase text-slate-400 mb-1.5">
-                      {DEFAULT_PLATFORM_META[modalProvider]?.label || "CONNECTIONS"} Count (Optional)
+                      {modalProvider === "linkedin" ? "Connections Count (e.g. 500+)" : `${DEFAULT_PLATFORM_META[modalProvider]?.label || "FOLLOWERS"} Count (Optional)`}
                     </label>
                     <input
                       type="text"
                       value={modalFollowers}
                       onChange={(e) => setModalFollowers(e.target.value)}
-                      placeholder="e.g. 500 or 1250"
+                      placeholder="e.g. 500 or 500+"
+                      className="w-full px-4 py-2 rounded-xl bg-[#1a1914] border border-white/10 text-white text-sm font-mono focus:border-[#c6f035] focus:outline-none placeholder:text-slate-600"
+                    />
+                  </div>
+                )}
+
+                {/* Followers Count Input (Beside Connections) for LinkedIn */}
+                {modalProvider === "linkedin" && (
+                  <div className="mt-3">
+                    <label className="block text-xs font-mono uppercase text-slate-400 mb-1.5">
+                      Followers Count (Beside Connections)
+                    </label>
+                    <input
+                      type="text"
+                      value={modalFollowerCount}
+                      onChange={(e) => setModalFollowerCount(e.target.value)}
+                      placeholder="e.g. 1K or 1050"
                       className="w-full px-4 py-2 rounded-xl bg-[#1a1914] border border-white/10 text-white text-sm font-mono focus:border-[#c6f035] focus:outline-none placeholder:text-slate-600"
                     />
                     <p className="text-[10px] text-slate-500 mt-1">
-                      LinkedIn login wall restricts automated bots. Enter your current connections count to display on your public profile reach.
+                      Displays directly beside connections on your LinkedIn card (e.g. 500+ CONNECTIONS · 1K FOLLOWERS).
+                    </p>
+                  </div>
+                )}
+
+                {/* LinkedIn Custom Avatar Photo URL Input */}
+                {modalProvider === "linkedin" && (
+                  <div className="mt-3">
+                    <label className="block text-xs font-mono uppercase text-slate-400 mb-1.5">
+                      LinkedIn Avatar Photo URL (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={modalAvatar}
+                      onChange={(e) => setModalAvatar(e.target.value)}
+                      placeholder="e.g. Direct image link (https://...)"
+                      className="w-full px-4 py-2 rounded-xl bg-[#1a1914] border border-white/10 text-white text-sm font-mono focus:border-[#c6f035] focus:outline-none placeholder:text-slate-600"
+                    />
+                    <p className="text-[10px] text-slate-500 mt-1">
+                      If LinkedIn privacy settings hide your photo from guests/bots, paste your photo link here or leave empty to use your LinkHub profile avatar.
                     </p>
                   </div>
                 )}

@@ -59,28 +59,50 @@ async function fetchLinkedInData(username) {
           }
         }
 
-        // Parse stats from description or HTML body
-        const searchScope = `${ogDesc || ""} ${html.slice(0, 30000)}`;
-        const statsMatch = searchScope.match(/([\d,+.?kmbKMB]+)\s*(?:connections|followers|Followers|Connections)/);
+        // Parse connections and followers independently from the HTML and description
         let connections = 0;
-        let formattedFollowers = null;
-
-        if (statsMatch) {
-          const rawMatch = statsMatch[0]; // e.g. "500+ connections"
-          const rawNum = statsMatch[1].replace(/[,+]/g, "").toLowerCase();
+        let formattedConnections = "500+";
+        const connMatch = html.match(/([\d,+.?kmbKMB]+)\s*(?:connections|Connections)/i) || ogDesc?.match(/([\d,+.?kmbKMB]+)\s*(?:connections|Connections)/i);
+        if (connMatch) {
+          const rawMatch = connMatch[0];
+          formattedConnections = rawMatch.includes("500+") ? "500+" : connMatch[1];
+          const rawNum = connMatch[1].replace(/[,+]/g, "").toLowerCase();
           connections = parseFloat(rawNum);
           if (rawNum.includes("k")) connections *= 1000;
           if (rawNum.includes("m")) connections *= 1000000;
           connections = Math.floor(connections);
-          formattedFollowers = rawMatch.includes("500+") ? "500+" : null;
+        } else {
+          connections = 500;
+          formattedConnections = "500+";
         }
+
+        let followerCount = null;
+        let formattedFollowerCount = null;
+        // Search top-card or not-first-middot first for user's own follower count
+        const notFirstMiddot = html.match(/class="not-first-middot"[\s\S]*?<\/div>/i);
+        const topScope = notFirstMiddot ? notFirstMiddot[0] : html.slice(0, 50000);
+        const follMatch = topScope.match(/([\d,+.?kmbKMB]+)\s*followers/i) || html.match(/([\d,+.?kmbKMB]+)\s*followers/i);
+        if (follMatch) {
+          formattedFollowerCount = follMatch[1];
+          let num = parseFloat(follMatch[1].replace(/[,+]/g, "").toLowerCase());
+          if (follMatch[1].toLowerCase().includes("k")) num *= 1000;
+          if (follMatch[1].toLowerCase().includes("m")) num *= 1000000;
+          followerCount = Math.floor(num);
+        }
+
+        // Check if avatar is real or a LinkedIn ghost silhouette
+        let avatar = ogImage;
+        const isGhost = !avatar || avatar.includes("licdn.com/aero-v1/sc/h/") || avatar.includes("ghost") || avatar.includes("placeholder");
 
         return {
           name: name || username,
-          avatar: ogImage || getFallbackAvatar(username),
+          avatar: isGhost ? null : avatar,
           bio: ogDesc?.split("View")[0]?.split("...")[0]?.trim() || `@${username} on LinkedIn`,
           connections: connections || 500,
-          formattedFollowers: formattedFollowers || (connections > 0 ? `${connections.toLocaleString()}+` : "500+"),
+          formattedConnections,
+          followerCount,
+          formattedFollowerCount,
+          formattedFollowers: formattedConnections,
         };
       }
     } catch (error) {
@@ -102,9 +124,12 @@ export async function getLinkedInProfile(input) {
         platform: "LinkedIn",
         username,
         name: data.name,
-        avatar: data.avatar || getFallbackAvatar(username),
+        avatar: data.avatar || null,
         connections: data.connections || 500,
-        formattedFollowers: data.formattedFollowers || "500+",
+        formattedConnections: data.formattedConnections || "500+",
+        followerCount: data.followerCount,
+        formattedFollowerCount: data.formattedFollowerCount,
+        formattedFollowers: data.formattedConnections || "500+",
         bio: data.bio || `@${username} on LinkedIn`,
         profileUrl: `https://linkedin.com/in/${username}`,
       };

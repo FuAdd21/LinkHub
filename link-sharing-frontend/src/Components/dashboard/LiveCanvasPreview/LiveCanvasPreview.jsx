@@ -223,7 +223,8 @@ export default function LiveCanvasPreview({ user, links = [], integrations }) {
                           net.avatar.includes("licdn.com/aero-v1/sc/h/") ||
                           net.avatar.includes("placeholder") ||
                           net.avatar.includes("ghost");
-                        const displayAvatar = !isGhost ? net.avatar : (avatarUrl || net.avatar);
+                        const rawAvatar = !isGhost ? net.avatar : (avatarUrl || net.avatar);
+                        const displayAvatar = rawAvatar ? getAvatarUrl(rawAvatar) : null;
 
                         return displayAvatar ? (
                           <img
@@ -259,6 +260,9 @@ export default function LiveCanvasPreview({ user, links = [], integrations }) {
                       </div>
                       <div className="text-[10px] font-mono text-slate-400 truncate">
                         <span className="text-[#c6f035] font-bold">{metricText}</span> {labelText}
+                        {isLI && (net.formattedFollowerCount || net.followerCount) && (
+                          <span className="text-slate-300"> · <span className="text-[#c6f035] font-bold">{net.formattedFollowerCount || net.followerCount}</span> followers</span>
+                        )}
                       </div>
                     </div>
                   </div>

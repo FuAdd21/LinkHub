@@ -485,7 +485,8 @@ export default function PublicProfile() {
                           net.avatar.includes("licdn.com/aero-v1/sc/h/") ||
                           net.avatar.includes("placeholder") ||
                           net.avatar.includes("ghost");
-                        const cardAvatar = !isGhost ? net.avatar : (avatarUrl || net.avatar);
+                        const rawAvatar = !isGhost ? net.avatar : (avatarUrl || net.avatar);
+                        const cardAvatar = rawAvatar ? assetUrl(rawAvatar) : null;
 
                         return cardAvatar ? (
                           <img
@@ -534,6 +535,11 @@ export default function PublicProfile() {
                           {net.formattedFollowers || net.followers || "500+"}
                         </span>{" "}
                         {net.label ? net.label.toLowerCase() : isLinkedIn ? "connections" : "followers"}
+                        {isLinkedIn && (net.formattedFollowerCount || net.followerCount) && (
+                          <span className="text-slate-300">
+                            {" "}· <span className="text-[#c6f035] font-bold">{net.formattedFollowerCount || net.followerCount}</span> followers
+                          </span>
+                        )}
                         {isYouTube && net.videos > 0 && (
                           <span className="text-slate-500"> · {net.videos} videos</span>
                         )}
