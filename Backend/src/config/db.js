@@ -25,6 +25,23 @@ const poolConfig = config.db.uri
 export const db = mysql.createPool(poolConfig);
 
 export const initDatabase = async () => {
+  // If not using a raw URI, ensure the target database exists first
+  if (!config.db.uri && config.db.database && config.db.database !== "sys") {
+    try {
+      const adminConn = await mysql.createConnection({
+        host: config.db.host,
+        port: config.db.port,
+        user: config.db.user,
+        password: config.db.password,
+        ssl: config.db.ssl ? { minVersion: "TLSv1.2", rejectUnauthorized: true } : undefined,
+      });
+      await adminConn.query(`CREATE DATABASE IF NOT EXISTS \`${config.db.database}\`;`);
+      await adminConn.end();
+    } catch (e) {
+      logger.warn(`Auto-creation of database '${config.db.database}' skipped: ${e.message}`);
+    }
+  }
+
   let connection;
   try {
     connection = await db.getConnection();
