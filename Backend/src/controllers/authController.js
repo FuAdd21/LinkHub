@@ -22,22 +22,19 @@ export const login = async (req, res, next) => {
     const { email, password } = req.body;
     const { token, csrfToken, user } = await authService.loginUser({ email, password });
 
-    const isProd = config.isProd;
-
-    res.cookie("token", token, {
+    const cookieOptions = {
       httpOnly: true,
-      secure: isProd,
-      sameSite: "lax",
+      secure: config.cookie.secure,
+      sameSite: config.cookie.sameSite,
       path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+      maxAge: config.cookie.maxAge,
+    };
+
+    res.cookie("token", token, cookieOptions);
 
     res.cookie("csrf_token", csrfToken, {
+      ...cookieOptions,
       httpOnly: false,
-      secure: isProd,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
     res.json({
@@ -54,9 +51,13 @@ export const login = async (req, res, next) => {
 };
 
 export const logout = async (req, res) => {
-  const isProd = config.isProd;
-  res.clearCookie("token", { path: "/", httpOnly: true, secure: isProd, sameSite: "lax" });
-  res.clearCookie("csrf_token", { path: "/", httpOnly: false, secure: isProd, sameSite: "lax" });
+  const clearOptions = {
+    path: "/",
+    secure: config.cookie.secure,
+    sameSite: config.cookie.sameSite,
+  };
+  res.clearCookie("token", { ...clearOptions, httpOnly: true });
+  res.clearCookie("csrf_token", { ...clearOptions, httpOnly: false });
   res.json({ success: true, message: "Logged out successfully" });
 };
 

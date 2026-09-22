@@ -8,6 +8,7 @@ import jwt from "jsonwebtoken";
 import { db } from "../config/db.js";
 import { validateImageMagicBytes } from "../utils/imageValidator.js";
 import { profileCache } from "../utils/cache.js";
+import { config } from "../config/env.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -449,13 +450,12 @@ export const changePassword = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN || "7d" }
     );
-    const isProd = process.env.NODE_ENV === "production";
     res.cookie("token", token, {
       httpOnly: true,
-      secure: isProd,
-      sameSite: "lax",
+      secure: config.cookie.secure,
+      sameSite: config.cookie.sameSite,
       path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: config.cookie.maxAge,
     });
 
     res.json({ message: "Password updated successfully" });
