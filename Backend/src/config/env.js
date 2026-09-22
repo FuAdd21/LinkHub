@@ -45,11 +45,14 @@ export const config = Object.freeze({
 
   // Database
   db: {
+    uri: optional("DATABASE_URL", optional("DB_URI", "")),
     host: optional("DB_HOST", "localhost"),
-    user: required("DB_USER"),
-    password: required("DB_PASSWORD"),
-    database: required("DB_NAME"),
+    port: optionalInt("DB_PORT", 3306),
+    user: (process.env.DATABASE_URL || process.env.DB_URI) ? optional("DB_USER", "") : required("DB_USER"),
+    password: (process.env.DATABASE_URL || process.env.DB_URI) ? optional("DB_PASSWORD", "") : required("DB_PASSWORD"),
+    database: (process.env.DATABASE_URL || process.env.DB_URI) ? optional("DB_NAME", "") : required("DB_NAME"),
     connectionLimit: optionalInt("DB_CONNECTION_LIMIT", 10),
+    ssl: optionalBool("DB_SSL", false),
   },
 
   // JWT

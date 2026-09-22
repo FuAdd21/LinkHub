@@ -3,15 +3,26 @@ import { config } from "./env.js";
 import { runMigrations } from "../../migrations/runner.js";
 import { logger } from "./logger.js";
 
-export const db = mysql.createPool({
-  host: config.db.host,
-  user: config.db.user,
-  password: config.db.password,
-  database: config.db.database,
-  waitForConnections: true,
-  connectionLimit: config.db.connectionLimit,
-  queueLimit: 0,
-});
+const poolConfig = config.db.uri
+  ? config.db.uri
+  : {
+      host: config.db.host,
+      port: config.db.port,
+      user: config.db.user,
+      password: config.db.password,
+      database: config.db.database,
+      waitForConnections: true,
+      connectionLimit: config.db.connectionLimit,
+      queueLimit: 0,
+      ssl: config.db.ssl
+        ? {
+            minVersion: "TLSv1.2",
+            rejectUnauthorized: true,
+          }
+        : undefined,
+    };
+
+export const db = mysql.createPool(poolConfig);
 
 export const initDatabase = async () => {
   let connection;
