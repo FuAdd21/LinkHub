@@ -10,6 +10,7 @@ import WelcomePage from "./Components/WelcomePage";
 import PublicProfile from "./pages/PublicProfile";
 import Onboarding from "./pages/Onboarding";
 import { Toaster } from "react-hot-toast";
+import { Analytics } from "@vercel/analytics/react";
 
 import ErrorBoundary from "./Components/ErrorBoundary";
 
@@ -23,6 +24,7 @@ function App() {
     <Router>
       <>
         <Toaster position="top-center" reverseOrder={false} />
+        <Analytics />
       </>
       <ErrorBoundary>
         <Routes>
