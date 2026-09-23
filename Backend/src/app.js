@@ -84,6 +84,16 @@ app.use("/api/integrations", integrationRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/credentials", credentialRoutes);
 
+// Root endpoint
+app.get("/", (req, res) => {
+  res.json({
+    status: "ok",
+    message: "LinkHub API is live and operational",
+    version: "1.0.0",
+    health: "/health",
+  });
+});
+
 // Server-side redirect & click tracker
 app.get("/r/:linkId", handleLinkRedirect);
 
