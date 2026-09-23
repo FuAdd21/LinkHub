@@ -4,7 +4,7 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { config } from "./config/env.js";
+import { config, isOriginAllowed } from "./config/env.js";
 import { notFoundHandler, errorHandler } from "./errors/errorHandler.js";
 import { requestLogger } from "./config/logger.js";
 
@@ -51,17 +51,6 @@ app.use(
 app.use(cookieParser());
 
 // CORS with credentials support
-const allowedOrigins = config.cors.allowedOrigins;
-
-const isOriginAllowed = (origin) => {
-  if (!origin) return true;
-  const cleanOrigin = origin.trim().replace(/\/+$/, "");
-  if (allowedOrigins.includes(cleanOrigin)) return true;
-  // Allow all Vercel deployment and preview URLs
-  if (/^https:\/\/[a-zA-Z0-9_-]+\.vercel\.app$/.test(cleanOrigin)) return true;
-  return false;
-};
-
 app.use(
   cors({
     origin: (origin, callback) => {

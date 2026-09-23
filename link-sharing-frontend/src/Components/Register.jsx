@@ -49,7 +49,8 @@ export default function Register() {
               name: form.name,
               username: loginRes.data.username || "",
             },
-            loginRes.data.csrfToken
+            loginRes.data.csrfToken,
+            loginRes.data.token
           );
           toast.success("Account created! Let's set up your profile.");
           navigate("/create-profile");

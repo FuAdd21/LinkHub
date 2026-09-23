@@ -33,11 +33,18 @@ export const api = axios.create({
   timeout: 10000,
 });
 
-// Attach CSRF token on state-modifying requests
+// Attach Bearer token & CSRF token on requests
 api.interceptors.request.use((config) => {
+  const token = typeof localStorage !== "undefined" ? localStorage.getItem("token") : null;
+  if (token && !config.headers["Authorization"]) {
+    config.headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const method = (config.method || "get").toLowerCase();
   if (["post", "put", "delete", "patch"].includes(method)) {
-    const csrfToken = getCookie("csrf_token");
+    const csrfToken =
+      getCookie("csrf_token") ||
+      (typeof localStorage !== "undefined" ? localStorage.getItem("csrf_token") : null);
     if (csrfToken) {
       config.headers["X-CSRF-Token"] = csrfToken;
     }

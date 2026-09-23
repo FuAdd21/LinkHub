@@ -33,7 +33,7 @@ export default function Login() {
         name: data.name,
         username: data.username,
       };
-      login(userData, data.csrfToken);
+      login(userData, data.csrfToken, data.token);
       toast.success("Identity verified. Welcome back.");
 
       if (data.username) {

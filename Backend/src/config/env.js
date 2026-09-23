@@ -144,3 +144,11 @@ if (isProd) {
     throw new Error("CRITICAL: JWT_SECRET must be changed from the default value in production");
   }
 }
+
+export const isOriginAllowed = (origin) => {
+  if (!origin) return true;
+  const cleanOrigin = origin.trim().replace(/\/+$/, "");
+  if (config.cors.allowedOrigins.includes(cleanOrigin)) return true;
+  if (/^https:\/\/[a-zA-Z0-9_-]+\.vercel\.app$/.test(cleanOrigin)) return true;
+  return false;
+};

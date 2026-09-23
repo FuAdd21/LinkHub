@@ -43,6 +43,7 @@ export const login = async (req, res, next) => {
       userId: user.userId,
       name: user.name,
       username: user.username,
+      token,
       csrfToken,
     });
   } catch (err) {

@@ -1,17 +1,18 @@
 import jwt from "jsonwebtoken";
 import { db } from "../config/db.js";
-import { config } from "../config/env.js";
+import { config, isOriginAllowed } from "../config/env.js";
 
 export const authenticateToken = (req, res, next) => {
   // JWT_SECRET is validated at startup by env.js
 
-  // 1. Extract token from cookie (primary) or Bearer header (fallback)
+  // 1. Extract token from Bearer header (primary) or cookie (fallback)
   const authHeader = req.headers.authorization;
   const [scheme, headerToken] = authHeader?.split(" ") ?? [];
 
   const cookieToken = req.cookies?.token;
-  const token = cookieToken || (scheme === "Bearer" ? headerToken : null);
-  const isCookieAuth = Boolean(cookieToken);
+  const isBearerAuth = scheme === "Bearer" && Boolean(headerToken);
+  const token = isBearerAuth ? headerToken : cookieToken;
+  const isCookieAuth = Boolean(cookieToken) && !isBearerAuth;
 
   if (!token) {
     return res.status(401).json({ message: "No token provided", code: "NO_TOKEN" });
@@ -22,12 +23,25 @@ export const authenticateToken = (req, res, next) => {
   if (isCookieAuth && isStateModifying) {
     const clientCsrf = req.headers["x-csrf-token"];
     const cookieCsrf = req.cookies?.csrf_token;
+    const origin = req.headers.origin;
 
-    if (!clientCsrf || !cookieCsrf || clientCsrf !== cookieCsrf) {
-      return res.status(403).json({
-        message: "CSRF token validation failed",
-        code: "CSRF_INVALID",
-      });
+    if (clientCsrf && cookieCsrf) {
+      if (clientCsrf !== cookieCsrf) {
+        return res.status(403).json({
+          message: "CSRF token validation failed",
+          code: "CSRF_INVALID",
+        });
+      }
+    } else if (cookieCsrf && !clientCsrf) {
+      // In decoupled cross-origin architecture (Vercel frontend + Render backend),
+      // frontend cannot read cross-site cookies via document.cookie.
+      // Allow request if origin is verified against allowedOrigins.
+      if (!origin || !isOriginAllowed(origin)) {
+        return res.status(403).json({
+          message: "CSRF token validation failed",
+          code: "CSRF_INVALID",
+        });
+      }
     }
   }
 

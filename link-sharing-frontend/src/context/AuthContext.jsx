@@ -53,14 +53,25 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  const login = useCallback((arg1, arg2) => {
+  const login = useCallback((arg1, arg2, arg3) => {
     let userData = null;
+    let csrfToken = null;
+    let token = null;
+
     if (typeof arg1 === "string" && typeof arg2 === "object") {
       userData = arg2;
+      csrfToken = arg1;
+      token = arg3;
     } else {
       userData = arg1;
+      csrfToken = typeof arg2 === "string" ? arg2 : null;
+      token = typeof arg3 === "string" ? arg3 : null;
     }
+
     if (userData) localStorage.setItem("user", JSON.stringify(userData));
+    if (csrfToken) localStorage.setItem("csrf_token", csrfToken);
+    if (token) localStorage.setItem("token", token);
+
     setIsAuthenticated(true);
     setUser(userData || null);
   }, []);
@@ -68,6 +79,8 @@ export const AuthProvider = ({ children }) => {
   const logout = useCallback((notify = true) => {
     api.post("/logout").catch(() => {});
     localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    localStorage.removeItem("csrf_token");
     setIsAuthenticated(false);
     setUser(null);
     if (notify) {
