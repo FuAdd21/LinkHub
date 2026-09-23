@@ -17,7 +17,7 @@ const poolConfig = config.db.uri
       ssl: config.db.ssl
         ? {
             minVersion: "TLSv1.2",
-            rejectUnauthorized: true,
+            rejectUnauthorized: false,
           }
         : undefined,
     };
@@ -33,7 +33,7 @@ export const initDatabase = async () => {
         port: config.db.port,
         user: config.db.user,
         password: config.db.password,
-        ssl: config.db.ssl ? { minVersion: "TLSv1.2", rejectUnauthorized: true } : undefined,
+        ssl: config.db.ssl ? { minVersion: "TLSv1.2", rejectUnauthorized: false } : undefined,
       });
       await adminConn.query(`CREATE DATABASE IF NOT EXISTS \`${config.db.database}\`;`);
       await adminConn.end();
