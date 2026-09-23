@@ -27,7 +27,7 @@ export default function WelcomePage() {
       {/* ──── Top Navigation ──── */}
       <header className="sticky top-0 z-50 backdrop-blur-md bg-[#07080a]/90 w-full border-b border-white/[0.07] px-6 sm:px-10 lg:px-16 py-4 flex items-center justify-between">
         {/* Brand */}
-        <LinkHubLogo showPro={true} />
+        <LinkHubLogo />
 
         {/* Center Desktop Links */}
         <nav className="hidden md:flex items-center gap-8 text-xs font-medium text-zinc-400">

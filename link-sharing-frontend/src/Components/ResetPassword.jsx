@@ -64,7 +64,7 @@ export default function ResetPassword() {
     <div className="min-h-screen bg-[#07080a] text-white selection:bg-[#c6f035] selection:text-black font-sans flex flex-col justify-between">
       {/* ──── Header Navigation ──── */}
       <header className="w-full border-b border-white/[0.07] px-6 sm:px-10 lg:px-16 py-4.5 flex items-center justify-between">
-        <LinkHubLogo showPro={true} />
+        <LinkHubLogo />
 
         <Link
           to="/login"

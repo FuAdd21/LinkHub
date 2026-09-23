@@ -53,7 +53,7 @@ export default function Login() {
       {/* ──── Header Navigation ──── */}
       <header className="w-full border-b border-white/[0.07] px-6 sm:px-10 lg:px-16 py-4.5 flex items-center justify-between">
         {/* Brand */}
-        <LinkHubLogo showPro={true} />
+        <LinkHubLogo />
 
         {/* Mobile Top Right Action */}
         <Link

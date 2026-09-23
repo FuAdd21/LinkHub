@@ -94,7 +94,9 @@ export default function SidebarNav({
             <span className="hidden lg:inline text-base font-extrabold tracking-tight text-white">
               LinkHub
             </span>
-            <span className="hidden lg:inline sidebar-brand-badge uppercase">PRO</span>
+            {(user?.is_pro || user?.plan === "pro") && (
+              <span className="hidden lg:inline sidebar-brand-badge uppercase">PRO</span>
+            )}
           </Link>
 
           {/* Close button on mobile */}

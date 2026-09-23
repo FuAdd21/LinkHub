@@ -24,7 +24,7 @@ export function LinkHubMark({ className = "w-7 h-7", iconClassName = "w-4 h-4" }
 }
 
 export default function LinkHubLogo({
-  showPro = true,
+  showPro = false,
   to = "/",
   className = "",
   markClassName = "w-8 h-8",
