@@ -186,7 +186,7 @@ export default function Register() {
               disabled={loading}
               className="w-full py-3.5 bg-[#c6f035] text-[#07080a] font-bold text-sm rounded-lg hover:brightness-105 transition-all shadow-[0_2px_12px_rgba(198,240,53,0.15)] disabled:opacity-50 mt-2"
             >
-              {loading ? "Creating account..." : "Continue to profile setup &rarr;"}
+              {loading ? "Creating account..." : "Continue to profile setup →"}
             </button>
           </form>
 

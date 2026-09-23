@@ -183,7 +183,7 @@ export default function Login() {
                   to="/register"
                   className="text-[#c6f035] font-semibold hover:underline inline-flex items-center gap-1"
                 >
-                  Create a profile &rarr;
+                  Create a profile →
                 </Link>
               </div>
 

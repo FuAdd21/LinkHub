@@ -83,11 +83,19 @@ export const config = Object.freeze({
   // CORS
   cors: {
     frontendUrl: optional("FRONTEND_URL", ""),
-    allowedOrigins: [
-      process.env.FRONTEND_URL,
-      "http://localhost:5173",
-      "http://127.0.0.1:5173",
-    ].filter(Boolean),
+    allowedOrigins: (() => {
+      const raw = process.env.FRONTEND_URL || "";
+      const parsed = raw
+        .split(",")
+        .map((s) => cleanVal(s).replace(/\/+$/, ""))
+        .filter(Boolean);
+      const defaults = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "https://link-hub-nine-coral.vercel.app",
+      ];
+      return Array.from(new Set([...defaults, ...parsed]));
+    })(),
   },
 
   // Analytics
